@@ -1,0 +1,2 @@
+This test checks that the operation of the else branch in an if/then/else block
+works correctly.

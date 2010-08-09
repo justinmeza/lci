@@ -1,0 +1,3 @@
+HAI 1.2
+	VISIBLE SMOOSH "a" AN "" AN "b" AN "WIN" AN "c" AN "1" AN "d" AN "3.456" AN "e" MKAY
+KTHXBYE

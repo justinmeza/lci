@@ -1,0 +1,2 @@
+This test checks that the explicit recast operator correctly casts boolean
+values to integer types.

@@ -1,0 +1,4 @@
+This test checks that the inequality operator works correctly with nil typed
+arguments.  Note that boolean values can not be cast to strings so this test
+first implicitly casts the resulting boolean values to integer values and
+prints these out instead.

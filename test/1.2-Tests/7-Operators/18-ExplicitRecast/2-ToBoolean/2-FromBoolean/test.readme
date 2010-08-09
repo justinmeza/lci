@@ -1,0 +1,4 @@
+This test checks that the explicit recast operator correctly casts boolean
+values to boolean types.  Note that boolean values cannot be implicitly cast to
+strings so they are first implicitly cast to integer values which are then
+implicitly cast to strings.

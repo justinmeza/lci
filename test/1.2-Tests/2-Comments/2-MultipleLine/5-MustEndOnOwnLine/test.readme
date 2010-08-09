@@ -1,0 +1,2 @@
+This test checks that multiple line comments must end on their own line and not
+be followed by any other code.

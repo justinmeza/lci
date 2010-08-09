@@ -1,0 +1,2 @@
+This test checks to make sure variables are only used after being declared and
+an error should be raised otherwise.

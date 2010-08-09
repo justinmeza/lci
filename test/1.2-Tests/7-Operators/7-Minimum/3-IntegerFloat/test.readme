@@ -1,0 +1,2 @@
+This test makes sure the minimum operator works correctly on integer and
+floating point decimal arguments.

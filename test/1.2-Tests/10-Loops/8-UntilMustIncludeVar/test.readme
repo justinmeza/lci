@@ -1,0 +1,2 @@
+This test makes sure that an error occurs if an "until" stopping condition is
+used without a temporary loop variable.

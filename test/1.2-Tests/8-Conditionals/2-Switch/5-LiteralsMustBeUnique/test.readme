@@ -1,0 +1,2 @@
+This test checks to make sure literals in a switch block must be unique from
+one another.

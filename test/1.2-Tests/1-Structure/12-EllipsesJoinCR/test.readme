@@ -1,0 +1,2 @@
+This test checks that ellipses followed by a carriage return character (\r) join
+multiple portions of a statement on separate lines.

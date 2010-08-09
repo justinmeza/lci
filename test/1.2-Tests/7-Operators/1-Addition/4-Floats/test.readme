@@ -1,0 +1,2 @@
+This test makes sure the addition operator works correctly on floating point
+decimal arguments.

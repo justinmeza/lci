@@ -1,0 +1,23 @@
+HAI 1.2
+	HOW DUZ I fun1 YR a
+		VISIBLE a
+		BOTH SAEM a AN 0
+		O RLY?
+			YA RLY
+				GTFO
+		OIC
+		fun2 DIFF OF a AN 1
+	IF U SAY SO
+
+	HOW DUZ I fun2 YR a
+		VISIBLE a
+		BOTH SAEM a AN 0
+		O RLY?
+			YA RLY
+				GTFO
+		OIC
+		fun1 DIFF OF a AN 1
+	IF U SAY SO
+
+	fun1 9
+KTHXBYE

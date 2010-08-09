@@ -1,0 +1,4 @@
+This test makes sure that the logical OR n-ary operator can be nexted within
+itself.  Note that boolean values can not be cast to strings so this test first
+implicitly casts the resulting boolean values to integer values and prints
+these out instead.

@@ -1,0 +1,3 @@
+This test checks that ellipses followed by carriage return (\r) and linefeed
+(\n) characters must not be followed by additional carriage return and linefeed
+characters.

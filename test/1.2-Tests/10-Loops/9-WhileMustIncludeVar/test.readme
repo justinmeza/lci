@@ -1,0 +1,2 @@
+This test makes sure that an error occurs if a "while" stopping condition is
+used without a temporary loop variable.

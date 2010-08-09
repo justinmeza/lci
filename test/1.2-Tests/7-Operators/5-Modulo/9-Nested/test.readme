@@ -1,0 +1,2 @@
+This test checks that the modulo operator can be nested as the argument of
+itself.

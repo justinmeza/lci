@@ -1,0 +1,2 @@
+This test checks to make sure that floating point decimals are truncated to two
+decimal points when printed printed and not rounded.

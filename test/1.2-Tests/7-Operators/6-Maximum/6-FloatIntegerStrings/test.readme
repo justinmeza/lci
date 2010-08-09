@@ -1,0 +1,2 @@
+This test makes sure the maximum operator works correctly on strings
+containing foating point decimal and integer arguments.

@@ -1,0 +1,2 @@
+This test checks that the subtraction operator can be nested as the argument of
+itself.

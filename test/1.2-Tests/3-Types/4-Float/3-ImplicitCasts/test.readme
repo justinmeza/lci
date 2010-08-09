@@ -1,0 +1,2 @@
+This test checks to make sure other types are cast to floating point decimals
+correctly.

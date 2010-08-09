@@ -1,0 +1,5 @@
+This test makes sure the print expression does not print booleans and issues an
+error if it tries to do so.  Note the specification is unclear as to if or how
+booleans are cast to strings, discussion on the forum has mentioned casting them
+to "WIN" and "FAIL" for true and false, respectively, but this has not made its
+way into the specification.

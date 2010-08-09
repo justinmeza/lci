@@ -1,0 +1,2 @@
+This test checks that multiple line comments may start on a separate line and
+end on the same line as the last line of the comment.

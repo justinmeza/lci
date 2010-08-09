@@ -1,0 +1,7 @@
+HAI 1.2
+	HOW DUZ I fun YR a
+		VISIBLE a
+	IF U SAY SO
+
+	fun SUM OF 1 AN 2.345
+KTHXBYE

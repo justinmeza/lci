@@ -1,0 +1,2 @@
+This test checks that the explicit cast operator results in an error when
+casting false boolean values to string types.

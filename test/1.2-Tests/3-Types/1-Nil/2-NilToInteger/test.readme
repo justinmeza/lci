@@ -1,0 +1,2 @@
+This test makes sure a nil typed value can NOT be cast to an integer typed
+value.

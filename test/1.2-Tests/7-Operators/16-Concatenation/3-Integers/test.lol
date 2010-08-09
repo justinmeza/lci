@@ -1,0 +1,3 @@
+HAI 1.2
+	VISIBLE SMOOSH "a" AN 1 AN "b" AN 2 AN "c" AN 3 AN "d" MKAY
+KTHXBYE

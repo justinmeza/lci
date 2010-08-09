@@ -1,0 +1,2 @@
+This test checks that the end or arguments token (MKAY) is optional for the
+concatenation operator if at the end of the line.

@@ -1,0 +1,2 @@
+This test checks that the tab escape character sequence (:>) is correctly
+handled within strings.

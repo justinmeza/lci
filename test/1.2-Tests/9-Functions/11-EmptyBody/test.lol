@@ -1,0 +1,6 @@
+HAI 1.2
+	HOW DUZ I fun
+	IF U SAY SO
+
+	fun
+KTHXBYE

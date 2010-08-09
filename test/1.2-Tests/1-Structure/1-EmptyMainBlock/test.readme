@@ -1,0 +1,2 @@
+This test checks to see whether the bare minimum program--consisting only of a
+main block--is correctly interpreted and produces no output.

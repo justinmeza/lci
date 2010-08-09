@@ -1,0 +1,4 @@
+This test checks that the explicit cast operator correctly casts integer values
+to nil types.  Note that nil values cannot be implicitly cast to strings so
+they are first implicitly cast to boolean values which are then implicitly cast
+to integer values which are then implicitly cast to strings.

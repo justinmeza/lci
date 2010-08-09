@@ -1,0 +1,1 @@
+This test checks that other types are implicitly cast to integers correctly.

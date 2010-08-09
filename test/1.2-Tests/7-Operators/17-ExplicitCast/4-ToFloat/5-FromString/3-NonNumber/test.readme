@@ -1,0 +1,2 @@
+This test checks to make sure explicitly casting a non-number string to a
+floating point decimal type results in an error.

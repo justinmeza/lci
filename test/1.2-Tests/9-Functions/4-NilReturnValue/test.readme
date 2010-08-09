@@ -1,0 +1,4 @@
+This test checks that a function with a nil return value works correctly.  Note
+that nil values cannot be implicitly cast to string values directly and thus
+this test first implicitly casts them to boolean values which are then cast to
+integer values which are then cast to string values.

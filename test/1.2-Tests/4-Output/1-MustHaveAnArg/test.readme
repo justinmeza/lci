@@ -1,0 +1,2 @@
+This test makes sure the print expression has at least one argument and raises
+an error if none are present.

@@ -1,0 +1,2 @@
+This test ensures that assigning a variable's value back to itself works
+correctly.

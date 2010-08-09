@@ -1,0 +1,5 @@
+This test checks that mixed literal types may appear within the case block.
+Note that the spec is unclear as to whether other types are implicitly cast to
+the type of the implicit variable.  This test assumes the same semantics as the
+built in comparison operator, namely, a guard matches the implicit variable if
+both its type and value match.

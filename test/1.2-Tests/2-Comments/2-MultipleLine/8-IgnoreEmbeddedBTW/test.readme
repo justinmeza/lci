@@ -1,0 +1,2 @@
+This test checks that multiple line comments ignore embedded single line
+comments.

@@ -1,0 +1,2 @@
+This test checks to make sure explicitly recasting an empty string to an
+integer type results in an error.

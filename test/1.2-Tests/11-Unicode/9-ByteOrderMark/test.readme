@@ -1,0 +1,2 @@
+This test checks that the Unicode byte order mark (BOM) is parsed and preserved
+correctly.  This test is encoded in UTF-8 format.

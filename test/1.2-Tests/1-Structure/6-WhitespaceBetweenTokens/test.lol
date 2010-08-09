@@ -1,0 +1,6 @@
+HAI 1.2
+	VISIBLE    "Lorem "    "ipsum "    "dolor "    "sit"
+	VISIBLE			"Lorem "			"ipsum "			"dolor "			"sit"
+	VISIBLE 	 "Lorem " 	 "ipsum " 	 "dolor " 	 "sit"
+	VISIBLE	 	"Lorem "	 	"ipsum "	 	"dolor "	 	"sit"
+KTHXBYE

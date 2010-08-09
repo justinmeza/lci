@@ -1,0 +1,2 @@
+This test makes sure the multiplication operator works correctly on strings
+containing floating point decimal arguments.

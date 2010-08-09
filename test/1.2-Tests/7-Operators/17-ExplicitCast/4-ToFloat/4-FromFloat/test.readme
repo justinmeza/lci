@@ -1,0 +1,2 @@
+This test checks that the explicit cast operator correctly casts floating point
+decimal values to floating point decimal types.

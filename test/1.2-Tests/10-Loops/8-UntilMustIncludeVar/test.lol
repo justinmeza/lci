@@ -1,0 +1,4 @@
+HAI 1.2
+	IM IN YR loop TIL WIN
+	IM OUTTA YR loop
+KTHXBYE

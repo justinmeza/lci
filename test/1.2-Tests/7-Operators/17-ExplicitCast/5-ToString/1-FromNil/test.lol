@@ -1,0 +1,4 @@
+HAI 1.2
+	I HAS A var
+	VISIBLE MAEK var A YARN
+KTHXBYE
