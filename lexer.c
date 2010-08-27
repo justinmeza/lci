@@ -259,18 +259,31 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 					&& *(start + len) != '\r'
 					&& *(start + len) != '\n'
 					&& *(start + len) != '"')
-					|| (*(start + len - 1) == ':'
-					&& *(start + len - 2) != '"'))
+					|| (*(start + len) == '"'
+					&& *(start + len - 1) == ':'
+					&& *(start + len - 2) != ':'))
 				len++;
 			if (*(start + len) == '"') len++;
+			/* Make sure this is the end of the token */
+			if (start[len] && !isspace(start[len])
+					&& *(start + len) != ','
+					&& *(start + len) != '!'
+					&& strncmp(start + len, "...", 3)
+					&& strncmp(start + len, "\xE2\x80\xA6", 3)) {
+				fprintf(stderr, "%s:%d: expected token delimiter after string literal\n", fname, line);
+				deleteLexemeList(list);
+				return NULL;
+			}
 		}
-		/* Scan for the end of the token */
-		while (start[len] && !isspace(start[len])
-				&& *(start + len) != ','
-				&& *(start + len) != '!'
-				&& strncmp(start + len, "...", 3)
-				&& strncmp(start + len, "\xE2\x80\xA6", 3))
-			len++;
+		else {
+			/* Scan for the end of the token */
+			while (start[len] && !isspace(start[len])
+					&& *(start + len) != ','
+					&& *(start + len) != '!'
+					&& strncmp(start + len, "...", 3)
+					&& strncmp(start + len, "\xE2\x80\xA6", 3))
+				len++;
+		}
 		temp = malloc(sizeof(char) * (len + 1));
 		if (!temp) {
 			perror("malloc");
