@@ -1526,7 +1526,7 @@ TypeNode *parseTypeNode(Token ***tokenp) /**< [in,out] A pointer to the position
 	/* Nil */
 	if (acceptToken(&tokens, TT_NOOB)) {
 #ifdef DEBUG
-		debug("CT_NI");
+		debug("CT_NIL");
 #endif
 		ret = createTypeNode(CT_NIL);
 		if (!ret) return NULL;
