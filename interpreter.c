@@ -2562,7 +2562,7 @@ ReturnObject *interpretCastStmtNode(StmtNode *node,     /**< [in] A pointer to t
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
-  * \see interpretlFuncDefStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretPrintStmtNode(StmtNode *node,     /**< [in] A pointer to a StmtNode structure containing the PrintStmtNode structure to interpret. */
                                      ScopeObject *scope) /**< [in] A pointer to the ScopeObject structure to evaluate \a node under. */
@@ -2607,7 +2607,7 @@ ReturnObject *interpretPrintStmtNode(StmtNode *node,     /**< [in] A pointer to 
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
-  * \see interpretlFuncDefStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretInputStmtNode(StmtNode *node,     /**< [in] A pointer to a StmtNode structure containing an InputStmtNode structure to interpret. */
                                      ScopeObject *scope) /**< [in,out] A pointer to the ScopeObject structure to evaluate \a node under. */
@@ -2757,7 +2757,7 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,     /**< [in] A point
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
-  * \see interpretlFuncDefStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretIfThenElseStmtNode(StmtNode *node,     /**< [in] A pointer to a StmtNode structure containing the IfThenElseStmtNode structure to interpret. */
                                           ScopeObject *scope) /**< [in,out] A pointer to the ScopeObject structure to evaluate \a node under. */
