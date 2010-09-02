@@ -1,3 +1,0 @@
-HAI 1.2
-	MOD OF 1 0
-KTHXBYE

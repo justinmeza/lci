@@ -1,4 +1,0 @@
-HAI 1.2
-	I HAS A var ITZ ""
-	var IS NOW A NUMBAR
-KTHXBYE

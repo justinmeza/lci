@@ -42,6 +42,7 @@ typedef enum {
 	TT_HAI,
 	TT_KTHXBYE,
 	TT_HASA,
+	TT_ITZA,
 	TT_ITZ,
 	TT_R,
 	TT_ANYR,
@@ -108,6 +109,7 @@ static const char *keywords[] = {
 	"HAI",         /* TT_HAI */
 	"KTHXBYE",     /* TT_KTHXBYE */
 	"HAS A",       /* TT_HASA */
+	"ITZ A",       /* TT_ITZA */
 	"ITZ",         /* TT_ITZ */
 	"R",           /* TT_R */
 	"AN YR",       /* TT_ANYR */

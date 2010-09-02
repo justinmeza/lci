@@ -1,0 +1,6 @@
+HAI 1.3
+	VISIBLE "a"
+	IM IN YR loop UPPIN YR var TIL BOTH SAEM var AN 10
+	IM OUTTA YR loop
+	VISIBLE "b"
+KTHXBYE

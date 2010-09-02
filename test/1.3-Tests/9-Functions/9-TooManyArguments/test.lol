@@ -1,0 +1,7 @@
+HAI 1.3
+	HOW DUZ I fun YR a
+		VISIBLE a
+	IF U SAY SO
+
+	fun 1 2
+KTHXBYE

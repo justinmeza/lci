@@ -1,4 +1,0 @@
-HAI 1.2
-	VISIBLE SMOOSH "a" AN "b" AN "c"
-	VISIBLE SMOOSH "a" AN "b" AN SMOOSH "c" AN "d" AN "e" MKAY
-KTHXBYE

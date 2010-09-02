@@ -2722,6 +2722,25 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,     /**< [in] A point
 	}
 	if (stmt->expr)
 		init = interpretExprNode(stmt->expr, scope);
+	else if (stmt->type) {
+		switch (stmt->type->type) {
+			case CT_NIL:
+				init = createNilValueObject();
+				break;
+			case CT_BOOLEAN:
+				init = createBooleanValueObject(0);
+				break;
+			case CT_INTEGER:
+				init = createIntegerValueObject(0);
+				break;
+			case CT_FLOAT:
+				init = createFloatValueObject(0.0);
+				break;
+			case CT_STRING:
+				init = createStringValueObject(createString(""));
+				break;
+		}
+	}
 	else
 		init = createNilValueObject();
 	if (!init) return NULL;

@@ -400,12 +400,16 @@ typedef struct {
   * contents of \a expr.  \a scope determines which level of scope the variable
   * is to be created in.
   *
+  * \note \a expr and \a type are mutually exclusive.  If both are non-NULL,
+  *       results are undefined.
+  *
   * \see createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *)
   * \see deleteDeclarationStmtNode(DeclarationStmtNode *) */
 typedef struct {
 	IdentifierNode *scope;  /**< A pointer to the scope to create the variable in. */
 	IdentifierNode *target; /**< A pointer to the name of the variable to create. */
-	ExprNode *expr;         /**< An optional pointer to expression to initialize \a target to. */
+	ExprNode *expr;         /**< An optional pointer to the expression to initialize \a target to. */
+	TypeNode *type;         /**< An optional pointer to the type to initialize \a target to. */
 } DeclarationStmtNode;
 
 /** Stores an if/then/else statement.  A conditional statement checks the value
@@ -552,7 +556,7 @@ void deleteInputStmtNode(InputStmtNode *);
 AssignmentStmtNode *createAssignmentStmtNode(IdentifierNode *, ExprNode *);
 void deleteAssignmentStmtNode(AssignmentStmtNode *);
 
-DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *);
+DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, TypeNode *);
 void deleteDeclarationStmtNode(DeclarationStmtNode *);
 
 IfThenElseStmtNode *createIfThenElseStmtNode(BlockNode *, BlockNode *, ExprNodeList *, BlockNodeList *);

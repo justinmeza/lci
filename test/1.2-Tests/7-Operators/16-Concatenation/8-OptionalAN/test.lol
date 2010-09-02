@@ -1,3 +1,0 @@
-HAI 1.2
-	VISIBLE SMOOSH "a" "b" "c" MKAY
-KTHXBYE

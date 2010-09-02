@@ -2,6 +2,7 @@ TARGET = lci
 LIBS = -lm
 OBJS = lexer.o tokenizer.o parser.o interpreter.o unicode.o main.o
 SRCS = lexer.c tokenizer.c parser.c interpreter.c unicode.c main.c
+HDRS = lexer.h tokenizer.h parser.h interpreter.h unicode.h
 INSTALL = /usr/local/bin/install -c
 CPPFLAGS = -O2
 
@@ -18,17 +19,17 @@ pedantic: $(OBJS) $(LIBS)
 	$(CC) -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wundef -W -Wall -ansi -pedantic -g -o $(TARGET) $(OBJS) $(LIBS)
 
 check: all
-	@cd $(testdir) && ./testDir.sh -q ../$(TARGET) 1.2-Tests/
+	@cd $(testdir) && ./testDir.sh -q ../$(TARGET) 1.3-Tests/
 
 check-mem: all
 	@echo "This will take a long time!  Be patient!"
-	@cd $(testdir) && ./testDir.sh -q -m ../$(TARGET) 1.2-Tests/
+	@cd $(testdir) && ./testDir.sh -q -m ../$(TARGET) 1.3-Tests/
 
 install: all
 	$(INSTALL) $(TARGET) $(bindir)/$(TARGET)
 
-TAGS: $(SRCS)
-	ctags $(SRCS)
+TAGS: $(SRCS) $(HDRS)
+	ctags $(SRCS) $(HDRS)
 
 docs: Doxyfile $(SRCS)
 	doxygen

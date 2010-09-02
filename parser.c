@@ -735,7 +735,8 @@ void deleteAssignmentStmtNode(AssignmentStmtNode *node) /**< [in,out] A pointer 
   * \see deleteDeclarationStmtNode(DeclarationStmtNode *) */
 DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *scope,  /**< [in] A pointer to the scope to create the variable in. */
                                                IdentifierNode *target, /**< [in] A pointer to the name of the variable to create. */
-                                               ExprNode *expr)         /**< [in] An optional pointer to the expression to initialize \a target to. */
+                                               ExprNode *expr,         /**< [in] An optional pointer to the expression to initialize \a target to. */
+                                               TypeNode *type)         /**< [in] An optional pointer to the type to initialize \a target to. */
 {
 	DeclarationStmtNode *p = malloc(sizeof(DeclarationStmtNode));
 	if (!p) {
@@ -745,6 +746,7 @@ DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *scope,  /**< [in]
 	p->scope = scope;
 	p->target = target;
 	p->expr = expr;
+	p->type = type;
 	return p;
 }
 
@@ -762,6 +764,7 @@ void deleteDeclarationStmtNode(DeclarationStmtNode *node) /**< [in,out] A pointe
 	deleteIdentifierNode(node->scope);
 	deleteIdentifierNode(node->target);
 	deleteExprNode(node->expr);
+	deleteTypeNode(node->type);
 	free(node);
 }
 
@@ -2148,6 +2151,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 		IdentifierNode *scope = NULL;
 		IdentifierNode *target = NULL;
 		ExprNode *expr = NULL;
+		TypeNode *type = NULL;
 		DeclarationStmtNode *stmt = NULL;
 #ifdef DEBUG
 		debug("ST_DECLARATION");
@@ -2172,6 +2176,14 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 				return NULL;
 			}
 		}
+		else if (acceptToken(&tokens, TT_ITZA)) {
+			type = parseTypeNode(&tokens);
+			if (!type) {
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(target);
+				return NULL;
+			}
+		}
 		if (!acceptToken(&tokens, TT_NEWLINE)) {
 			error("expected end of statement", tokens);
 			deleteIdentifierNode(scope);
@@ -2179,7 +2191,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 			if (expr) deleteExprNode(expr);
 			return NULL;
 		}
-		stmt = createDeclarationStmtNode(scope, target, expr);
+		stmt = createDeclarationStmtNode(scope, target, expr, type);
 		if (!stmt) {
 			deleteIdentifierNode(scope);
 			deleteIdentifierNode(target);

@@ -1,0 +1,11 @@
+HAI 1.3
+	I HAS A var1 ITZ ""
+	I HAS A var2 ITZ "0"
+	I HAS A var3 ITZ "2.345"
+	var1 IS NOW A YARN
+	var2 IS NOW A YARN
+	var3 IS NOW A YARN
+	VISIBLE var1
+	VISIBLE var2
+	VISIBLE var3
+KTHXBYE
