@@ -488,6 +488,11 @@ void deleteStmtNode(StmtNode *node) /**< [in, out] A pointer to the StmtNode str
 			deleteLoopStmtNode(stmt);
 			break;
 		}
+		case ST_DEALLOCATION: {
+			DeallocationStmtNode *stmt = (DeallocationStmtNode *)node->stmt;
+			deleteDeallocationStmtNode(stmt);
+			break;
+		}
 		case ST_EXPR: {
 			ExprNode *expr = (ExprNode *)node->stmt;
 			deleteExprNode(expr);
@@ -946,6 +951,42 @@ void deleteLoopStmtNode(LoopStmtNode *node) /**< [in,out] A pointer to the LoopS
 	deleteExprNode(node->guard);
 	deleteExprNode(node->update);
 	deleteBlockNode(node->body);
+	free(node);
+}
+
+/** Creates a DeallocationStmtNode structure.
+  *
+  * \pre \a target was created by createIdentifierNode(char *).
+  *
+  * \return A pointer to a DeallocationStmtNode structure with the desired
+  *         properties.
+  *
+  * \retval NULL malloc was unable to allocate memory.
+  *
+  * \see deleteDeallocationStmtNode(DeallocationStmtNode *) */
+DeallocationStmtNode *createDeallocationStmtNode(IdentifierNode *target) /**< [in] A pointer to the name of the variable. */
+{
+	DeallocationStmtNode *p = malloc(sizeof(DeallocationStmtNode));
+	if (!p) {
+		perror("malloc");
+		return NULL;
+	}
+	p->target = target;
+	return p;
+}
+
+/** Deletes a DeallocationStmtNode structure.
+  *
+  * \pre \a node was created by createDeallocationStmtNode(IdentifierNode *).
+  *
+  * \post The memory at \a node and any of its associated members will be
+  *       freed.
+  *
+  * \see createDeallocationStmtNode(IdentifierNode *) */
+void deleteDeallocationStmtNode(DeallocationStmtNode *node) /**< [in,out] A pointer to the DeallocationStmtNode structure to be deleted. */
+{
+	if (!node) return;
+	deleteIdentifierNode(node->target);
 	free(node);
 }
 
@@ -2803,6 +2844,36 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 		ret = createStmtNode(ST_LOOP, stmt);
 		if (!ret) {
 			deleteLoopStmtNode(stmt);
+			return NULL;
+		}
+	}
+	/* Deallocation */
+	else if (nextToken(&tokens, TT_RNOOB)) {
+		IdentifierNode *target = NULL;
+		DeallocationStmtNode *stmt = NULL;
+#ifdef DEBUG
+		debug("ST_DEALLOCATION");
+#endif
+		target = parseIdentifierNode(&tokens);
+		if (!target) return NULL;
+		if (!acceptToken(&tokens, TT_RNOOB)) {
+			error("expected R NOOB", tokens);
+			deleteIdentifierNode(target);
+			return NULL;
+		}
+		if (!acceptToken(&tokens, TT_NEWLINE)) {
+			error("expected end of statement", tokens);
+			deleteIdentifierNode(target);
+			return NULL;
+		}
+		stmt = createDeallocationStmtNode(target);
+		if (!stmt) {
+			deleteIdentifierNode(target);
+			return NULL;
+		}
+		ret = createStmtNode(ST_DEALLOCATION, stmt);
+		if (!ret) {
+			deleteDeallocationStmtNode(stmt);
 			return NULL;
 		}
 	}

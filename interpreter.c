@@ -281,7 +281,8 @@ void deleteScopeObject(ScopeObject *scope) /**< [in,out] The ScopeObject structu
   *
   * \see getLocalScopeValue(ScopeObject *, IdentifierNode *)
   * \see createScopeValue(ScopeObject *, IdentifierNode *)
-  * \see updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *) */
+  * \see updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *)
+  * \see deleteScopeValue(ScopeObject *, IdentifierNode *) */
 ValueObject *getScopeValue(ScopeObject *scope,     /**< [in] The ScopeObject structure to check. */
                            IdentifierNode *target) /**< [in] The name of the value to find. */
 {
@@ -312,7 +313,8 @@ ValueObject *getScopeValue(ScopeObject *scope,     /**< [in] The ScopeObject str
   *
   * \see getScopeValue(ScopeObject *, IdentifierNode *)
   * \see createScopeValue(ScopeObject *, IdentifierNode *)
-  * \see updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *) */
+  * \see updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *)
+  * \see deleteScopeValue(ScopeObject *, IdentifierNode *) */
 ValueObject *getLocalScopeValue(ScopeObject *scope,     /**< [in] The ScopeObject structure to check. */
                                 IdentifierNode *target) /**< [in] The name of the value to find. */
 {
@@ -339,7 +341,8 @@ ValueObject *getLocalScopeValue(ScopeObject *scope,     /**< [in] The ScopeObjec
   *
   * \see getScopeValue(ScopeObject *, IdentifierNode *)
   * \see getLocalScopeValue(ScopeObject *, IdentifierNode *)
-  * \see updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *) */
+  * \see updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *)
+  * \see deleteScopeValue(ScopeObject *, IdentifierNode *) */
 ValueObject *createScopeValue(ScopeObject *scope,     /**< [in,out] The ScopeObject structure to add a value to. */
                               IdentifierNode *target) /**< [in] The name of the value to add. */
 {
@@ -385,7 +388,8 @@ ValueObject *createScopeValue(ScopeObject *scope,     /**< [in,out] The ScopeObj
   *
   * \see getScopeValue(ScopeObject *, IdentifierNode *)
   * \see getLocalScopeValue(ScopeObject *, IdentifierNode *)
-  * \see createScopeValue(ScopeObject *, IdentifierNode *) */
+  * \see createScopeValue(ScopeObject *, IdentifierNode *)
+  * \see deleteScopeValue(ScopeObject *, IdentifierNode *) */
 ValueObject *updateScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to the ScopeObject structure to update. */
                               IdentifierNode *target, /**< [in] A pointer to the IdentifierNode structure containing the name of the value to update. */
                               ValueObject *value)     /**< [in] A pointer to the ValueObject structure containing the value to copy for the update. */
@@ -410,6 +414,61 @@ ValueObject *updateScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to
 	} while ((current = current->parent));
 	fprintf(stderr, "%s:%d: unable to store variable at: %s\n", target->fname, target->line, target->image);
 	return NULL;
+}
+
+/** Deletes a ValueObject structure named by an IdentifierNode structure in a
+  * ScopeObject structure.
+  *
+  * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
+  *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
+  *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
+  * \pre \a target was created by createIdentifierNode(char *).
+  *
+  * \see getScopeValue(ScopeObject *, IdentifierNode *)
+  * \see getLocalScopeValue(ScopeObject *, IdentifierNode *)
+  * \see createScopeValue(ScopeObject *, IdentifierNode *)
+  * \see updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *) */
+void deleteScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to the ScopeObject structure to delete from. */
+                      IdentifierNode *target) /**< [in] A pointer to the IdentifierNode structure containing the name of the value to delete. */
+{
+	ScopeObject *current = scope;
+	/* Traverse upwards through scopes */
+	do {
+		unsigned int n;
+		/* Check for existing value in current scope */
+		for (n = 0; n < current->numvals; n++) {
+			if (!strcmp(current->names[n]->image, target->image)) {
+				unsigned int i;
+				unsigned int newnumvals = scope->numvals - 1;
+				void *mem1 = NULL, *mem2 = NULL;
+				/* Don't delete anything in the names table
+				 * because it's just pointers to IdentifierNode
+				 * structures in the parse tree. */
+				/* Wipe out the value */
+				deleteValueObject(current->values[n]);
+				/* Reorder the tables */
+				for (i = n; i < current->numvals - 1; i++) {
+					current->names[i] = current->names[i + 1];
+					current->values[i] = current->values[i + 1];
+				}
+				/* Resize the tables */
+				mem1 = realloc(scope->names, sizeof(IdentifierNode *) * newnumvals);
+				if (!mem1) {
+					perror("realloc");
+					return;
+				}
+				mem2 = realloc(scope->values, sizeof(ValueObject *) * newnumvals);
+				if (!mem2) {
+					perror("realloc");
+					return;
+				}
+				scope->names = mem1;
+				scope->values = mem2;
+				scope->numvals = newnumvals;
+				return;
+			}
+		}
+	} while ((current = current->parent));
 }
 
 /** Checks if a string of characters follows the format for a number.
@@ -2504,6 +2563,7 @@ ValueObject *interpretExprNode(ExprNode *node,     /**< [in] A pointer to an Exp
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
   * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretCastStmtNode(StmtNode *node,     /**< [in] A pointer to the StmtNode structure containing the CastStmtNode structure to interpret. */
@@ -2562,7 +2622,8 @@ ReturnObject *interpretCastStmtNode(StmtNode *node,     /**< [in] A pointer to t
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
-  * \see interpretlFuncDefStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretPrintStmtNode(StmtNode *node,     /**< [in] A pointer to a StmtNode structure containing the PrintStmtNode structure to interpret. */
                                      ScopeObject *scope) /**< [in] A pointer to the ScopeObject structure to evaluate \a node under. */
@@ -2607,7 +2668,8 @@ ReturnObject *interpretPrintStmtNode(StmtNode *node,     /**< [in] A pointer to 
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
-  * \see interpretlFuncDefStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretInputStmtNode(StmtNode *node,     /**< [in] A pointer to a StmtNode structure containing an InputStmtNode structure to interpret. */
                                      ScopeObject *scope) /**< [in,out] A pointer to the ScopeObject structure to evaluate \a node under. */
@@ -2672,6 +2734,7 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,     /**< [in] A pointer to 
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
   * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretAssignmentStmtNode(StmtNode *node,     /**< [in] A pointer to a StmtNode structure containing the AssignmentStmtNode structure to interpret. */
@@ -2708,6 +2771,7 @@ ReturnObject *interpretAssignmentStmtNode(StmtNode *node,     /**< [in] A pointe
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
   * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretDeclarationStmtNode(StmtNode *node,     /**< [in] A pointer to a StmtNode structure containing the DeclarationStmtNode structure to interpret. */
@@ -2776,7 +2840,8 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,     /**< [in] A point
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
-  * \see interpretlFuncDefStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretIfThenElseStmtNode(StmtNode *node,     /**< [in] A pointer to a StmtNode structure containing the IfThenElseStmtNode structure to interpret. */
                                           ScopeObject *scope) /**< [in,out] A pointer to the ScopeObject structure to evaluate \a node under. */
@@ -2867,6 +2932,7 @@ ReturnObject *interpretIfThenElseStmtNode(StmtNode *node,     /**< [in] A pointe
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
   * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretSwitchStmtNode(StmtNode *node,     /**< [in] A pointer to the StmtNode structure containing the SwitchStmtNode structure to interpret. */
@@ -2965,6 +3031,7 @@ ReturnObject *interpretSwitchStmtNode(StmtNode *node,     /**< [in] A pointer to
   * \see interpretSwitchStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
   * \see interpretlFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretBreakStmtNode(StmtNode *node,     /**< Not used (see note). */
@@ -2997,6 +3064,7 @@ ReturnObject *interpretBreakStmtNode(StmtNode *node,     /**< Not used (see note
   * \see interpretSwitchStmtNode(StmtNode *, ScopeObject *)
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
   * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretReturnStmtNode(StmtNode *node,     /**< [in] A pointer to the StmtNode structure containing the ReturnStmtNode structure to interpret. */
@@ -3031,6 +3099,7 @@ ReturnObject *interpretReturnStmtNode(StmtNode *node,     /**< [in] A pointer to
   * \see interpretSwitchStmtNode(StmtNode *, ScopeObject *)
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
   * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretLoopStmtNode(StmtNode *node,     /**< [in] A pointer to the StmtNode structure containing the LoopStmtNode structure to interpret. */
@@ -3118,6 +3187,40 @@ ReturnObject *interpretLoopStmtNode(StmtNode *node,     /**< [in] A pointer to t
 	return createReturnObject(RT_DEFAULT, NULL);
 }
 
+/** Interprets a deallocation statement.
+  *
+  * \pre \a node was created by createStmtNode(StmtType type, void *stmt) where
+  *      \a type is ST_DEALLOCATION and \a stmt was created by createDeallocationStmtNode(IdentifierNode *).
+  * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
+  *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
+  *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
+  *
+  * \return A pointer to a ReturnObject structure with the default return value.
+  *
+  * \retval NULL An error occurred during interpretation.
+  *
+  * \see interpretCastStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretPrintStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretInputStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeclarationStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretIfThenElseStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretSwitchStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
+ReturnObject *interpretDeallocationStmtNode(StmtNode *node,     /**< [in] A pointer to a StmtNode structure containing the DeallocationStmtNode structure to interpret. */
+                                            ScopeObject *scope) /**< [in,out] A pointer to the ScopeObject structure to evaluate \a node under. */
+{
+	DeallocationStmtNode *stmt = (DeallocationStmtNode *)node->stmt;
+	if (!updateScopeValue(scope, stmt->target, NULL)) return NULL;
+	/* If we want to completely remove the variable, use:
+	deleteScopeValue(scope, stmt->target);
+	*/
+	return createReturnObject(RT_DEFAULT, NULL);
+}
+
 /** Interprets a function definition statement.
   *
   * \pre \a node was created by createStmtNode(StmtType type, void *stmt) where
@@ -3144,6 +3247,7 @@ ReturnObject *interpretLoopStmtNode(StmtNode *node,     /**< [in] A pointer to t
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretFuncDefStmtNode(StmtNode *node,     /**< Not used (see note). */
                                        ScopeObject *scope) /**< Not used (see note). */
@@ -3176,6 +3280,7 @@ ReturnObject *interpretFuncDefStmtNode(StmtNode *node,     /**< Not used (see no
   * \see interpretBreakStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretDeallocationStmtNode(StmtNode *, ScopeObject *)
   * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretExprStmtNode(StmtNode *node,     /**< [in] A pointer to a StmtNode structure containing the ExprNode structure to interpret. */
                                     ScopeObject *scope) /**< [in,out] A pointer to the ScopeObject structure to evaluate \a node under. */
@@ -3190,7 +3295,7 @@ ReturnObject *interpretExprStmtNode(StmtNode *node,     /**< [in] A pointer to a
 
 /* A jump table for statements.  The index of a function in the table is given
  * by its its index in the enumerated StmtType type. */
-static ReturnObject *(*StmtJumpTable[12])(StmtNode *, ScopeObject *) = {
+static ReturnObject *(*StmtJumpTable[13])(StmtNode *, ScopeObject *) = {
 	interpretCastStmtNode,
 	interpretPrintStmtNode,
 	interpretInputStmtNode,
@@ -3201,6 +3306,7 @@ static ReturnObject *(*StmtJumpTable[12])(StmtNode *, ScopeObject *) = {
 	interpretBreakStmtNode,
 	interpretReturnStmtNode,
 	interpretLoopStmtNode,
+	interpretDeallocationStmtNode,
 	interpretFuncDefStmtNode,
 	interpretExprStmtNode };
 

@@ -200,18 +200,19 @@ typedef struct {
 
 /** Denotes the type of statement a StmtNode stores. */
 typedef enum {
-	ST_CAST,        /**< A CastStmtNode structure. */
-	ST_PRINT,       /**< A PrintStmtNode structure. */
-	ST_INPUT,       /**< An InputStmtNode structure. */
-	ST_ASSIGNMENT,  /**< An AssignmentStmtNode structure. */
-	ST_DECLARATION, /**< A DeclarationStmtNode structure. */
-	ST_IFTHENELSE,  /**< An IfThenElseStmtNode structure. */
-	ST_SWITCH,      /**< A SwitchStmtNode structure. */
-	ST_BREAK,       /**< A break statement (no structure is needed for this type of statement). */
-	ST_RETURN,      /**< A ReturnStmtNode structure. */
-	ST_LOOP,        /**< A LoopStmtNode structure. */
-	ST_FUNCDEF,     /**< A FuncDefStmtNode structure. */
-	ST_EXPR         /**< An ExprNode structure. */
+	ST_CAST,         /**< A CastStmtNode structure. */
+	ST_PRINT,        /**< A PrintStmtNode structure. */
+	ST_INPUT,        /**< An InputStmtNode structure. */
+	ST_ASSIGNMENT,   /**< An AssignmentStmtNode structure. */
+	ST_DECLARATION,  /**< A DeclarationStmtNode structure. */
+	ST_IFTHENELSE,   /**< An IfThenElseStmtNode structure. */
+	ST_SWITCH,       /**< A SwitchStmtNode structure. */
+	ST_BREAK,        /**< A break statement (no structure is needed for this type of statement). */
+	ST_RETURN,       /**< A ReturnStmtNode structure. */
+	ST_LOOP,         /**< A LoopStmtNode structure. */
+	ST_DEALLOCATION, /**< A DeallocationStmtNode structure. */
+	ST_FUNCDEF,      /**< A FuncDefStmtNode structure. */
+	ST_EXPR          /**< An ExprNode structure. */
 } StmtType;
 
 /** Stores a statement.  A statement is a unit of code which can be executed by
@@ -466,6 +467,15 @@ typedef struct {
 	BlockNode *body;      /**< A pointer to the block of code to be executed with each iteration of the loop. */
 } LoopStmtNode;
 
+/** Deallocates a variable.  This means freeing the memory and structures used
+  * by the variable.
+  *
+  * \see createDeallocationStmtNode(IdentifierNode *)
+  * \see deleteDeallocationStmtNode(DeallocationStmtNode *) */
+typedef struct {
+	IdentifierNode *target; /**< A pointer to the name of the variable. */
+} DeallocationStmtNode;
+
 /** Stores a cast expression.  A cast expression evaluates an expression and
   * casts it to a particular type.
   *
@@ -570,6 +580,9 @@ void deleteReturnStmtNode(ReturnStmtNode *);
 
 LoopStmtNode *createLoopStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, ExprNode *, BlockNode *);
 void deleteLoopStmtNode(LoopStmtNode *);
+
+DeallocationStmtNode *createDeallocationStmtNode(IdentifierNode *);
+void deleteDeallocationStmtNode(DeallocationStmtNode *);
 
 FuncDefStmtNode *createFuncDefStmtNode(IdentifierNode *, IdentifierNode *, IdentifierNodeList *, BlockNode *);
 void deleteFuncDefStmtNode(FuncDefStmtNode *);
