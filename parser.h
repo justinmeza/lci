@@ -405,7 +405,7 @@ typedef struct {
 typedef struct {
 	IdentifierNode *scope;  /**< A pointer to the scope to create the variable in. */
 	IdentifierNode *target; /**< A pointer to the name of the variable to create. */
-	ExprNode *expr;         /**< An optional pointer to expression to initialize \a target to. */
+	ExprNode *expr;         /**< An optional pointer to the expression to initialize \a target to. */
 } DeclarationStmtNode;
 
 /** Stores an if/then/else statement.  A conditional statement checks the value
