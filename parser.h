@@ -51,7 +51,7 @@
   * These production rules specify the types of statements formed.
   *
   * \par
-  * StmtNode ::= CastStmtNode | PrintStmtNode | InputStmtNode | AssignmentStmtNode | DeclarationStmtNode | IfThenElseStmtNode | SwitchStmtNode | BreakStmt | ReturnStmtNode | LoopStmtNode | FuncDefStmtNode | ExprStmt
+  * StmtNode ::= CastStmtNode | PrintStmtNode | InputStmtNode | AssignmentStmtNode | DeclarationStmtNode | IfThenElseStmtNode | SwitchStmtNode | BreakStmt | ReturnStmtNode | LoopStmtNode | DeallocationStmtNode | FuncDefStmtNode | ExprStmt
   *
   * \par
   * CastStmtNode ::= IdentifierNode \c TT_ISNOWA TypeNode \c TT_NEWLINE
@@ -69,7 +69,7 @@
   * DeclarationStmtNode ::= IdentifierNode \c TT_HASA IdentifierNode [ Initialization ] \c TT_NEWLINE
   *
   * \par
-  * Initialization ::= \c TT_ITZ ExprNode
+  * Initialization ::= \c TT_ITZ ExprNode | \c TT_ITZA TypeNode
   *
   * \par
   * IfThenElseStmtNode ::= \c TT_ORLY \c TT_NEWLINE \c TT_YARLY \c TT_NEWLINE BlockNode ElseIf * [ Else ] \c TT_OIC \c TT_NEWLINE
@@ -109,6 +109,9 @@
   *
   * \par
   * LoopGuard ::= \c TT_TIL ExprNode | \c TT_WILE ExprNode
+  *
+  * \par
+  * \c TT_RNOOB
   *
   * \par
   * FuncDefStmtNode ::= \c TT_HOWDUZ IdentifierNode IdentifierNode [ FunctionDefArgs ] \c TT_NEWLINE BlockNode \c TT_IFUSAYSO \c TT_NEWLINE
