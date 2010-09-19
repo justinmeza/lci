@@ -2,7 +2,7 @@ TARGET = lci
 LIBS = -lm
 OBJS = lexer.o tokenizer.o parser.o interpreter.o unicode.o main.o
 SRCS = lexer.c tokenizer.c parser.c interpreter.c unicode.c main.c
-INSTALL = /usr/local/bin/install -c
+INSTALL = cp
 CPPFLAGS = -O2
 
 prefix = /usr/local
