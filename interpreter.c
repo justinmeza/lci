@@ -2946,7 +2946,7 @@ ReturnObject *interpretSwitchStmtNode(StmtNode *node,     /**< [in] A pointer to
   * \see interpretSwitchStmtNode(StmtNode *, ScopeObject *)
   * \see interpretReturnStmtNode(StmtNode *, ScopeObject *)
   * \see interpretLoopStmtNode(StmtNode *, ScopeObject *)
-  * \see interpretlFuncDefStmtNode(StmtNode *, ScopeObject *)
+  * \see interpretFuncDefStmtNode(StmtNode *, ScopeObject *)
   * \see interpretExprStmtNode(StmtNode *, ScopeObject *) */
 ReturnObject *interpretBreakStmtNode(StmtNode *node,     /**< Not used (see note). */
                                      ScopeObject *scope) /**< Not used (see note). */

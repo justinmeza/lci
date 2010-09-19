@@ -284,12 +284,12 @@ IdentifierNode *createIdentifierNode(char *image,       /**< [in] An array of ch
 
 /** Deletes an IdentifierNode structure.
   *
-  * \pre \a node was created by createIdentifierNode(char *).
+  * \pre \a node was created by createIdentifierNode(char *, const char *, unsigned int).
   *
   * \post The memory at \a node and any of its associated members will be
   *       freed.
   *
-  * \see createIdentifierNode(char *) */
+  * \see createIdentifierNode(char *, const char *, unsigned int) */
 void deleteIdentifierNode(IdentifierNode *node) /**< [in,out] A pointer to the IdentifierNode structure to be deleted. */
 {
 	if (!node) return;
@@ -320,7 +320,7 @@ IdentifierNodeList *createIdentifierNodeList(void)
 /** Adds an IdentifierNode structure to an IdentifierNodeList structure.
   *
   * \pre \a list was created by createIdentifierNodeList(void).
-  * \pre \a node was created by createIdentifierNode(char *).
+  * \pre \a node was created by createIdentifierNode(char *, const char *, unsigned int).
   *
   * \post \a node will be added on to the end of \a list and the size of
   *       \a list will be updated accordingly.
@@ -571,7 +571,7 @@ void deleteStmtNodeList(StmtNodeList *list) /**< [in,out] A pointer to the StmtN
 
 /** Creates a CastStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *).
+  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
   * \pre \a newtype was created by createTypeNode(ConstantType).
   *
   * \return A pointer to a CastStmtNode structure with the desired properties.
@@ -648,7 +648,7 @@ void deletePrintStmtNode(PrintStmtNode *node) /**< [in,out] A pointer to the Pri
 
 /** Creates an InputStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *).
+  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
   *
   * \return A pointer to an InputStmtNode structure with the desired properties.
   *
@@ -683,7 +683,7 @@ void deleteInputStmtNode(InputStmtNode *node) /**< [in,out] A pointer to the Inp
 
 /** Creates an AssignmentStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *).
+  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
   * \pre \a expr was created by createExprNode(ExprType, void *).
   *
   * \return A pointer to an AssignmentStmtNode structure with the desired
@@ -723,8 +723,8 @@ void deleteAssignmentStmtNode(AssignmentStmtNode *node) /**< [in,out] A pointer 
 
 /** Creates a DeclarationStmtNode structure.
   *
-  * \pre \a scope was created by createIdentifierNode(char *).
-  * \pre \a target was created by createIdentifierNode(char *).
+  * \pre \a scope was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
   * \pre \a expr was created by createExprNode(ExprType, void *).
   *
   * \return A pointer to a DeclarationStmtNode structure with the desired
@@ -897,8 +897,8 @@ void deleteReturnStmtNode(ReturnStmtNode *node) /**< [in,out] A pointer to the R
 
 /** Creates a LoopStmtNode structure.
   *
-  * \pre \a name was created by createIdentifierNode(char *).
-  * \pre \a var was created by createIdentifierNode(char *).
+  * \pre \a name was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a var was created by createIdentifierNode(char *, const char *, unsigned int).
   * \pre \a guard was created by createExprNode(ExprType, void *).
   * \pre \a update was created by createExprNode(ExprType, void *).
   * \pre \a body was created by createBlockNode(StmtNodeList *).
@@ -948,8 +948,8 @@ void deleteLoopStmtNode(LoopStmtNode *node) /**< [in,out] A pointer to the LoopS
 
 /** Creates a FuncDefStmtNode structure.
   *
-  * \pre \a scope was created by createIdentifierNode(char *).
-  * \pre \a name was created by createIdentifierNode(char *).
+  * \pre \a scope was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a name was created by createIdentifierNode(char *, const char *, unsigned int).
   * \pre \a args was created by createIdentifierNodeList(void) and contains
   *      items added by addIdentifierNode(IdentifierNodeList *, IdentifierNode *).
   * \pre \a body was created by createBlockNode(StmtNodeList *).
@@ -1001,7 +1001,7 @@ void deleteFuncDefStmtNode(FuncDefStmtNode *node) /**< [in,out] A pointer to the
   *      - ET_CAST: createCastExprNode(ExprNode *, TypeNode *)
   *      - ET_CONSTANT: createBooleanConstantNode(int), createIntegerConstantNode(int),
   *        createFloatConstantNode(float), or createStringConstantNode(char *).
-  *      - ET_IDENTIFIER: createIdentifierNode(char *)
+  *      - ET_IDENTIFIER: createIdentifierNode(char *, const char *, unsigned int)
   *      - ET_FUNCCALL: createFuncCallExprNode(FuncDefStmtNode *, ExprNodeList *)
   *      - ET_OP: createOpExprNode(OpType, ExprNodeList *)
   *      - ET_IMPVAR: (for the \ref impvar "implicit variable") no structure needed, use \c NULL
@@ -1701,7 +1701,7 @@ ExprNode *parseExprNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 			unsigned int n;
 			acceptToken(&tokens, TT_IDENTIFIER); /* Will succeed, checked for this above */
 #ifdef DEBUG
-			debug("ET_FUNCCA");
+			debug("ET_FUNCCALL");
 #endif
 			args = createExprNodeList();
 			for (n = 0; n < fun->args->num; n++) {
@@ -2620,7 +2620,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 				FuncCallExprNode *func = NULL;
 #ifdef DEBUG
 				shiftout();
-				debug("ET_FUNCCA");
+				debug("ET_FUNCCALL");
 #endif
 				var = parseIdentifierNode(&tokens);
 				if (!var) {
