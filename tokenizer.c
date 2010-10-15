@@ -296,6 +296,7 @@ Token **tokenizeLexemes(LexemeList *list) /**< [in] A pointer to a LexemeList st
 				&& !strcmp(list->lexemes[n + 2]->image, "STDIO?")) {
 			n += 2;
 			/* Just for fun; not actually in spec */
+			continue;
 		}
 		/* Newline */
 		/* Note that the spec is unclear as to whether a command *must* follow
