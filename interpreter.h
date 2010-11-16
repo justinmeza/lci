@@ -109,6 +109,7 @@ ValueObject *getScopeValue(ScopeObject *, IdentifierNode *);
 ValueObject *getLocalScopeValue(ScopeObject *, IdentifierNode *);
 ValueObject *createScopeValue(ScopeObject *, IdentifierNode *);
 ValueObject *updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *);
+void deleteScopeValue(ScopeObject *, IdentifierNode *);
 unsigned int isNumString(const char *);
 unsigned int isHexString(const char *);
 ValueObject *castBooleanExplicit(ValueObject *, ScopeObject *);
@@ -148,6 +149,7 @@ ReturnObject *interpretSwitchStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretBreakStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretReturnStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretLoopStmtNode(StmtNode *, ScopeObject *);
+ReturnObject *interpretDeallocationStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretFuncDefStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretExprStmtNode(StmtNode *, ScopeObject *);
 

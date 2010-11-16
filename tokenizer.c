@@ -171,7 +171,7 @@ Token *addToken(Token ***list,     /**< [in,out] A pointer to a pointer to an ar
 
 /** Deletes an array of Token structures.
   *
-  * \pre \a list was created by and contains items added by addToken(Token ***, unsigned int *, TokenType, const char *, unsigned int).
+  * \pre \a list was created by and contains items added by addToken(Token ***, unsigned int *, Token *).
   *
   * \post The memory at \a list and all of its elements will be freed.
   *

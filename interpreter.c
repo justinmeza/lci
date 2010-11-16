@@ -292,7 +292,7 @@ void deleteScopeObject(ScopeObject *scope) /**< [in,out] The ScopeObject structu
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
-  * \pre \a target was created by createIdentifierNode(char *).
+  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
   *
   * \return A pointer to the stored ValueObject structure named by \a target.
   *
@@ -324,7 +324,7 @@ ValueObject *getScopeValue(ScopeObject *scope,     /**< [in] The ScopeObject str
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
-  * \pre \a target was created by createIdentifierNode(char *).
+  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
   *
   * \return A pointer to the stored ValueObject structure named by \a target.
   *
@@ -351,7 +351,7 @@ ValueObject *getLocalScopeValue(ScopeObject *scope,     /**< [in] The ScopeObjec
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
-  * \pre \a target was created by createIdentifierNode(char *).
+  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
   *
   * \return A pointer to the newly created ValueObject structure named by
   *         \a target.
@@ -394,7 +394,7 @@ ValueObject *createScopeValue(ScopeObject *scope,     /**< [in,out] The ScopeObj
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
-  * \pre \a target was created by createIdentifierNode(char *).
+  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
   * \pre The value named by \a target was created by createScopeValue(ScopeObject *, IdentifierNode *).
   * \pre \a value was created by either createNilValueObject(void), createBooleanValueObject(int),
   *      createIntegerValueObject(int), createFloatValueObject(float), createStringValueObject(char *),
@@ -441,7 +441,7 @@ ValueObject *updateScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
-  * \pre \a target was created by createIdentifierNode(char *).
+  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
   *
   * \see getScopeValue(ScopeObject *, IdentifierNode *)
   * \see getLocalScopeValue(ScopeObject *, IdentifierNode *)
@@ -1219,7 +1219,7 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,     /**< [in] A pointer t
   *
   * \pre \a node was created by createExprNode(ExprType type, void *expr)
   *      where \a type is ET_IDENTIFIER and \a expr is an IdentifierNode
-  *      structure created by createIdentifierNode(char *).
+  *      structure created by createIdentifierNode(char *, const char *, unsigned int).
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
