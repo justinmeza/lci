@@ -175,7 +175,7 @@ Token *addToken(Token ***list,     /**< [in,out] A pointer to a pointer to an ar
   *
   * \post The memory at \a list and all of its elements will be freed.
   *
-  * \see addToken(Token ***, unsigned int *, TokenType, const char *, unsigned int) */
+  * \see addToken(Token ***, unsigned int *, Token *) */
 void deleteTokens(Token **list) /**< [in,out] A pointer to an array of Token structures to be deleted. */
 {
 	Token **tok = list;

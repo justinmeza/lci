@@ -182,7 +182,7 @@
 /** Stores an identifier.  An identifier is the string of characters that are
   * used to uniquely name a particular variable.
   *
-  * \see createIdentifierNode(char *)
+  * \see createIdentifierNode(char *, const char *, unsigned int)
   * \see deleteIdentifierNode(IdentifierNode *) */
 typedef struct {
 	char *image;       /**< An array of characters that name the identifier. */
