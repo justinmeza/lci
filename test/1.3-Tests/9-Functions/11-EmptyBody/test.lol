@@ -1,6 +1,6 @@
 HAI 1.3
-	HOW DUZ I fun
+	HOW IZ I fun
 	IF U SAY SO
 
-	fun
+	I IZ fun MKAY
 KTHXBYE

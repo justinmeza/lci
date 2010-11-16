@@ -1,13 +1,13 @@
 HAI 1.3
-	HOW DUZ I fun YR a
+	HOW IZ I fun YR a
 		VISIBLE a
 		BOTH SAEM a AN 0
 		O RLY?
 			YA RLY
 				GTFO
 		OIC
-		fun DIFF OF a AN 1
+		I IZ fun YR DIFF OF a AN 1 MKAY
 	IF U SAY SO
 
-	fun 9
+	I IZ fun YR 9 MKAY
 KTHXBYE

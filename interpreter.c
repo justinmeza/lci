@@ -108,6 +108,24 @@ ValueObject *createStringValueObject(char *data) /**< [in] The string data to st
 	return p;
 }
 
+/** Creates a function type ValueObject structure.
+  *
+  * \return A pointer to a function type ValueObject structure with definition \a data.
+  *
+  * \retval NULL malloc was unable to allocate memory. */
+ValueObject *createFunctionValueObject(FuncDefStmtNode *data) /**< [in] The function definition to store. */
+{
+	ValueObject *p = malloc(sizeof(ValueObject));
+	if (!p) {
+		perror("malloc");
+		return NULL;
+	}
+	p->type = VT_FUNC;
+	p->data.fn = data;
+	p->semaphore = 1;
+	return p;
+}
+
 /** Copies a ValueObject structure.
   *
   * \note What this function actually does is increment a semaphore in \a value
@@ -167,6 +185,7 @@ void deleteValueObject(ValueObject *value) /**< [in,out] A pointer to the ValueO
 	P(value);
 	if (!value->semaphore) {
 		if (value->type == VT_STRING) free(value->data.s);
+		/* FuncDefStmtNode structures get freed with the parse tree */
 		free(value);
 	}
 }
@@ -1131,12 +1150,27 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,     /**< [in] A pointer t
 	FuncCallExprNode *expr = (FuncCallExprNode *)node->expr;
 	unsigned int n;
 	ScopeObject *outer = createScopeObject(scope);
+	ValueObject *def = NULL;
 	ReturnObject *retval = NULL;
 	ValueObject *ret = NULL;
 	if (!outer) return NULL;
-	for (n = 0; n < expr->def->args->num; n++) {
+	def = getScopeValue(scope, expr->name);
+	if (!def || def->type != VT_FUNC) {
+		IdentifierNode *id = (IdentifierNode *)(expr->name);
+		fprintf(stderr, "%s:%d: undefined function at: %s\n", id->fname, id->line, id->image);
+		deleteScopeObject(outer);
+		return NULL;
+	}
+	/* Check for correct supplied arity */
+	if (getFunction(def)->args->num != expr->args->num) {
+		IdentifierNode *id = (IdentifierNode *)(expr->name);
+		fprintf(stderr, "%s:%d: incorrect number of arguments supplied to: %s\n", id->fname, id->line, id->image);
+		deleteScopeObject(outer);
+		return NULL;
+	}
+	for (n = 0; n < getFunction(def)->args->num; n++) {
 		ValueObject *val = NULL;
-		if (!createScopeValue(outer, expr->def->args->ids[n])) {
+		if (!createScopeValue(outer, getFunction(def)->args->ids[n])) {
 			deleteScopeObject(outer);
 			return NULL;
 		}
@@ -1144,7 +1178,7 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,     /**< [in] A pointer t
 			deleteScopeObject(outer);
 			return NULL;
 		}
-		if (!updateScopeValue(outer, expr->def->args->ids[n], val)) {
+		if (!updateScopeValue(outer, getFunction(def)->args->ids[n], val)) {
 			deleteScopeObject(outer);
 			deleteValueObject(val);
 			return NULL;
@@ -1154,7 +1188,7 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,     /**< [in] A pointer t
 	 *       here because we want to have access to the function's ScopeObject
 	 *       as we may need to retrieve the implicit variable in the case of
 	 *       a default return. */
-	if (!(retval = interpretStmtNodeList(expr->def->body->stmts, outer))) {
+	if (!(retval = interpretStmtNodeList(getFunction(def)->body->stmts, outer))) {
 		deleteScopeObject(outer);
 		return NULL;
 	}
@@ -2522,7 +2556,7 @@ static ValueObject *(*ExprJumpTable[6])(ExprNode *, ScopeObject *) = {
 
 /** Interprets the contents of an ExprNode structure.
   *
-  * \pre \a node was created by parseExprNode(Token ***, FunctionTable *).
+  * \pre \a node was created by parseExprNode(Token ***).
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
@@ -3252,9 +3286,24 @@ ReturnObject *interpretDeallocationStmtNode(StmtNode *node,     /**< [in] A poin
 ReturnObject *interpretFuncDefStmtNode(StmtNode *node,     /**< Not used (see note). */
                                        ScopeObject *scope) /**< Not used (see note). */
 {
-	/* Skip over this; we have already parsed and stored it */
-	node = NULL;
-	scope = NULL;
+	/* Add the function to the current scope */
+	FuncDefStmtNode *stmt = (FuncDefStmtNode *)node->stmt;
+	ValueObject *init = NULL;
+	if (getLocalScopeValue(scope, stmt->name)) {
+		IdentifierNode *id = (IdentifierNode *)(stmt->name);
+		fprintf(stderr, "%s:%d: function name already used by existing variable at: %s\n", id->fname, id->line, id->image);
+		return NULL;
+	}
+	init = createFunctionValueObject(stmt);
+	if (!init) return NULL;
+	if (!createScopeValue(scope, stmt->name)) {
+		deleteValueObject(init);
+		return NULL;
+	}
+	if (!updateScopeValue(scope, stmt->name, init)) {
+		deleteValueObject(init);
+		return NULL;
+	}
 	return createReturnObject(RT_DEFAULT, NULL);
 }
 
@@ -3312,7 +3361,7 @@ static ReturnObject *(*StmtJumpTable[13])(StmtNode *, ScopeObject *) = {
 
 /** Interprets the contents of a StmtNode structure.
   *
-  * \pre \a node was created by parseStmtNode(Token ***, FunctionTable *).
+  * \pre \a node was created by parseStmtNode(Token ***).
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
@@ -3371,7 +3420,7 @@ ReturnObject *interpretStmtNodeList(StmtNodeList *list, /**< [in] A pointer to t
 
 /** Interprets the contents of a BlockNode structure.
   *
-  * \pre \a node was created by parseBlockNode(Token ***, FunctionTable *).
+  * \pre \a node was created by parseBlockNode(Token ***).
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
@@ -3398,7 +3447,7 @@ ReturnObject *interpretBlockNode(BlockNode *node,    /**< [in] A pointer to a Bl
 
 /** Interprets the contents of a MainNode structure.
   *
-  * \pre \a node was created by parseMainNode(Token **, FunctionTable *).
+  * \pre \a node was created by parseMainNode(Token **).
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).

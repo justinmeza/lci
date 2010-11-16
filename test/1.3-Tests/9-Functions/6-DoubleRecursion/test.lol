@@ -1,23 +1,23 @@
 HAI 1.3
-	HOW DUZ I fun1 YR a
+	HOW IZ I fun1 YR a
 		VISIBLE a
 		BOTH SAEM a AN 0
 		O RLY?
 			YA RLY
 				GTFO
 		OIC
-		fun2 DIFF OF a AN 1
+		I IZ fun2 YR DIFF OF a AN 1 MKAY
 	IF U SAY SO
 
-	HOW DUZ I fun2 YR a
+	HOW IZ I fun2 YR a
 		VISIBLE a
 		BOTH SAEM a AN 0
 		O RLY?
 			YA RLY
 				GTFO
 		OIC
-		fun1 DIFF OF a AN 1
+		I IZ fun1 YR DIFF OF a AN 1 MKAY
 	IF U SAY SO
 
-	fun1 9
+	I IZ fun1 YR 9 MKAY
 KTHXBYE

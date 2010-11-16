@@ -1,7 +1,7 @@
 HAI 1.3
-	HOW DUZ I fun
+	HOW IZ I fun
 		VISIBLE "a"
 	IF U SAY SO
 
-	fun "b"
+	I IZ fun YR "b" MKAY
 KTHXBYE

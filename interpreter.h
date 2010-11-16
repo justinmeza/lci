@@ -25,6 +25,8 @@
 #define getFloat(value) (value->data.f)
 /** Gets the string data associated with a ValueObject structure. */
 #define getString(value) (value->data.s)
+/** Gets the function definition associated with a ValueObject structure. */
+#define getFunction(value) (value->data.fn)
 
 /** Denotes the type of a value. */
 typedef enum {
@@ -32,14 +34,16 @@ typedef enum {
 	VT_FLOAT,   /**< A floating point decimal value. */
 	VT_BOOLEAN, /**< A true/false value. */
 	VT_STRING,  /**< A character string value. */
-	VT_NIL      /**< Represents no value. */
+	VT_NIL,     /**< Represents no value. */
+	VT_FUNC     /**< A function. */
 } ValueType;
 
 /** Stores the data associated with a ValueObject structure. */
 typedef union {
-	int i;   /**< Integer data. */
-	float f; /**< Floating point data. */
-	char *s; /**< Character string data. */
+	int i;               /**< Integer data. */
+	float f;             /**< Floating point data. */
+	char *s;             /**< Character string data. */
+	FuncDefStmtNode *fn; /**< Function definition. */
 } ValueData;
 
 /** Increments the semaphore of a ValueObject structure. */
@@ -94,6 +98,7 @@ ValueObject *createBooleanValueObject(int);
 ValueObject *createIntegerValueObject(int);
 ValueObject *createFloatValueObject(float);
 ValueObject *createStringValueObject(char *);
+ValueObject *createFunctionValueObject(FuncDefStmtNode *);
 ValueObject *copyValueObject(ValueObject *);
 void deleteValueObject(ValueObject *);
 ReturnObject *createReturnObject(ReturnType, ValueObject *);

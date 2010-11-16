@@ -33,7 +33,7 @@
   * \par
   * BlockNode ::= StmtNode *
   *
-  * \section stmtebnf Statements
+  * \section typesebnf Types
   *
   * These production rules specify some general types of parse structures.
   *
@@ -57,7 +57,7 @@
   * CastStmtNode ::= IdentifierNode \c TT_ISNOWA TypeNode \c TT_NEWLINE
   *
   * \par
-  * PrintStmtNode ::= \c TT_VISIBLE ExprNodeList \c [ \c TT_BANG ] TT_NEWLINE
+  * PrintStmtNode ::= \c TT_VISIBLE ExprNodeList \c TT_BANG ? TT_NEWLINE
   *
   * \par
   * InputStmtNode ::= \c TT_GIMMEH IdentifierNode TT_NEWLINE
@@ -66,13 +66,13 @@
   * AssignmentStmtNode ::= IdentifierNode \c TT_R ExprNode \c TT_NEWLINE
   *
   * \par
-  * DeclarationStmtNode ::= IdentifierNode \c TT_HASA IdentifierNode [ Initialization ] \c TT_NEWLINE
+  * DeclarationStmtNode ::= IdentifierNode \c TT_HASA IdentifierNode Initialization ? \c TT_NEWLINE
   *
   * \par
   * Initialization ::= \c TT_ITZ ExprNode | \c TT_ITZA TypeNode
   *
   * \par
-  * IfThenElseStmtNode ::= \c TT_ORLY \c TT_NEWLINE \c TT_YARLY \c TT_NEWLINE BlockNode ElseIf * [ Else ] \c TT_OIC \c TT_NEWLINE
+  * IfThenElseStmtNode ::= \c TT_ORLY \c TT_NEWLINE \c TT_YARLY \c TT_NEWLINE BlockNode ElseIf * Else ? \c TT_OIC \c TT_NEWLINE
   *
   * \par
   * ElseIf ::= \c TT_MEBBE ExprNode \c TT_NEWLINE BlockNode
@@ -81,7 +81,7 @@
   * Else ::= \c TT_NOWAI \c TT_NEWLINE BlockNode
   *
   * \par
-  * SwitchStmtNode ::= \c TT_WTF \c TT_NEWLINE Case + [ DefaultCase ] \c TT_OIC \c TT_NEWLINE
+  * SwitchStmtNode ::= \c TT_WTF \c TT_NEWLINE Case + DefaultCase ? \c TT_OIC \c TT_NEWLINE
   *
   * \par
   * Case ::= \c TT_OMG ExprNode \c TT_NEWLINE BlockNode
@@ -96,7 +96,7 @@
   * ReturnStmtNode ::= \c TT_FOUNDYR ExprNode \c TT_NEWLINE
   *
   * \par
-  * LoopStmtNode ::= \c TT_IMINYR IdentifierNode [ LoopUpdate ] [ LoopGuard ] \c TT_NEWLINE \c TT_IMOUTTAYR IdentifierNode \c TT_NEWLINE
+  * LoopStmtNode ::= \c TT_IMINYR IdentifierNode LoopUpdate ? LoopGuard ? \c TT_NEWLINE BlockNode \c TT_IMOUTTAYR IdentifierNode \c TT_NEWLINE
   *
   * \par
   * LoopUpdate ::= LoopUpdateOp \c TT_YR IdentifierNode
@@ -111,16 +111,16 @@
   * LoopGuard ::= \c TT_TIL ExprNode | \c TT_WILE ExprNode
   *
   * \par
-  * \c TT_RNOOB
+  * DeallocationStmtNode ::= IdentifierNode \c TT_RNOOB
   *
   * \par
-  * FuncDefStmtNode ::= \c TT_HOWDUZ IdentifierNode IdentifierNode [ FunctionDefArgs ] \c TT_NEWLINE BlockNode \c TT_IFUSAYSO \c TT_NEWLINE
+  * FuncDefStmtNode ::= \c TT_HOWIZ IdentifierNode IdentifierNode FunctionArgs ? \c TT_NEWLINE BlockNode \c TT_IFUSAYSO \c TT_NEWLINE
   *
   * \par
-  * FunctionDefArgs ::= \c TT_YR IdentifierNode FunctionDefArg *
+  * FunctionArgs ::= \c TT_YR IdentifierNode FunctionArg *
   *
   * \par
-  * FunctionDefArg ::= \c TT_ANYR IdentifierNode
+  * FunctionArg ::= \c TT_ANYR IdentifierNode
   *
   * \par
   * ExprStmt ::= ExprNode \c TT_NEWLINE
@@ -136,7 +136,7 @@
   * CastExprNode ::= \c TT_MAEK ExprNode \c TT_A TypeNode
   *
   * \par
-  * FuncCallExprNode ::= IdentifierNode
+  * FuncCallExprNode ::= IdentifierNode \c TT_IZ IdentifierNode FunctionArgs ? TT_MKAY
   *
   * \par
   * OpExprNode ::= UnaryOp | BinaryOp | NaryOp
@@ -148,7 +148,7 @@
   * UnaryOpType ::= \c TT_NOT
   *
   * \par
-  * BinaryOp ::= BinaryOpType ExprNode [ \c TT_AN ] ExprNode
+  * BinaryOp ::= BinaryOpType ExprNode \c TT_AN ? ExprNode
   *
   * \par
   * BinaryOpType ::= \c TT_SUMOF | \c TT_DIFFOF | \c TT_PRODUKTOF | \c TT_QUOSHUNTOF | \c TT_MODOF | \c BIGGROF | \c SMALLROF | \c TT_BOTHOF | \c TT_EITHEROF | \c TT_WONOF
@@ -163,7 +163,7 @@
   * NaryOpArgs ::= ExprNode NaryOpArg +
   *
   * \par
-  * NaryOpArg ::= [ \c TT_AN ] ExprNode
+  * NaryOpArg ::= \c TT_AN ? ExprNode
   *
   * \par
   * ImplicitVariable ::= \c TT_IT */
@@ -330,15 +330,6 @@ typedef struct {
 	BlockNode *body;          /**< A pointer to the block of code defined by the function. */
 } FuncDefStmtNode;
 
-/** Stores the contents of the function table.  The function table contains the
-  * definitions of all declared functions.  It is used for making sure function
-  * calls provide a valid arity, typechecking, however, is performed at
-  * runtime. */
-typedef struct {
-	unsigned int num;        /**< The number of declared functions. */
-	FuncDefStmtNode **funcs; /**< A pointer to an array of declared functions. */
-} FunctionTable;
-
 /** Stores the main block of code a program executes.  This structure could be
   * accomplished using only a BlockNode instead, but its logical importance to
   * program control flow (namely, it is the first portion of code executed)
@@ -348,7 +339,6 @@ typedef struct {
   * \see deleteMainNode(MainNode *) */
 typedef struct {
 	BlockNode *block;       /**< A pointer to the block of code to execute first. */
-	FunctionTable *functab; /**< A pointer to the function table associated with this block of code. */
 } MainNode;
 
 /** Stores a variable type.
@@ -493,16 +483,12 @@ typedef struct {
   * the return value of the function defined in \a def called with the arguments
   * listed in \a args.
   *
-  * \note \a args is not an ExprNodeList because its arity is known in advance
-  *       (because a FuncDefStmtNode for it has presumably been created) and
-  *       thus the benefit of an ExprNodeList (easy syntax for adding new elements)
-  *       would not be relevant.
-  *
-  * \see createFuncCallExprNode(FuncDefStmtNode *, ExprNodeList *)
+  * \see createFuncCallExprNode(IdentifierNode *, IdentifierNode *, ExprNodeList *)
   * \see deleteFuncCallExprNode(FuncCallExprNode *) */
 typedef struct {
-	FuncDefStmtNode *def; /**< A pointer to the function definition to call. */
-	ExprNodeList *args;   /**< A pointer to a list of ExprNode structure arguments to be supplied to the function defined by \a def. */
+	IdentifierNode *scope; /**< A pointer to the scope the function is defined in. */
+	IdentifierNode *name;  /**< A pointer to the name of the function. */
+	ExprNodeList *args;    /**< A pointer to a list of ExprNode structure arguments to be supplied to the function. */
 } FuncCallExprNode;
 
 /** Denotes the type of operation an OpExprNode performs. */
@@ -536,7 +522,7 @@ typedef struct  {
 	ExprNodeList *args; /**< A pointer to the arguments to perform the operation on. */
 } OpExprNode;
 
-MainNode *createMainNode(BlockNode *, FunctionTable *);
+MainNode *createMainNode(BlockNode *);
 void deleteMainNode(MainNode *);
 
 BlockNode *createBlockNode(StmtNodeList *);
@@ -599,16 +585,11 @@ void deleteExprNodeList(ExprNodeList *);
 CastExprNode *createCastExprNode(ExprNode *, TypeNode *);
 void deleteCastExprNode(CastExprNode *);
 
-FuncCallExprNode *createFuncCallExprNode(FuncDefStmtNode *, ExprNodeList *);
+FuncCallExprNode *createFuncCallExprNode(IdentifierNode *, IdentifierNode *, ExprNodeList *);
 void deleteFuncCallExprNode(FuncCallExprNode *);
 
 OpExprNode *createOpExprNode(OpType, ExprNodeList *);
 void deleteOpExprNode(OpExprNode *);
-
-FunctionTable *createFunctionTable(void);
-FuncDefStmtNode *addFuncDefStmtNode(FunctionTable *, FuncDefStmtNode *);
-void deleteFunctionTable(FunctionTable *);
-FuncDefStmtNode *lookupFuncDefStmtNode(FunctionTable *, const char *);
 
 int acceptToken(Token ***, TokenType);
 int peekToken(Token ***, TokenType);
@@ -619,11 +600,10 @@ void error(const char *, Token **);
 ConstantNode *parseConstantNode(Token ***);
 TypeNode *parseTypeNode(Token ***);
 IdentifierNode *parseIdentifierNode(Token ***);
-ExprNode *parseExprNode(Token ***, FunctionTable *);
-StmtNode *parseStmtNode(Token ***, FunctionTable *);
-BlockNode *parseBlockNode(Token ***, FunctionTable *);
-MainNode *parseMainNode(Token **, FunctionTable *);
-FunctionTable *setupFunctionTable(Token **);
+ExprNode *parseExprNode(Token ***);
+StmtNode *parseStmtNode(Token ***);
+BlockNode *parseBlockNode(Token ***);
+MainNode *parseMainNode(Token **);
 
 ConstantNode *createBooleanConstantNode(int);
 ConstantNode *createIntegerConstantNode(int);

@@ -134,7 +134,6 @@ int main(int argc, char **argv)
 	char *buffer = NULL;
 	LexemeList *lexemes = NULL;
 	Token **tokens = NULL;
-	FunctionTable *functab = NULL;
 	MainNode *node = NULL;
 	char *fname = NULL;
 	FILE *file = NULL;
@@ -166,7 +165,6 @@ int main(int argc, char **argv)
 		buffer = fname = NULL;
 		lexemes = NULL;
 		tokens = NULL;
-		functab = NULL;
 		node = NULL;
 		file = NULL;
 
@@ -224,12 +222,7 @@ int main(int argc, char **argv)
 			return 1;
 		}
 		deleteLexemeList(lexemes);
-		if (!(functab = setupFunctionTable(tokens))) {
-			deleteFunctionTable(functab);
-			return 1;
-		}
-		if (!(node = parseMainNode(tokens, functab))) {
-			deleteFunctionTable(functab);
+		if (!(node = parseMainNode(tokens))) {
 			deleteTokens(tokens);
 			return 1;
 		}

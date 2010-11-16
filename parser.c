@@ -16,16 +16,13 @@ void debug(const char *info)
 /** Creates a MainNode structure.
   *
   * \pre \a block was created by createBlockNode(StmtNodeList *).
-  * \pre \a functab was created by createFunctionTable(void) and contains
-  *      items added by addFuncDefStmtNode(FunctionTable *, FuncDefStmtNode *).
   *
   * \return A pointer to a MainNode structure with the desired properties.
   *
   * \retval NULL malloc was unable to allocate memory.
   *
   * \see deleteMainNode(MainNode *) */
-MainNode *createMainNode(BlockNode *block,       /**< [in] A pointer to the block of code to execute first. */
-                         FunctionTable *functab) /**< [in] A pointer to the function table associated with this block of code. */
+MainNode *createMainNode(BlockNode *block) /**< [in] A pointer to the block of code to execute first. */
 {
 	MainNode *p = malloc(sizeof(MainNode));
 	if (!p) {
@@ -33,23 +30,21 @@ MainNode *createMainNode(BlockNode *block,       /**< [in] A pointer to the bloc
 		return NULL;
 	}
 	p->block = block;
-	p->functab = functab;
 	return p;
 }
 
 /** Deletes a MainNode structure.
   *
-  * \pre \a node was created by createMainNode(BlockNode *, FunctionTable *).
+  * \pre \a node was created by createMainNode(BlockNode *).
   *
   * \post The memory at \a node and any of its associated members will be
   *       freed.
   *
-  * \see createMainNode(BlockNode *, FunctionTable *) */
+  * \see createMainNode(BlockNode *) */
 void deleteMainNode(MainNode *node) /**< [in,out] A pointer to the MainNode structure to be deleted. */
 {
 	if (!node) return;
 	deleteBlockNode(node->block);
-	deleteFunctionTable(node->functab);
 	free(node);
 }
 
@@ -1210,9 +1205,10 @@ void deleteCastExprNode(CastExprNode *node) /**< [in,out] A pointer to the CastE
 
 /** Creates a FuncCallExprNode structure.
   *
-  * \pre \a def was created by createFuncDefStmtNode(IdentifierNode *, IdentifierNode *, IdentifierNodeList *, BlockNode *).
-  * \pre \a args was created by createExprNodeList(void) and contains items
-  *      added by addExprNode(ExprNodeList *, ExprNode *).
+  * \pre \a scope was created by createIdentifierNode(char *).
+  * \pre \a name was created by createIdentifierNode(char *).
+  * \pre \a args was created by createIdentifierNodeList(void) and contains
+  *      items added by addIdentifierNode(IdentifierNodeList *, IdentifierNode *).
   *
   * \return A pointer to a FuncCallExprNode structure with the desired
   *         properties.
@@ -1220,30 +1216,34 @@ void deleteCastExprNode(CastExprNode *node) /**< [in,out] A pointer to the CastE
   * \retval NULL malloc was unable to allocate memory.
   *
   * \see deleteFuncCallExprNode(FuncCallExprNode *) */
-FuncCallExprNode *createFuncCallExprNode(FuncDefStmtNode *def, /**< [in] A pointer to the function definition to call. */
-                                         ExprNodeList *args)   /**< [in] A pointer to an ExprNodeList structure of arguments to be supplied to the function defined by \a def. */
+FuncCallExprNode *createFuncCallExprNode(IdentifierNode *scope, /**< [in] A pointer to the scope the function is defined in. */
+                                         IdentifierNode *name,  /**< [in] A pointer to the name of the function. */
+                                         ExprNodeList *args)    /**< [in] A pointer to a list of ExprNode structure arguments supplied to the function definition. */
 {
 	FuncCallExprNode *p = malloc(sizeof(FuncCallExprNode));
 	if (!p) {
 		perror("malloc");
 		return NULL;
 	}
-	p->def = def;
+	p->scope = scope;
+	p->name = name;
 	p->args = args;
 	return p;
 }
 
 /** Deletes a FuncCallExprNode structure.
   *
-  * \pre \a node was created by createFuncCallExprNode(FuncDefStmtNode *, ExprNodeList *).
+  * \pre \a node was created by createFuncCallExprNode(IdentifierNode *, IdentifierNode *, ExprNodeList *).
   *
   * \post The memory at \a node and any of its associated members will be
   *       freed.
   *
-  * \see createFuncCallExprNode(FuncDefStmtNode *, ExprNodeList *) */
+  * \see createFuncCallExprNode(IdentifierNode *, IdentifierNode *, ExprNodeList *) */
 void deleteFuncCallExprNode(FuncCallExprNode *node) /**< [in,out] A pointer to the FuncCallExprNode structure to be deleted. */
 {
 	if (!node) return;
+	deleteIdentifierNode(node->scope);
+	deleteIdentifierNode(node->name);
 	deleteExprNodeList(node->args);
 	free(node);
 }
@@ -1284,92 +1284,6 @@ void deleteOpExprNode(OpExprNode *node) /**< [in,out] A pointer to the OpExprNod
 	if (!node) return;
 	deleteExprNodeList(node->args);
 	free(node);
-}
-
-/** Creates a FunctionTable structure.
-  *
-  * \return A pointer to a FunctionTable structure with no elements.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteFunctionTable(FunctionTable *) */
-FunctionTable *createFunctionTable(void)
-{
-	FunctionTable *p = malloc(sizeof(FunctionTable));
-	if (!p) {
-		perror("malloc");
-		return NULL;
-	}
-	p->num = 0;
-	p->funcs = NULL;
-	return p;
-}
-
-/** Adds a FuncDefStmtNode to a FunctionTable structure.
-  *
-  * \pre \a table was created by createFunctionTable(void).
-  * \pre \a node was created by createFuncDefStmtNode(IdentifierNode *, IdentifierNode *, IdentifierNodeList *, BlockNode *).
-  *
-  * \post \a node will be added on to the end of \a table and the size of
-  *       \a table will be updated accordingly.
-  *
-  * \return A pointer to the added FuncDefStmtNode structure (will be the same
-  *         as \a node).
-  *
-  * \retval NULL realloc was unable to allocate memory.
-  *
-  * \see lookupFuncDefStmtNode(FunctionTable *, const char *) */
-FuncDefStmtNode *addFuncDefStmtNode(FunctionTable *table,  /**< [in,out] A pointer to the FunctionTable structure to add \a node to. */
-                                    FuncDefStmtNode *node) /**< [in] A pointer to the FuncDefStmtNode structure to add to \a table. */
-{
-	unsigned int newsize = table->num + 1;
-	void *mem = realloc(table->funcs, sizeof(FuncDefStmtNode *) * newsize);
-	if (!mem) {
-		perror("realloc");
-		return NULL;
-	}
-	table->funcs = mem;
-	table->funcs[table->num] = node;
-	table->num = newsize;
-	return node;
-}
-
-/** Deletes a FunctionTable structure.
-  *
-  * \pre \a table was created by createFunctionTable(void).
-  *
-  * \post The memory of the function table and any of its associated members
-  *      will be freed.
-  *
-  * \see createFunctionTable(void) */
-void deleteFunctionTable(FunctionTable *table) /**< [in,out] A pointer to the FunctionTable structure to delete. */
-{
-	if (!table) return;
-	/* Don't delete the FuncDefStmtNode structures because they will be
-         * deleted by deleteMainNode. */
-	free(table->funcs);
-	free(table);
-}
-
-/** Looks up a function definition by its name.
-  *
-  * \pre \a table was created by createFunctionTable(void) and contains items
-  *      added by addFuncDefStmtNode(FunctionTable *, FuncDefStmtNode *).
-  *
-  * \return A pointer to the FuncDefStmtNode structure named \a name.
-  *
-  * \retval NULL No such FuncDefStmtNode structure exists.
-  *
-  * \see addFuncDefStmtNode(FunctionTable *, FuncDefStmtNode *) */
-FuncDefStmtNode *lookupFuncDefStmtNode(FunctionTable *table, /**< [in] A pointer to the FunctionTable structure to search for \a name. */
-                                       const char *name)  /**< [in] The name of the function to look up. */
-{
-	unsigned int n;
-	for (n = 0; n < table->num; n++) {
-		FuncDefStmtNode *fun = (table->funcs)[n];
-		if (!strcmp(fun->name->image, name)) return fun;
-	}
-	return NULL;
 }
 
 /** Checks if the token pointed to by \a tokenp matches \a token and if it does,
@@ -1476,10 +1390,10 @@ void error(const char *info, /**< [in] The array of characters to print. */
   *
   * \see parseTypeNode(Token ***)
   * \see parseIdentifierNode(Token ***)
-  * \see parseExprNode(Token ***, FunctionTable *)
-  * \see parseStmtNode(Token ***, FunctionTable *)
-  * \see parseBlockNode(Token ***, FunctionTable *)
-  * \see parseMainNode(Token **, FunctionTable *) */
+  * \see parseExprNode(Token ***)
+  * \see parseStmtNode(Token ***)
+  * \see parseBlockNode(Token ***)
+  * \see parseMainNode(Token **) */
 ConstantNode *parseConstantNode(Token ***tokenp)
 {
 	Token **tokens = *tokenp;
@@ -1556,10 +1470,10 @@ ConstantNode *parseConstantNode(Token ***tokenp)
   *
   * \see parseConstantNode(Token ***)
   * \see parseIdentifierNode(Token ***)
-  * \see parseExprNode(Token ***, FunctionTable *)
-  * \see parseStmtNode(Token ***, FunctionTable *)
-  * \see parseBlockNode(Token ***, FunctionTable *)
-  * \see parseMainNode(Token **, FunctionTable *) */
+  * \see parseExprNode(Token ***)
+  * \see parseStmtNode(Token ***)
+  * \see parseBlockNode(Token ***)
+  * \see parseMainNode(Token **) */
 TypeNode *parseTypeNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
 {
 	Token **tokens = *tokenp;
@@ -1570,7 +1484,7 @@ TypeNode *parseTypeNode(Token ***tokenp) /**< [in,out] A pointer to the position
 	/* Nil */
 	if (acceptToken(&tokens, TT_NOOB)) {
 #ifdef DEBUG
-		debug("CT_NI");
+		debug("CT_NIL");
 #endif
 		ret = createTypeNode(CT_NIL);
 		if (!ret) return NULL;
@@ -1629,10 +1543,10 @@ TypeNode *parseTypeNode(Token ***tokenp) /**< [in,out] A pointer to the position
   *
   * \see parseConstantNode(Token ***)
   * \see parseTypeNode(Token ***)
-  * \see parseExprNode(Token ***, FunctionTable *)
-  * \see parseStmtNode(Token ***, FunctionTable *)
-  * \see parseBlockNode(Token ***, FunctionTable *)
-  * \see parseMainNode(Token **, FunctionTable *) */
+  * \see parseExprNode(Token ***)
+  * \see parseStmtNode(Token ***)
+  * \see parseBlockNode(Token ***)
+  * \see parseMainNode(Token **) */
 IdentifierNode *parseIdentifierNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
 {
 	Token **tokens = *tokenp;
@@ -1671,11 +1585,10 @@ IdentifierNode *parseIdentifierNode(Token ***tokenp) /**< [in,out] A pointer to 
   * \see parseConstantNode(Token ***)
   * \see parseTypeNode(Token ***)
   * \see parseIdentifierNode(Token ***)
-  * \see parseStmtNode(Token ***, FunctionTable *)
-  * \see parseBlockNode(Token ***, FunctionTable *)
-  * \see parseMainNode(Token **, FunctionTable *) */
-ExprNode *parseExprNode(Token ***tokenp,        /**< [in,out] A pointer to the position of the next token to parse. */
-                        FunctionTable *functab) /**< [in,out] A pointer to the table of defined functions. */
+  * \see parseStmtNode(Token ***)
+  * \see parseBlockNode(Token ***)
+  * \see parseMainNode(Token **) */
+ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
 {
 	Token **tokens = *tokenp;
 	ExprNode *ret = NULL;
@@ -1690,7 +1603,7 @@ ExprNode *parseExprNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 #ifdef DEBUG
 		debug("ET_CAST");
 #endif
-		target = parseExprNode(&tokens, functab);
+		target = parseExprNode(&tokens);
 		if (!target) return NULL;
 		acceptToken(&tokens, TT_A);
 		newtype = parseTypeNode(&tokens);
@@ -1734,53 +1647,76 @@ ExprNode *parseExprNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 			return NULL;
 		}
 	}
-	/* Note that identifiers may refer to function calls and if so, must
-	 * contain an appropriate number of arguments. */
-	else if (peekToken(&tokens, TT_IDENTIFIER)) {
-		FuncDefStmtNode *fun = NULL;
-		/* Function Call */
-		if ((fun = lookupFuncDefStmtNode(functab, (*tokens)->image))) {
-			FuncCallExprNode *node = NULL;
-			ExprNodeList *args = NULL;
-			unsigned int n;
-			acceptToken(&tokens, TT_IDENTIFIER); /* Will succeed, checked for this above */
+	/* Function call */
+	else if (nextToken(&tokens, TT_IZ)) {
+		IdentifierNode *scope = NULL;
+		IdentifierNode *name = NULL;
+		ExprNodeList *args = NULL;
+		FuncCallExprNode *node = NULL;
 #ifdef DEBUG
-			debug("ET_FUNCCA");
+		debug("ET_FUNCCALL");
 #endif
-			args = createExprNodeList();
-			for (n = 0; n < fun->args->num; n++) {
-				ExprNode *arg = parseExprNode(&tokens, functab);
+		scope = parseIdentifierNode(&tokens);
+		if (!scope) return NULL;
+		acceptToken(&tokens, TT_IZ); /* Will succeed, checked for this above */
+		name = parseIdentifierNode(&tokens);
+		if (!name) {
+			deleteIdentifierNode(scope);
+			return NULL;
+		}
+		args = createExprNodeList();
+		if (acceptToken(&tokens, TT_YR)) {
+			ExprNode *arg = parseExprNode(&tokens);
+			if (!arg) {
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteExprNodeList(args);
+				return NULL;
+			}
+			addExprNode(args, arg);
+			while (acceptToken(&tokens, TT_ANYR)) {
+				arg = parseExprNode(&tokens);
 				if (!arg) {
+					deleteIdentifierNode(scope);
+					deleteIdentifierNode(name);
 					deleteExprNodeList(args);
 					return NULL;
 				}
 				addExprNode(args, arg);
 			}
-			node = createFuncCallExprNode(fun, args);
-			if (!node) {
-				deleteExprNodeList(args);
-				return NULL;
-			}
-			ret = createExprNode(ET_FUNCCALL, node);
-			if (!ret) {
-				deleteExprNodeList(args);
-				deleteFuncCallExprNode(node);
-				return NULL;
-			}
 		}
-		/* Identifier */
-		else {
-			IdentifierNode *node = NULL;
+		if (!acceptToken(&tokens, TT_MKAY)) {
+			error("expected MKAY", tokens);
+			deleteIdentifierNode(scope);
+			deleteIdentifierNode(name);
+			deleteExprNodeList(args);
+			return NULL;
+		}
+		node = createFuncCallExprNode(scope, name, args);
+		if (!node) {
+			deleteIdentifierNode(scope);
+			deleteIdentifierNode(name);
+			deleteExprNodeList(args);
+			return NULL;
+		}
+		ret = createExprNode(ET_FUNCCALL, node);
+		if (!ret) {
+			deleteFuncCallExprNode(node);
+			return NULL;
+		}
+	}
+	/* Identifier */
+	else if (peekToken(&tokens, TT_IDENTIFIER)) {
+		IdentifierNode *node = NULL;
 #ifdef DEBUG
-			debug("ET_IDENTIFIER");
+		debug("ET_IDENTIFIER");
 #endif
-			node = parseIdentifierNode(&tokens);
-			if (!node) return NULL;
-			ret = createExprNode(ET_IDENTIFIER, node);
-			if (!ret) {
-				deleteIdentifierNode(node);
-				return NULL;
-			}
+		node = parseIdentifierNode(&tokens);
+		if (!node) return NULL;
+		ret = createExprNode(ET_IDENTIFIER, node);
+		if (!ret) {
+			deleteIdentifierNode(node);
+			return NULL;
 		}
 	}
 	/* Binary operations */
@@ -1878,7 +1814,7 @@ ExprNode *parseExprNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 		}
 		args = createExprNodeList();
 		if (!args) return NULL;
-		arg = parseExprNode(&tokens, functab);
+		arg = parseExprNode(&tokens);
 		if (!arg) {
 			deleteExprNodeList(args);
 			return NULL;
@@ -1889,7 +1825,7 @@ ExprNode *parseExprNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 			return NULL;
 		}
 		acceptToken(&tokens, TT_AN);
-		arg = parseExprNode(&tokens, functab);
+		arg = parseExprNode(&tokens);
 		if (!arg) {
 			deleteExprNodeList(args);
 			return NULL;
@@ -1935,7 +1871,7 @@ ExprNode *parseExprNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 		if (!(args = createExprNodeList())) return NULL;
 		while (1) {
 			ExprNode *arg = NULL;
-			if (!(arg = parseExprNode(&tokens, functab))) {
+			if (!(arg = parseExprNode(&tokens))) {
 				deleteExprNodeList(args);
 				return NULL;
 			}
@@ -1969,7 +1905,7 @@ ExprNode *parseExprNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 		if (!(args = createExprNodeList())) return NULL;
 		while (1) {
 			ExprNode *arg = NULL;
-			if (!(arg = parseExprNode(&tokens, functab))) {
+			if (!(arg = parseExprNode(&tokens))) {
 				deleteExprNodeList(args);
 				return NULL;
 			}
@@ -2000,7 +1936,7 @@ ExprNode *parseExprNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 		debug("ET_OP (OP_NOT)");
 #endif
 		if (!(args = createExprNodeList())) return NULL;
-		if (!(arg = parseExprNode(&tokens, functab))) {
+		if (!(arg = parseExprNode(&tokens))) {
 			deleteExprNodeList(args);
 			return NULL;
 		}
@@ -2041,11 +1977,10 @@ ExprNode *parseExprNode(Token ***tokenp,        /**< [in,out] A pointer to the p
   * \see parseConstantNode(Token ***)
   * \see parseTypeNode(Token ***)
   * \see parseIdentifierNode(Token ***)
-  * \see parseExprNode(Token ***, FunctionTable *)
-  * \see parseBlockNode(Token ***, FunctionTable *)
-  * \see parseMainNode(Token **, FunctionTable *) */
-StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the position of the next token to parse. */
-                        FunctionTable *functab) /**< [in,out] A pointer to the table of defined functions. */
+  * \see parseExprNode(Token ***)
+  * \see parseBlockNode(Token ***)
+  * \see parseMainNode(Token **) */
+StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
 {
 	Token **tokens = *tokenp;
 	StmtNode *ret = NULL;
@@ -2098,7 +2033,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 		if (!(args = createExprNodeList())) return NULL;
 		do {
 			ExprNode *arg = NULL;
-			if (!(arg = parseExprNode(&tokens, functab))) {
+			if (!(arg = parseExprNode(&tokens))) {
 				deleteExprNodeList(args);
 				return NULL;
 			}
@@ -2164,7 +2099,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 			deleteIdentifierNode(target);
 			return NULL;
 		}
-		expr = parseExprNode(&tokens, functab);
+		expr = parseExprNode(&tokens);
 		if (!expr) {
 			deleteIdentifierNode(target);
 			return NULL;
@@ -2210,7 +2145,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 			return NULL;
 		}
 		if (acceptToken(&tokens, TT_ITZ)) {
-			expr = parseExprNode(&tokens, functab);
+			expr = parseExprNode(&tokens);
 			if (!expr) {
 				deleteIdentifierNode(scope);
 				deleteIdentifierNode(target);
@@ -2253,7 +2188,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 		BlockNode *no = NULL;
 		IfThenElseStmtNode *stmt = NULL;
 #ifdef DEBUG
-		debug("ST_CONDITIONA");
+		debug("ST_CONDITIONAL");
 #endif
 		if (!acceptToken(&tokens, TT_NEWLINE)) {
 			error("expected end of expression", tokens);
@@ -2267,7 +2202,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 			error("expected end of expression", tokens);
 			return NULL;
 		}
-		yes = parseBlockNode(&tokens, functab);
+		yes = parseBlockNode(&tokens);
 		if (!yes) return NULL;
 		guards = createExprNodeList();
 		if (!guards) {
@@ -2283,7 +2218,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 		while (acceptToken(&tokens, TT_MEBBE)) {
 			ExprNode *guard = NULL;
 			BlockNode *block = NULL;
-			guard = parseExprNode(&tokens, functab);
+			guard = parseExprNode(&tokens);
 			if (!guard) {
 				deleteBlockNode(yes);
 				deleteExprNodeList(guards);
@@ -2304,7 +2239,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 				deleteBlockNodeList(blocks);
 				return NULL;
 			}
-			block = parseBlockNode(&tokens, functab);
+			block = parseBlockNode(&tokens);
 			if (!block) {
 				deleteBlockNode(yes);
 				deleteExprNodeList(guards);
@@ -2327,7 +2262,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 				deleteBlockNodeList(blocks);
 				return NULL;
 			}
-			no = parseBlockNode(&tokens, functab);
+			no = parseBlockNode(&tokens);
 			if (!no) {
 				deleteBlockNode(yes);
 				deleteExprNodeList(guards);
@@ -2446,7 +2381,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 				deleteBlockNodeList(blocks);
 				return NULL;
 			}
-			block = parseBlockNode(&tokens, functab);
+			block = parseBlockNode(&tokens);
 			if (!block) {
 				deleteExprNodeList(guards);
 				deleteBlockNodeList(blocks);
@@ -2465,7 +2400,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 				deleteBlockNodeList(blocks);
 				return NULL;
 			}
-			def = parseBlockNode(&tokens, functab);
+			def = parseBlockNode(&tokens);
 			if (!def) {
 				deleteExprNodeList(guards);
 				deleteBlockNodeList(blocks);
@@ -2517,7 +2452,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 #ifdef DEBUG
 		debug("ST_RETURN");
 #endif
-		value = parseExprNode(&tokens, functab);
+		value = parseExprNode(&tokens);
 		if (!value) return NULL;
 		if (!acceptToken(&tokens, TT_NEWLINE)) {
 			error("expected end of expression", tokens);
@@ -2658,80 +2593,82 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 				return NULL;
 			}
 		}
-		else if ((def = lookupFuncDefStmtNode(functab, (*tokens)->image))) {
-			tokens++;
-			if (!acceptToken(&tokens, TT_YR)) {
-				error("expected YR", tokens);
-				deleteIdentifierNode(name1);
+		else if (nextToken(&tokens, TT_IZ)) {
+			IdentifierNode *scope = NULL;
+			IdentifierNode *name = NULL;
+			ExprNodeList *args = NULL;
+			FuncCallExprNode *node = NULL;
+			ExprNode *ret = NULL;
+			ExprNode *arg = NULL;
+			IdentifierNode *temp = NULL;
+#ifdef DEBUG
+			debug("ET_FUNCCALL");
+#endif
+			scope = parseIdentifierNode(&tokens);
+			if (!scope) return NULL;
+			acceptToken(&tokens, TT_IZ); /* Will succeed, checked for this above */
+			name = parseIdentifierNode(&tokens);
+			if (!name) {
+				deleteIdentifierNode(scope);
 				return NULL;
 			}
+			args = createExprNodeList();
 			/* Check for unary function */
-			if (def->args->num == 1) {
-				IdentifierNode *varcopy = NULL;
-				ExprNode *arg = NULL;
-				ExprNodeList *args = NULL;
-				FuncCallExprNode *func = NULL;
-#ifdef DEBUG
-				shiftout();
-				debug("ET_FUNCCA");
-#endif
-				var = parseIdentifierNode(&tokens);
-				if (!var) {
-					deleteIdentifierNode(name1);
-					return NULL;
-				}
-#ifdef DEBUG
-				shiftin();
-#endif
-				varcopy = createIdentifierNode(var->image, var->fname, var->line);
-				if (!varcopy) {
-					deleteIdentifierNode(name1);
-					deleteIdentifierNode(var);
-					return NULL;
-				}
-				arg = createExprNode(ET_IDENTIFIER, varcopy);
-				if (!arg) {
-					deleteIdentifierNode(name1);
-					deleteIdentifierNode(var);
-					deleteIdentifierNode(varcopy);
-					return NULL;
-				}
-				args = createExprNodeList();
-				if (!args) {
-					deleteIdentifierNode(name1);
-					deleteIdentifierNode(var);
-					deleteExprNode(arg);
-					return NULL;
-				}
-				if (!addExprNode(args, arg)) {
-					deleteIdentifierNode(name1);
-					deleteIdentifierNode(var);
-					deleteExprNode(arg);
-					deleteExprNodeList(args);
-					return NULL;
-				}
-				func = createFuncCallExprNode(def, args);
-				if (!func) {
-					deleteIdentifierNode(name1);
-					deleteIdentifierNode(var);
-					deleteExprNodeList(args);
-					return NULL;
-				}
-				update = createExprNode(ET_FUNCCALL, func);
-				if (!update) {
-					deleteFuncCallExprNode(func);
-					return NULL;
-				}
-			}
-			else {
+			if (!acceptToken(&tokens, TT_YR)) {
 				error("expected unary function", tokens);
 				deleteIdentifierNode(name1);
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteExprNodeList(args);
+				return NULL;
+			}
+			arg = parseExprNode(&tokens);
+			if (!arg) {
+				deleteIdentifierNode(name1);
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteExprNodeList(args);
+				return NULL;
+			}
+			if (arg->type != ET_IDENTIFIER) {
+				error("expected identifier", tokens);
+				deleteExprNode(arg);
+				deleteIdentifierNode(name1);
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteExprNodeList(args);
+				return NULL;
+			}
+			addExprNode(args, arg);
+			temp = (IdentifierNode *)(arg->expr);
+			/* Copy the identifier to make it the loop variable */
+			var = createIdentifierNode(temp->image, temp->fname, temp->line);
+			/* Check for unary function */
+			if (!acceptToken(&tokens, TT_MKAY)) {
+				error("expected MKAY", tokens);
+				deleteIdentifierNode(name1);
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteExprNodeList(args);
+				return NULL;
+			}
+			node = createFuncCallExprNode(scope, name, args);
+			if (!node) {
+				deleteIdentifierNode(name1);
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteExprNodeList(args);
+				return NULL;
+			}
+			update = createExprNode(ET_FUNCCALL, node);
+			if (!update) {
+				deleteFuncCallExprNode(node);
 				return NULL;
 			}
 		}
 		if (update) {
 			if (acceptToken(&tokens, TT_WILE)) {
-				guard = parseExprNode(&tokens, functab);
+				guard = parseExprNode(&tokens);
 				if (!guard) {
 					deleteIdentifierNode(name1);
 					deleteExprNode(update);
@@ -2746,7 +2683,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 				shiftout();
 				debug("ET_OP (OP_NOT)");
 #endif
-				arg = parseExprNode(&tokens, functab);
+				arg = parseExprNode(&tokens);
 				if (!arg) {
 					deleteIdentifierNode(name1);
 					deleteExprNode(update);
@@ -2792,7 +2729,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 			if (guard) deleteExprNode(guard);
 			return NULL;
 		}
-		body = parseBlockNode(&tokens, functab);
+		body = parseBlockNode(&tokens);
 		if (!body) {
 			deleteIdentifierNode(name1);
 			if (update) deleteExprNode(update);
@@ -2878,63 +2815,101 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 		}
 	}
 	/* Function definition */
-	else if (acceptToken(&tokens, TT_HOWDUZ)) {
+	else if (acceptToken(&tokens, TT_HOWIZ)) {
 		IdentifierNode *scope = NULL;
 		IdentifierNode *name = NULL;
+		IdentifierNodeList *args = NULL;
 		BlockNode *body;
-		FuncDefStmtNode *proto = NULL;
-#ifdef DEBUG
-		debug("ST_FUNCDEF");
-#endif
-		/* Skip over the scope as it has already been parsed */
+		FuncDefStmtNode *stmt = NULL;
 		scope = parseIdentifierNode(&tokens);
 		if (!scope) return NULL;
-		deleteIdentifierNode(scope);
 		name = parseIdentifierNode(&tokens);
-		if (!name) return NULL;
-		/* Lookup function prototype to update it after parsing body */
-		proto = lookupFuncDefStmtNode(functab, name->image);
-		deleteIdentifierNode(name);
-		if (!proto) {
-			error("function prototype not found", tokens);
+		if (!name) {
+			deleteIdentifierNode(scope);
 			return NULL;
 		}
-		/* Skip over the arguments as they have already been parsed */
+		args = createIdentifierNodeList();
+		if (!args) {
+			deleteIdentifierNode(scope);
+			deleteIdentifierNode(name);
+		}
 		if (acceptToken(&tokens, TT_YR)) {
 			IdentifierNode *arg = parseIdentifierNode(&tokens);
-			if (!arg) return NULL;
-			deleteIdentifierNode(arg);
+			if (!arg) {
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteIdentifierNodeList(args);
+				return NULL;
+			}
+			if (!addIdentifierNode(args, arg)) {
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteIdentifierNodeList(args);
+				deleteIdentifierNode(arg);
+				return NULL;
+			}
 			while (acceptToken(&tokens, TT_ANYR)) {
 				arg = parseIdentifierNode(&tokens);
-				if (!arg) return NULL;
-				deleteIdentifierNode(arg);
+				if (!arg) {
+					deleteIdentifierNode(scope);
+					deleteIdentifierNode(name);
+					deleteIdentifierNodeList(args);
+					return NULL;
+				}
+				if (!addIdentifierNode(args, arg)) {
+					deleteIdentifierNode(scope);
+					deleteIdentifierNode(name);
+					deleteIdentifierNodeList(args);
+					deleteIdentifierNode(arg);
+					return NULL;
+				}
 			}
 		}
 		if (!acceptToken(&tokens, TT_NEWLINE)) {
 			error("expected end of statement", tokens);
+			deleteIdentifierNode(scope);
+			deleteIdentifierNode(name);
+			deleteIdentifierNodeList(args);
 			return NULL;
 		}
-		body = parseBlockNode(&tokens, functab);
-		if (!body) return NULL;
+		body = parseBlockNode(&tokens);
+		if (!body) {
+			deleteIdentifierNode(scope);
+			deleteIdentifierNode(name);
+			deleteIdentifierNodeList(args);
+			return NULL;
+		}
 		if (!acceptToken(&tokens, TT_IFUSAYSO)) {
 			error("expected IF YOU SAY SO", tokens);
+			deleteIdentifierNode(scope);
+			deleteIdentifierNode(name);
+			deleteIdentifierNodeList(args);
 			deleteBlockNode(body);
 			return NULL;
 		}
 		if (!acceptToken(&tokens, TT_NEWLINE)) {
 			error("expected end of statement", tokens);
+			deleteIdentifierNode(scope);
+			deleteIdentifierNode(name);
+			deleteIdentifierNodeList(args);
 			deleteBlockNode(body);
 			return NULL;
 		}
-		/* Update the function body */
-		proto->body = body;
-		ret = createStmtNode(ST_FUNCDEF, proto);
+		stmt = createFuncDefStmtNode(scope, name, args, body);
+		if (!stmt) {
+			deleteIdentifierNode(scope);
+			deleteIdentifierNode(name);
+			deleteIdentifierNodeList(args);
+			deleteBlockNode(body);
+			return NULL;
+		}
+		ret = createStmtNode(ST_FUNCDEF, stmt);
 		if (!ret) {
-			deleteStmtNode(ret);
+			deleteFuncDefStmtNode(stmt);
 		}
 	}
-	/* Expression Evaluation */
-	else if ((expr = parseExprNode(&tokens, functab))) {
+	/* Expression evaluation */
+	else if ((expr = parseExprNode(&tokens))) {
 #ifdef DEBUG
 		debug("ST_EXPR");
 #endif
@@ -2968,11 +2943,10 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
   * \see parseConstantNode(Token ***)
   * \see parseTypeNode(Token ***)
   * \see parseIdentifierNode(Token ***)
-  * \see parseExprNode(Token ***, FunctionTable *)
-  * \see parseStmtNode(Token ***, FunctionTable *)
-  * \see parseMainNode(Token **, FunctionTable *) */
-BlockNode *parseBlockNode(Token ***tokenp,        /**< [in,out] A pointer to the position of the next token to parse. */
-                          FunctionTable *functab) /**< [in,out] A pointer to the table of defined functions. */
+  * \see parseExprNode(Token ***)
+  * \see parseStmtNode(Token ***)
+  * \see parseMainNode(Token **) */
+BlockNode *parseBlockNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
 {
 	Token **tokens = *tokenp;
 	StmtNodeList *stmts = NULL;
@@ -2989,7 +2963,7 @@ BlockNode *parseBlockNode(Token ***tokenp,        /**< [in,out] A pointer to the
 			&& !peekToken(&tokens, TT_MEBBE) && !peekToken(&tokens, TT_OMG)
 			&& !peekToken(&tokens, TT_OMGWTF) && !peekToken(&tokens, TT_IMOUTTAYR)
 			&& !peekToken(&tokens, TT_IFUSAYSO)) {
-		StmtNode *s = parseStmtNode(&tokens, functab);
+		StmtNode *s = parseStmtNode(&tokens);
 		if (!s) {
 			deleteStmtNodeList(stmts);
 			return NULL;
@@ -3014,7 +2988,6 @@ BlockNode *parseBlockNode(Token ***tokenp,        /**< [in,out] A pointer to the
   * interpreter.
   *
   * \pre \a tokens was created by tokenizeLexemes(Lexeme **).
-  * \pre \a functab was created by setupFunctionTable(Token **).
   *
   * \return A pointer to the generated MainNode structure.
   *
@@ -3023,11 +2996,10 @@ BlockNode *parseBlockNode(Token ***tokenp,        /**< [in,out] A pointer to the
   * \see parseConstantNode(Token ***)
   * \see parseTypeNode(Token ***)
   * \see parseIdentifierNode(Token ***)
-  * \see parseExprNode(Token ***, FunctionTable *)
-  * \see parseStmtNode(Token ***, FunctionTable *)
-  * \see parseBlockNode(Token ***, FunctionTable *) */
-MainNode *parseMainNode(Token **tokens,         /**< [in] A pointer to an array of tokens to parse. */
-                        FunctionTable *functab) /**< [in,out] A pointer to a table of function prototypes. */
+  * \see parseExprNode(Token ***)
+  * \see parseStmtNode(Token ***)
+  * \see parseBlockNode(Token ***) */
+MainNode *parseMainNode(Token **tokens) /**< [in] A pointer to an array of tokens to parse. */
 {
 	if (acceptToken(&tokens, TT_HAI)) {
 		BlockNode *block = NULL;
@@ -3040,14 +3012,14 @@ MainNode *parseMainNode(Token **tokens,         /**< [in] A pointer to an array 
 			error("expected end of statement", tokens);
 			return NULL;
 		}
-		block = parseBlockNode(&tokens, functab);
+		block = parseBlockNode(&tokens);
 		if (!block) return NULL;
 		if (!acceptToken(&tokens, TT_KTHXBYE)) {
 			error("expected KTHXBYE", tokens);
 			deleteBlockNode(block);
 			return NULL;
 		}
-		_main = createMainNode(block, functab);
+		_main = createMainNode(block);
 		if (!_main) {
 			deleteBlockNode(block);
 			return NULL;
@@ -3058,101 +3030,4 @@ MainNode *parseMainNode(Token **tokens,         /**< [in] A pointer to an array 
 		error("expected HAI", tokens);
 		return NULL;
 	}
-}
-
-/** Sets up a FunctionTable structure filled with the prototypes of all declared
-  * functions.  This structure is then passed as an argument to parseMainNode(Token **, FunctionTable *)
-  * so that functions may be called before their definition as well as recursively.
-  *
-  * \pre \a tokens was created by tokenizeLexemes(Lexeme **).
-  *
-  * \return A pointer to the generated FunctionTable structure.
-  *
-  * \retval NULL An error occurred during setup. */
-FunctionTable *setupFunctionTable(Token **tokens) /**< [in] A pointer to an array of tokens to scan for function prototypes. */
-{
-	FunctionTable *p = createFunctionTable();
-#ifdef DEBUG
-	fprintf(stderr, "Setting up function table...\n");
-#endif
-	while (*tokens) {
-		if (acceptToken(&tokens, TT_HOWDUZ)) {
-			IdentifierNode *scope = NULL;
-			IdentifierNode *name = NULL;
-			IdentifierNodeList *args = NULL;
-			FuncDefStmtNode *stmt = NULL;
-			scope = parseIdentifierNode(&tokens);
-			if (!scope) {
-				deleteFunctionTable(p);
-				return NULL;
-			}
-			name = parseIdentifierNode(&tokens);
-			if (!name) {
-				deleteFunctionTable(p);
-				deleteIdentifierNode(scope);
-				return NULL;
-			}
-			args = createIdentifierNodeList();
-			if (!args) {
-				deleteFunctionTable(p);
-				deleteIdentifierNode(scope);
-			}
-			if (acceptToken(&tokens, TT_YR)) {
-				IdentifierNode *arg = parseIdentifierNode(&tokens);
-				if (!arg) {
-					deleteFunctionTable(p);
-					deleteIdentifierNode(scope);
-					deleteIdentifierNodeList(args);
-					return NULL;
-				}
-				if (!addIdentifierNode(args, arg)) {
-					deleteFunctionTable(p);
-					deleteIdentifierNode(scope);
-					deleteIdentifierNodeList(args);
-					deleteIdentifierNode(arg);
-					return NULL;
-				}
-				while (acceptToken(&tokens, TT_ANYR)) {
-					arg = parseIdentifierNode(&tokens);
-					if (!arg) {
-						deleteFunctionTable(p);
-						deleteIdentifierNode(scope);
-						deleteIdentifierNodeList(args);
-						return NULL;
-					}
-					if (!addIdentifierNode(args, arg)) {
-						deleteFunctionTable(p);
-						deleteIdentifierNode(scope);
-						deleteIdentifierNodeList(args);
-						deleteIdentifierNode(arg);
-						return NULL;
-					}
-				}
-			}
-			if (!acceptToken(&tokens, TT_NEWLINE)) {
-				error("expected end of statement", tokens);
-				deleteFunctionTable(p);
-				deleteIdentifierNode(scope);
-				deleteIdentifierNodeList(args);
-				return NULL;
-			}
-			stmt = createFuncDefStmtNode(scope, name, args, NULL);
-			if (!stmt) {
-				deleteFunctionTable(p);
-				deleteIdentifierNode(scope);
-				deleteIdentifierNodeList(args);
-				return NULL;
-			}
-			if (!addFuncDefStmtNode(p, stmt)) {
-				deleteFunctionTable(p);
-				deleteFuncDefStmtNode(stmt);
-				return NULL;
-			}
-		}
-		else tokens++;
-	}
-#ifdef DEBUG
-	fprintf(stderr, "Done setting up function table...\n");
-#endif
-	return p;
 }

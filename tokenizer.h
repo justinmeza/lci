@@ -87,7 +87,8 @@ typedef enum {
 	TT_TIL,
 	TT_WILE,
 	TT_IMOUTTAYR,
-	TT_HOWDUZ,
+	TT_HOWIZ,
+	TT_IZ,
 	TT_IFUSAYSO,
 	TT_FOUNDYR,
 	TT_ENDOFTOKENS
@@ -155,7 +156,8 @@ static const char *keywords[] = {
 	"TIL",         /* TT_TIL */
 	"WILE",        /* TT_WILE */
 	"IM OUTTA YR", /* TT_IMOUTTAYR */
-	"HOW DUZ",     /* TT_HOWDUZ */
+	"HOW IZ",      /* TT_HOWIZ */
+	"IZ",          /* TT_IZ */
 	"IF U SAY SO", /* TT_IFUSAYSO */
 	"FOUND YR",    /* TT_FOUNDYR */
 	"",            /* TT_ENDOFTOKENS */

@@ -1,7 +1,7 @@
 HAI 1.3
-	HOW DUZ I fun YR a
+	HOW IZ I fun YR a
 		VISIBLE a
 	IF U SAY SO
 
-	fun SUM OF 1 AN 2.345
+	I IZ fun YR SUM OF 1 AN 2.345 MKAY
 KTHXBYE
