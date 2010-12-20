@@ -230,6 +230,31 @@ void deleteReturnObject(ReturnObject *object) /**< [in,out] The ReturnObject str
 	free(object);
 }
 
+/** \todo Document this function */
+char *resolveIdentifierName(IdentifierNode *id,
+                            ScopeObject *scope)
+{
+	char *ret = NULL;
+	if (!id) return NULL;
+	if (id->type == IT_DIRECT) {
+		char *temp = (char *)(id->id);
+		ret = malloc(sizeof(char) * (strlen(temp) + 1));
+		strcpy(ret, temp);
+	}
+	else if (id->type == IT_INDIRECT) {
+		ExprNode *expr = (ExprNode *)(id->id);
+		ValueObject *val = interpretExprNode(expr, scope);
+		ValueObject *str = castStringExplicit(val, scope);
+		deleteValueObject(val);
+		ret = createString(getString(str));
+		deleteValueObject(str);
+	}
+	else {
+		fprintf(stderr, "%s:%d: invalid identifier type\n", id->fname, id->line);
+	}
+	return ret;
+}
+
 /** Creates a ScopeObject structure.
   *
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
@@ -276,8 +301,7 @@ void deleteScopeObject(ScopeObject *scope) /**< [in,out] The ScopeObject structu
 	unsigned int n;
 	if (!scope) return;
 	for (n = 0; n < scope->numvals; n++) {
-		/* The individual names are pointers to existing IdentifierNode
-		 * structures, so don't free them here. */
+		free(scope->names[n]);
 		deleteValueObject(scope->values[n]);
 	}
 	free(scope->names);
@@ -306,15 +330,21 @@ ValueObject *getScopeValue(ScopeObject *scope,     /**< [in] The ScopeObject str
                            IdentifierNode *target) /**< [in] The name of the value to find. */
 {
 	ScopeObject *current = scope;
+	char *name = NULL;
+	name = resolveIdentifierName(target, scope);
+	if (!name) return NULL;
 	/* Traverse upwards through scopes */
 	do {
 		unsigned int n;
 		/* Check for value in current scope */
 		for (n = 0; n < current->numvals; n++) {
-			if (!strcmp(current->names[n]->image, target->image))
+			if (!strcmp(current->names[n], name)) {
+				free(name);
 				return current->values[n];
+			}
 		}
 	} while ((current = current->parent));
+	free(name);
 	return NULL;
 }
 
@@ -338,11 +368,17 @@ ValueObject *getLocalScopeValue(ScopeObject *scope,     /**< [in] The ScopeObjec
                                 IdentifierNode *target) /**< [in] The name of the value to find. */
 {
 	unsigned int n;
+	char *name = NULL;
+	name = resolveIdentifierName(target, scope);
+	if (!name) return NULL;
 	/* Check for value in current scope */
 	for (n = 0; n < scope->numvals; n++) {
-		if (!strcmp(scope->names[n]->image, target->image))
+		if (!strcmp(scope->names[n], name)) {
+			free(name);
 			return scope->values[n];
+		}
 	}
+	free(name);
 	return NULL;
 }
 
@@ -367,20 +403,25 @@ ValueObject *createScopeValue(ScopeObject *scope,     /**< [in,out] The ScopeObj
 {
 	unsigned int newnumvals = scope->numvals + 1;
 	void *mem1 = NULL, *mem2 = NULL;
+	char *name = NULL;
+	name = resolveIdentifierName(target, scope);
+	if (!name) return NULL;
 	/* Add value to local scope */
 	mem1 = realloc(scope->names, sizeof(IdentifierNode *) * newnumvals);
 	if (!mem1) {
 		perror("realloc");
+		free(name);
 		return NULL;
 	}
 	mem2 = realloc(scope->values, sizeof(ValueObject *) * newnumvals);
 	if (!mem2) {
 		perror("realloc");
+		free(name);
 		return NULL;
 	}
 	scope->names = mem1;
 	scope->values = mem2;
-	scope->names[scope->numvals] = target;
+	scope->names[scope->numvals] = name;
 	scope->values[scope->numvals] = createNilValueObject();
 	if (!scope->values[scope->numvals])
 		return NULL;
@@ -414,12 +455,16 @@ ValueObject *updateScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to
                               ValueObject *value)     /**< [in] A pointer to the ValueObject structure containing the value to copy for the update. */
 {
 	ScopeObject *current = scope;
+	char *name = NULL;
+	name = resolveIdentifierName(target, scope);
+	if (!name) return NULL;
 	/* Traverse upwards through scopes */
 	do {
 		unsigned int n;
 		/* Check for existing value in current scope */
 		for (n = 0; n < current->numvals; n++) {
-			if (!strcmp(current->names[n]->image, target->image)) {
+			if (!strcmp(current->names[n], name)) {
+				free(name);
 				/* Wipe out the old value */
 				deleteValueObject(current->values[n]);
 				/* Assign the new value */
@@ -431,7 +476,8 @@ ValueObject *updateScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to
 			}
 		}
 	} while ((current = current->parent));
-	fprintf(stderr, "%s:%d: unable to store variable at: %s\n", target->fname, target->line, target->image);
+	fprintf(stderr, "%s:%d: unable to store variable\n", target->fname, target->line);
+	free(name);
 	return NULL;
 }
 
@@ -451,19 +497,21 @@ void deleteScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to the Sco
                       IdentifierNode *target) /**< [in] A pointer to the IdentifierNode structure containing the name of the value to delete. */
 {
 	ScopeObject *current = scope;
+	char *name = NULL;
+	name = resolveIdentifierName(target, scope);
+	if (!name) return;
 	/* Traverse upwards through scopes */
 	do {
 		unsigned int n;
 		/* Check for existing value in current scope */
 		for (n = 0; n < current->numvals; n++) {
-			if (!strcmp(current->names[n]->image, target->image)) {
+			if (!strcmp(current->names[n], name)) {
 				unsigned int i;
 				unsigned int newnumvals = scope->numvals - 1;
 				void *mem1 = NULL, *mem2 = NULL;
-				/* Don't delete anything in the names table
-				 * because it's just pointers to IdentifierNode
-				 * structures in the parse tree. */
-				/* Wipe out the value */
+				free(name);
+				/* Wipe out the name and value */
+				free(current->names[n]);
 				deleteValueObject(current->values[n]);
 				/* Reorder the tables */
 				for (i = n; i < current->numvals - 1; i++) {
@@ -488,6 +536,7 @@ void deleteScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to the Sco
 			}
 		}
 	} while ((current = current->parent));
+	free(name);
 }
 
 /** Checks if a string of characters follows the format for a number.
@@ -1000,7 +1049,7 @@ ValueObject *castStringExplicit(ValueObject *node,  /**< [in] The ValueObject st
 						/* Create a new IdentifierNode
 						 * structure and lookup its
 						 * value */
-						target = createIdentifierNode(image, NULL, 0);
+						target = createIdentifierNode(IT_DIRECT, image, NULL, 0);
 						if (!target) {
 							free(temp);
 							return NULL;
@@ -1157,14 +1206,22 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,     /**< [in] A pointer t
 	def = getScopeValue(scope, expr->name);
 	if (!def || def->type != VT_FUNC) {
 		IdentifierNode *id = (IdentifierNode *)(expr->name);
-		fprintf(stderr, "%s:%d: undefined function at: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%d: undefined function at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		deleteScopeObject(outer);
 		return NULL;
 	}
 	/* Check for correct supplied arity */
 	if (getFunction(def)->args->num != expr->args->num) {
 		IdentifierNode *id = (IdentifierNode *)(expr->name);
-		fprintf(stderr, "%s:%d: incorrect number of arguments supplied to: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%d: incorrect number of arguments supplied to: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		deleteScopeObject(outer);
 		return NULL;
 	}
@@ -1240,10 +1297,16 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,     /**< [in] A pointer t
 ValueObject *interpretIdentifierExprNode(ExprNode *node,     /**< [in] A pointer to an ExprNode structure containing the IdentifierNode structure to interpret. */
                                          ScopeObject *scope) /**< Not used (see note). */
 {
-	ValueObject *val = getScopeValue(scope, node->expr);
+	IdentifierNode *id = NULL;
+	ValueObject *val = NULL;
+	id = (IdentifierNode *)(node->expr);
+	val = getScopeValue(scope, id);
 	if (!val) {
-		IdentifierNode *id = (IdentifierNode *)(node->expr);
-		fprintf(stderr, "%s:%d: variable does not exist at: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%d: variable does not exist at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		return NULL;
 	}
 	return copyValueObject(val);
@@ -2608,7 +2671,11 @@ ReturnObject *interpretCastStmtNode(StmtNode *node,     /**< [in] A pointer to t
 	ValueObject *cast = NULL;
 	if (!val) {
 		IdentifierNode *id = (IdentifierNode *)(stmt->target);
-		fprintf(stderr, "%s:%d: variable does not exist at: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%d: variable does not exist at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		return NULL;
 	}
 	switch(stmt->newtype->type) {
@@ -2815,7 +2882,11 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,     /**< [in] A point
 	ValueObject *init = NULL;
 	if (getLocalScopeValue(scope, stmt->target)) {
 		IdentifierNode *id = (IdentifierNode *)(stmt->target);
-		fprintf(stderr, "%s:%d: redefinition of existing variable at: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%d: redefinition of existing variable at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		return NULL;
 	}
 	if (stmt->expr)
@@ -3291,7 +3362,11 @@ ReturnObject *interpretFuncDefStmtNode(StmtNode *node,     /**< Not used (see no
 	ValueObject *init = NULL;
 	if (getLocalScopeValue(scope, stmt->name)) {
 		IdentifierNode *id = (IdentifierNode *)(stmt->name);
-		fprintf(stderr, "%s:%d: function name already used by existing variable at: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%d: function name already used by existing variable at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		return NULL;
 	}
 	init = createFunctionValueObject(stmt);

@@ -4,7 +4,7 @@ OBJS = lexer.o tokenizer.o parser.o interpreter.o unicode.o main.o
 SRCS = lexer.c tokenizer.c parser.c interpreter.c unicode.c main.c
 HDRS = lexer.h tokenizer.h parser.h interpreter.h unicode.h
 INSTALL = /usr/local/bin/install -c
-CPPFLAGS = -O2
+CPPFLAGS = -O3
 
 prefix = /usr/local
 bindir = $(prefix)/bin

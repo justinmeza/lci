@@ -247,48 +247,60 @@ void deleteConstantNode(ConstantNode *node) /**< [in,out] A pointer to the Const
 
 /** Creates an IdentifierNode structure.
   *
-  * \note \a image is \b copied for use within the structure so it must be freed
-  *       by the caller.
-  *
   * \return A pointer to an IdentifierNode structure with the desired
   *         properties.
   *
   * \retval NULL malloc was unable to allocate memory.
   *
   * \see deleteIdentifierNode(IdentifierNode *) */
-IdentifierNode *createIdentifierNode(char *image,       /**< [in] An array of characters that name the identifier. */
-                                     const char *fname, /**< [in] A pointer to the name of the file containing the identifier. */
-                                     unsigned int line) /**< [in] The line number from the source file that the identifier occurred on. */
+IdentifierNode *createIdentifierNode(IdentifierType type, /**< [in] The type of IdentifierNode stored in \a id. */
+                                     void *id,            /**< [in] A pointer to the stored identifier data. */
+                                     const char *fname,   /**< [in] A pointer to the name of the file containing the identifier. */
+                                     unsigned int line)   /**< [in] The line number from the source file that the identifier occurred on. */
 {
 	IdentifierNode *p = malloc(sizeof(IdentifierNode));
 	if (!p) {
 		perror("malloc");
 		return NULL;
 	}
-	p->image = malloc(sizeof(char) * (strlen(image) + 1));
-	if (!p->image) {
-		free(p);
-		perror("malloc");
-		return NULL;
+	p->type = type;
+	p->id = id;
+	if (fname) {
+		p->fname = malloc(sizeof(char) * (strlen(fname) + 1));
+		strcpy(p->fname, fname);
 	}
-	strcpy(p->image, image);
-	p->fname = fname;
+	else {
+		p->fname = NULL;
+	}
 	p->line = line;
 	return p;
 }
 
 /** Deletes an IdentifierNode structure.
   *
-  * \pre \a node was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a node was created by createIdentifierNode(IdentifierType, void *).
   *
   * \post The memory at \a node and any of its associated members will be
   *       freed.
   *
-  * \see createIdentifierNode(char *, const char *, unsigned int) */
+  * \see createIdentifierNode(IdentifierType, void *) */
 void deleteIdentifierNode(IdentifierNode *node) /**< [in,out] A pointer to the IdentifierNode structure to be deleted. */
 {
 	if (!node) return;
-	free(node->image);
+	switch (node->type) {
+		case IT_DIRECT: {
+			free(node->id);
+			break;
+		}
+		case IT_INDIRECT: {
+			deleteExprNode(node->id);
+			break;
+		}
+		default:
+			fprintf(stderr, "Unable to delete unknown identifier type\n");
+			break;
+	}
+	if (node->fname) free(node->fname);
 	free(node);
 }
 
@@ -315,7 +327,7 @@ IdentifierNodeList *createIdentifierNodeList(void)
 /** Adds an IdentifierNode structure to an IdentifierNodeList structure.
   *
   * \pre \a list was created by createIdentifierNodeList(void).
-  * \pre \a node was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a node was created by createIdentifierNode(IdentifierType, void *).
   *
   * \post \a node will be added on to the end of \a list and the size of
   *       \a list will be updated accordingly.
@@ -324,8 +336,8 @@ IdentifierNodeList *createIdentifierNodeList(void)
   *         \a node).
   *
   * \retval NULL realloc was unable to allocate memory. */
-IdentifierNode *addIdentifierNode(IdentifierNodeList *list,   /**< [in,out] A pointer to the IdentifierNodeList structure to add \a node to. */
-                                  IdentifierNode *node) /**< [in] A pointer to the IdentifierNode structure to add to \a list. */
+IdentifierNode *addIdentifierNode(IdentifierNodeList *list, /**< [in,out] A pointer to the IdentifierNodeList structure to add \a node to. */
+                                  IdentifierNode *node)     /**< [in] A pointer to the IdentifierNode structure to add to \a list. */
 {
 	unsigned int newsize = list->num + 1;
 	void *mem = realloc(list->ids, sizeof(IdentifierNode *) * newsize);
@@ -571,7 +583,7 @@ void deleteStmtNodeList(StmtNodeList *list) /**< [in,out] A pointer to the StmtN
 
 /** Creates a CastStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *).
   * \pre \a newtype was created by createTypeNode(ConstantType).
   *
   * \return A pointer to a CastStmtNode structure with the desired properties.
@@ -648,7 +660,7 @@ void deletePrintStmtNode(PrintStmtNode *node) /**< [in,out] A pointer to the Pri
 
 /** Creates an InputStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *).
   *
   * \return A pointer to an InputStmtNode structure with the desired properties.
   *
@@ -683,7 +695,7 @@ void deleteInputStmtNode(InputStmtNode *node) /**< [in,out] A pointer to the Inp
 
 /** Creates an AssignmentStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *).
   * \pre \a expr was created by createExprNode(ExprType, void *).
   *
   * \return A pointer to an AssignmentStmtNode structure with the desired
@@ -723,8 +735,8 @@ void deleteAssignmentStmtNode(AssignmentStmtNode *node) /**< [in,out] A pointer 
 
 /** Creates a DeclarationStmtNode structure.
   *
-  * \pre \a scope was created by createIdentifierNode(char *, const char *, unsigned int).
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a scope was created by createIdentifierNode(IdentifierType, void *).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *).
   * \pre \a expr was created by createExprNode(ExprType, void *).
   *
   * \return A pointer to a DeclarationStmtNode structure with the desired
@@ -900,8 +912,8 @@ void deleteReturnStmtNode(ReturnStmtNode *node) /**< [in,out] A pointer to the R
 
 /** Creates a LoopStmtNode structure.
   *
-  * \pre \a name was created by createIdentifierNode(char *, const char *, unsigned int).
-  * \pre \a var was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a name was created by createIdentifierNode(IdentifierType, void *).
+  * \pre \a var was created by createIdentifierNode(IdentifierType, void *).
   * \pre \a guard was created by createExprNode(ExprType, void *).
   * \pre \a update was created by createExprNode(ExprType, void *).
   * \pre \a body was created by createBlockNode(StmtNodeList *).
@@ -951,7 +963,7 @@ void deleteLoopStmtNode(LoopStmtNode *node) /**< [in,out] A pointer to the LoopS
 
 /** Creates a DeallocationStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *).
   *
   * \return A pointer to a DeallocationStmtNode structure with the desired
   *         properties.
@@ -987,8 +999,8 @@ void deleteDeallocationStmtNode(DeallocationStmtNode *node) /**< [in,out] A poin
 
 /** Creates a FuncDefStmtNode structure.
   *
-  * \pre \a scope was created by createIdentifierNode(char *, const char *, unsigned int).
-  * \pre \a name was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a scope was created by createIdentifierNode(IdentifierType, void *).
+  * \pre \a name was created by createIdentifierNode(IdentifierType, void *).
   * \pre \a args was created by createIdentifierNodeList(void) and contains
   *      items added by addIdentifierNode(IdentifierNodeList *, IdentifierNode *).
   * \pre \a body was created by createBlockNode(StmtNodeList *).
@@ -1040,7 +1052,7 @@ void deleteFuncDefStmtNode(FuncDefStmtNode *node) /**< [in,out] A pointer to the
   *      - ET_CAST: createCastExprNode(ExprNode *, TypeNode *)
   *      - ET_CONSTANT: createBooleanConstantNode(int), createIntegerConstantNode(int),
   *        createFloatConstantNode(float), or createStringConstantNode(char *)
-  *      - ET_IDENTIFIER: createIdentifierNode(char *, const char *, unsigned int)
+  *      - ET_IDENTIFIER: createIdentifierNode(IdentifierType, void *)
   *      - ET_FUNCCALL: createFuncCallExprNode(IdentifierNode *, IdentifierNode *, ExprNodeList *)
   *      - ET_OP: createOpExprNode(OpType, ExprNodeList *)
   *      - ET_IMPVAR: (for the \ref impvar "implicit variable") no structure needed, use \c NULL
@@ -1205,8 +1217,8 @@ void deleteCastExprNode(CastExprNode *node) /**< [in,out] A pointer to the CastE
 
 /** Creates a FuncCallExprNode structure.
   *
-  * \pre \a scope was created by createIdentifierNode(char *, const char *, unsigned int).
-  * \pre \a name was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a scope was created by createIdentifierNode(IdentifierType, void *).
+  * \pre \a name was created by createIdentifierNode(IdentifierType, void *).
   * \pre \a args was created by createIdentifierNodeList(void) and contains
   *      items added by addIdentifierNode(IdentifierNodeList *, IdentifierNode *).
   *
@@ -1554,13 +1566,31 @@ IdentifierNode *parseIdentifierNode(Token ***tokenp) /**< [in,out] A pointer to 
 #ifdef DEBUG
 	shiftout();
 #endif
+	/* Direct identifier */
 	if (peekToken(&tokens, TT_IDENTIFIER)) {
+		char *temp = NULL;
 #ifdef DEBUG
-		debug("IDENTIFIER");
+		debug("IT_DIRECT");
 #endif
-		ret = createIdentifierNode((*tokens)->image, (*tokens)->fname, (*tokens)->line);
+		temp = malloc(sizeof(char) * (strlen((*tokens)->image) + 1));
+		strcpy(temp, (*tokens)->image);
+		ret = createIdentifierNode(IT_DIRECT, temp, (*tokens)->fname, (*tokens)->line);
 		if (!ret) return NULL;
 		acceptToken(&tokens, TT_IDENTIFIER); /* Will succeed, checked for this above */
+	}
+	/* Indirect identifier */
+	else if (acceptToken(&tokens, TT_SRS)) {
+		ExprNode *expr = NULL;
+#ifdef DEBUG
+		debug("IT_INDIRECT");
+#endif
+		expr = parseExprNode(&tokens);
+		if (!expr) return NULL;
+		ret = createIdentifierNode(IT_INDIRECT, expr, (*tokens)->fname, (*tokens)->line);
+		if (!ret) {
+			deleteExprNode(expr);
+			return NULL;
+		}
 	}
 	else error("expected identifier", tokens);
 #ifdef DEBUG
@@ -1706,7 +1736,8 @@ ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position
 		}
 	}
 	/* Identifier */
-	else if (peekToken(&tokens, TT_IDENTIFIER)) {
+	else if (peekToken(&tokens, TT_IDENTIFIER)
+			|| peekToken(&tokens, TT_SRS)) {
 		IdentifierNode *node = NULL;
 #ifdef DEBUG
 		debug("ET_IDENTIFIER");
@@ -1848,7 +1879,8 @@ ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position
 	}
 	/* N-ary operations ending in MKAY */
 	else if (peekToken(&tokens, TT_ALLOF)
-			|| peekToken(&tokens, TT_ANYOF)) {
+			|| peekToken(&tokens, TT_ANYOF)
+			|| peekToken(&tokens, TT_SMOOSH)) {
 		ExprNodeList *args = NULL;
 		OpExprNode *op = NULL;
 		OpType type;
@@ -1862,6 +1894,12 @@ ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position
 			type = OP_OR;
 #ifdef DEBUG
 			debug("ET_OP (OP_OR)");
+#endif
+		}
+		else if(acceptToken(&tokens, TT_SMOOSH)) {
+			type = OP_CAT;
+#ifdef DEBUG
+			debug("ET_OP (OP_CAT)");
 #endif
 		}
 		else {
@@ -1881,41 +1919,6 @@ ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position
 				return NULL;
 			}
 			if (acceptToken(&tokens, TT_MKAY)) break;
-			acceptToken(&tokens, TT_AN);
-		}
-		if (!(op = createOpExprNode(type, args))) {
-			deleteExprNodeList(args);
-			return NULL;
-		}
-		if (!(ret = createExprNode(ET_OP, op))) {
-			deleteOpExprNode(op);
-			return NULL;
-		}
-	}
-	/* N-ary operations not ending in MKAY */
-	else if (peekToken(&tokens, TT_SMOOSH)) {
-		ExprNodeList *args = NULL;
-		OpExprNode *op = NULL;
-		OpType type;
-		acceptToken(&tokens, TT_SMOOSH);
-		type = OP_CAT;
-#ifdef DEBUG
-		debug("ET_OP (OP_CAT)");
-#endif
-		if (!(args = createExprNodeList())) return NULL;
-		while (1) {
-			ExprNode *arg = NULL;
-			if (!(arg = parseExprNode(&tokens))) {
-				deleteExprNodeList(args);
-				return NULL;
-			}
-			if (!addExprNode(args, arg)) {
-				deleteExprNode(arg);
-				deleteExprNodeList(args);
-				return NULL;
-			}
-			if (acceptToken(&tokens, TT_MKAY)
-					|| peekToken(&tokens, TT_NEWLINE)) break;
 			acceptToken(&tokens, TT_AN);
 		}
 		if (!(op = createOpExprNode(type, args))) {
@@ -1988,38 +1991,160 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 #ifdef DEBUG
 	shiftout();
 #endif
-	/* Casting */
-	if (nextToken(&tokens, TT_ISNOWA)) {
-		IdentifierNode *target = NULL;
-		TypeNode *newtype = NULL;
-		CastStmtNode *stmt = NULL;
+	/* Parse context-sensitive expressions */
+	if (peekToken(&tokens, TT_IDENTIFIER)
+			|| peekToken(&tokens, TT_SRS)) {
+		IdentifierNode *id = parseIdentifierNode(&tokens);
+		if (!id) return NULL;
+		/* Casting */
+		if (acceptToken(&tokens, TT_ISNOWA)) {
+			IdentifierNode *target = id;
+			TypeNode *newtype = NULL;
+			CastStmtNode *stmt = NULL;
 #ifdef DEBUG
-		debug("ST_CAST");
+			debug("ST_CAST");
 #endif
-		if (!(target = parseIdentifierNode(&tokens))) return NULL;
-		if (!acceptToken(&tokens, TT_ISNOWA)) {
-			error("expected IS NOW A", tokens);
-			deleteIdentifierNode(target);
-			return NULL;
+			if (!(newtype = parseTypeNode(&tokens))) {
+				deleteIdentifierNode(target);
+				return NULL;
+			}
+			if (!acceptToken(&tokens, TT_NEWLINE)) {
+				error("expected end of expression", tokens);
+				deleteIdentifierNode(target);
+				deleteTypeNode(newtype);
+				return NULL;
+			}
+			if (!(stmt = createCastStmtNode(target, newtype))) {
+				deleteIdentifierNode(target);
+				deleteTypeNode(newtype);
+				return NULL;
+			}
+			if (!(ret = createStmtNode(ST_CAST, stmt))) {
+				deleteCastStmtNode(stmt);
+				return NULL;
+			}
 		}
-		if (!(newtype = parseTypeNode(&tokens))) {
-			deleteIdentifierNode(target);
-			return NULL;
+		/* Assignment */
+		else if (acceptToken(&tokens, TT_R)) {
+			IdentifierNode *target = id;
+			ExprNode *expr = NULL;
+			AssignmentStmtNode *stmt = NULL;
+#ifdef DEBUG
+			debug("ST_ASSIGNMENT");
+#endif
+			expr = parseExprNode(&tokens);
+			if (!expr) {
+				deleteIdentifierNode(target);
+				return NULL;
+			}
+			if (!acceptToken(&tokens, TT_NEWLINE)) {
+				error("expected end of statement", tokens);
+				deleteIdentifierNode(target);
+				deleteExprNode(expr);
+				return NULL;
+			}
+			stmt = createAssignmentStmtNode(target, expr);
+			if (!stmt) {
+				deleteIdentifierNode(target);
+				deleteExprNode(expr);
+				return NULL;
+			}
+			ret = createStmtNode(ST_ASSIGNMENT, stmt);
+			if (!ret) {
+				deleteAssignmentStmtNode(stmt);
+				return NULL;
+			}
 		}
-		if (!acceptToken(&tokens, TT_NEWLINE)) {
-			error("expected end of expression", tokens);
-			deleteIdentifierNode(target);
-			deleteTypeNode(newtype);
-			return NULL;
+		/* Variable declaration */
+		else if (acceptToken(&tokens, TT_HASA)) {
+			IdentifierNode *scope = id;
+			IdentifierNode *target = NULL;
+			ExprNode *expr = NULL;
+			TypeNode *type = NULL;
+			DeclarationStmtNode *stmt = NULL;
+#ifdef DEBUG
+			debug("ST_DECLARATION");
+#endif
+			target = parseIdentifierNode(&tokens);
+			if (!target) {
+				deleteIdentifierNode(scope);
+				return NULL;
+			}
+			if (acceptToken(&tokens, TT_ITZ)) {
+				expr = parseExprNode(&tokens);
+				if (!expr) {
+					deleteIdentifierNode(scope);
+					deleteIdentifierNode(target);
+					return NULL;
+				}
+			}
+			else if (acceptToken(&tokens, TT_ITZA)) {
+				type = parseTypeNode(&tokens);
+				if (!type) {
+					deleteIdentifierNode(scope);
+					deleteIdentifierNode(target);
+					return NULL;
+				}
+			}
+			if (!acceptToken(&tokens, TT_NEWLINE)) {
+				error("expected end of statement", tokens);
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(target);
+				if (expr) deleteExprNode(expr);
+				return NULL;
+			}
+			stmt = createDeclarationStmtNode(scope, target, expr, type);
+			if (!stmt) {
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(target);
+				if (expr) deleteExprNode(expr);
+				return NULL;
+			}
+			ret = createStmtNode(ST_DECLARATION, stmt); 
+			if (!ret) {
+				deleteDeclarationStmtNode(stmt);
+				return NULL;
+			}
 		}
-		if (!(stmt = createCastStmtNode(target, newtype))) {
-			deleteIdentifierNode(target);
-			deleteTypeNode(newtype);
-			return NULL;
+		/* Deallocation */
+		else if (acceptToken(&tokens, TT_RNOOB)) {
+			IdentifierNode *target = id;
+			DeallocationStmtNode *stmt = NULL;
+#ifdef DEBUG
+			debug("ST_DEALLOCATION");
+#endif
+			if (!acceptToken(&tokens, TT_NEWLINE)) {
+				error("expected end of statement", tokens);
+				deleteIdentifierNode(target);
+				return NULL;
+			}
+			stmt = createDeallocationStmtNode(target);
+			if (!stmt) {
+				deleteIdentifierNode(target);
+				return NULL;
+			}
+			ret = createStmtNode(ST_DEALLOCATION, stmt);
+			if (!ret) {
+				deleteDeallocationStmtNode(stmt);
+				return NULL;
+			}
 		}
-		if (!(ret = createStmtNode(ST_CAST, stmt))) {
-			deleteCastStmtNode(stmt);
-			return NULL;
+		/* Bare expression */
+		else  {
+			deleteIdentifierNode(id);
+			/* Reset token stream and try to parse expression */
+			tokens = *tokenp;
+			expr = parseExprNode(&tokens);
+			if (!expr) return NULL;
+#ifdef DEBUG
+			debug("ST_EXPR");
+#endif
+			if (!acceptToken(&tokens, TT_NEWLINE)) {
+				deleteExprNode(expr);
+				error("expected end of expression", tokens);
+				return NULL;
+			}
+			ret = createStmtNode(ST_EXPR, expr);
 		}
 	}
 	/* Print */
@@ -2081,102 +2206,6 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 		ret = createStmtNode(ST_INPUT, stmt);
 		if (!ret) {
 			deleteInputStmtNode(stmt);
-			return NULL;
-		}
-	}
-	/* Assignment */
-	else if (nextToken(&tokens, TT_R)) {
-		IdentifierNode *target = NULL;
-		ExprNode *expr = NULL;
-		AssignmentStmtNode *stmt = NULL;
-#ifdef DEBUG
-		debug("ST_ASSIGNMENT");
-#endif
-		target = parseIdentifierNode(&tokens);
-		if (!target) return NULL;
-		if (!acceptToken(&tokens, TT_R)) {
-			error("expected R", tokens);
-			deleteIdentifierNode(target);
-			return NULL;
-		}
-		expr = parseExprNode(&tokens);
-		if (!expr) {
-			deleteIdentifierNode(target);
-			return NULL;
-		}
-		if (!acceptToken(&tokens, TT_NEWLINE)) {
-			error("expected end of statement", tokens);
-			deleteIdentifierNode(target);
-			deleteExprNode(expr);
-			return NULL;
-		}
-		stmt = createAssignmentStmtNode(target, expr);
-		if (!stmt) {
-			deleteIdentifierNode(target);
-			deleteExprNode(expr);
-			return NULL;
-		}
-		ret = createStmtNode(ST_ASSIGNMENT, stmt);
-		if (!ret) {
-			deleteAssignmentStmtNode(stmt);
-			return NULL;
-		}
-	}
-	/* Variable declaration */
-	else if (nextToken(&tokens, TT_HASA)) {
-		IdentifierNode *scope = NULL;
-		IdentifierNode *target = NULL;
-		ExprNode *expr = NULL;
-		TypeNode *type = NULL;
-		DeclarationStmtNode *stmt = NULL;
-#ifdef DEBUG
-		debug("ST_DECLARATION");
-#endif
-		scope = parseIdentifierNode(&tokens);
-		if (!scope) return NULL;
-		if (!acceptToken(&tokens, TT_HASA)) {
-			error("expected HAS A", tokens);
-			deleteIdentifierNode(scope);
-			return NULL;
-		}
-		target = parseIdentifierNode(&tokens);
-		if (!target) {
-			deleteIdentifierNode(scope);
-			return NULL;
-		}
-		if (acceptToken(&tokens, TT_ITZ)) {
-			expr = parseExprNode(&tokens);
-			if (!expr) {
-				deleteIdentifierNode(scope);
-				deleteIdentifierNode(target);
-				return NULL;
-			}
-		}
-		else if (acceptToken(&tokens, TT_ITZA)) {
-			type = parseTypeNode(&tokens);
-			if (!type) {
-				deleteIdentifierNode(scope);
-				deleteIdentifierNode(target);
-				return NULL;
-			}
-		}
-		if (!acceptToken(&tokens, TT_NEWLINE)) {
-			error("expected end of statement", tokens);
-			deleteIdentifierNode(scope);
-			deleteIdentifierNode(target);
-			if (expr) deleteExprNode(expr);
-			return NULL;
-		}
-		stmt = createDeclarationStmtNode(scope, target, expr, type);
-		if (!stmt) {
-			deleteIdentifierNode(scope);
-			deleteIdentifierNode(target);
-			if (expr) deleteExprNode(expr);
-			return NULL;
-		}
-		ret = createStmtNode(ST_DECLARATION, stmt); 
-		if (!ret) {
-			deleteDeclarationStmtNode(stmt);
 			return NULL;
 		}
 	}
@@ -2485,6 +2514,11 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 #endif
 		name1 = parseIdentifierNode(&tokens);
 		if (!name1) return NULL;
+		else if (name1->type != IT_DIRECT) {
+			error("expected loop name", tokens);
+			deleteIdentifierNode(name1);
+			return NULL;
+		}
 		if (peekToken(&tokens, TT_UPPIN) || peekToken(&tokens, TT_NERFIN)) {
 			OpType type;
 			IdentifierNode *varcopy = NULL;
@@ -2493,6 +2527,7 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 			ExprNode *arg2 = NULL;
 			ExprNodeList *args = NULL;
 			OpExprNode *op = NULL;
+			char *id = NULL;
 			if (acceptToken(&tokens, TT_UPPIN)) {
 				type = OP_ADD;
 #ifdef DEBUG
@@ -2521,13 +2556,20 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 				deleteIdentifierNode(name1);
 				return NULL;
 			}
+			else if (var->type != IT_DIRECT) {
+				error("expected variable name", tokens);
+				deleteIdentifierNode(name1);
+				return NULL;
+			}
 #ifdef DEBUG
 			shiftout();
 			debug("ET_CONSTANT (CT_INTEGER)");
 			shiftin();
 			shiftin();
 #endif
-			varcopy = createIdentifierNode(var->image, var->fname, var->line);
+			id = malloc(sizeof(char) * (strlen(var->id) + 1));
+			strcpy(id, var->id);
+			varcopy = createIdentifierNode(IT_DIRECT, id, var->fname, var->line);
 			if (!varcopy) {
 				deleteIdentifierNode(name1);
 				deleteIdentifierNode(var);
@@ -2601,6 +2643,7 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 			ExprNode *ret = NULL;
 			ExprNode *arg = NULL;
 			IdentifierNode *temp = NULL;
+			char *id = NULL;
 #ifdef DEBUG
 			debug("ET_FUNCCALL");
 #endif
@@ -2639,10 +2682,34 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 				deleteExprNodeList(args);
 				return NULL;
 			}
-			addExprNode(args, arg);
+			if (!addExprNode(args, arg)) {
+				deleteExprNode(arg);
+				deleteIdentifierNode(name1);
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteExprNodeList(args);
+				return NULL;
+			}
 			temp = (IdentifierNode *)(arg->expr);
+			if (!temp || temp->type != IT_DIRECT) {
+				error("expected variable name", tokens);
+				deleteIdentifierNode(name1);
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteExprNodeList(args);
+				return NULL;
+			}
 			/* Copy the identifier to make it the loop variable */
-			var = createIdentifierNode(temp->image, temp->fname, temp->line);
+			id = malloc(sizeof(char) * (strlen(temp->id) + 1));
+			strcpy(id, temp->id);
+			var = createIdentifierNode(IT_DIRECT, id, temp->fname, temp->line);
+			if (!var) {
+				deleteIdentifierNode(name1);
+				deleteIdentifierNode(scope);
+				deleteIdentifierNode(name);
+				deleteExprNodeList(args);
+				return NULL;
+			}
 			/* Check for unary function */
 			if (!acceptToken(&tokens, TT_MKAY)) {
 				error("expected MKAY", tokens);
@@ -2650,6 +2717,7 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 				deleteIdentifierNode(scope);
 				deleteIdentifierNode(name);
 				deleteExprNodeList(args);
+				deleteIdentifierNode(var);
 				return NULL;
 			}
 			node = createFuncCallExprNode(scope, name, args);
@@ -2658,6 +2726,7 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 				deleteIdentifierNode(scope);
 				deleteIdentifierNode(name);
 				deleteExprNodeList(args);
+				deleteIdentifierNode(var);
 				return NULL;
 			}
 			update = createExprNode(ET_FUNCCALL, node);
@@ -2752,7 +2821,15 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 			deleteBlockNode(body);
 			return NULL;
 		}
-		if (strcmp(name1->image, name2->image)) {
+		else if (name2->type != IT_DIRECT) {
+			error("expected loop name", tokens);
+			if (update) deleteExprNode(update);
+			if (guard) deleteExprNode(guard);
+			deleteBlockNode(body);
+			deleteIdentifierNode(name2);
+			return NULL;
+		}
+		if (strcmp((char *)name1->id, (char *)name2->id)) {
 			error("expected matching loop name", tokens);
 			deleteIdentifierNode(name1);
 			if (update) deleteExprNode(update);
@@ -2781,36 +2858,6 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 		ret = createStmtNode(ST_LOOP, stmt);
 		if (!ret) {
 			deleteLoopStmtNode(stmt);
-			return NULL;
-		}
-	}
-	/* Deallocation */
-	else if (nextToken(&tokens, TT_RNOOB)) {
-		IdentifierNode *target = NULL;
-		DeallocationStmtNode *stmt = NULL;
-#ifdef DEBUG
-		debug("ST_DEALLOCATION");
-#endif
-		target = parseIdentifierNode(&tokens);
-		if (!target) return NULL;
-		if (!acceptToken(&tokens, TT_RNOOB)) {
-			error("expected R NOOB", tokens);
-			deleteIdentifierNode(target);
-			return NULL;
-		}
-		if (!acceptToken(&tokens, TT_NEWLINE)) {
-			error("expected end of statement", tokens);
-			deleteIdentifierNode(target);
-			return NULL;
-		}
-		stmt = createDeallocationStmtNode(target);
-		if (!stmt) {
-			deleteIdentifierNode(target);
-			return NULL;
-		}
-		ret = createStmtNode(ST_DEALLOCATION, stmt);
-		if (!ret) {
-			deleteDeallocationStmtNode(stmt);
 			return NULL;
 		}
 	}
@@ -2908,7 +2955,7 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 			deleteFuncDefStmtNode(stmt);
 		}
 	}
-	/* Expression evaluation */
+	/* Bare expression */
 	else if ((expr = parseExprNode(&tokens))) {
 #ifdef DEBUG
 		debug("ST_EXPR");

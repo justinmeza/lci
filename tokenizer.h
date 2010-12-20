@@ -91,6 +91,7 @@ typedef enum {
 	TT_IZ,
 	TT_IFUSAYSO,
 	TT_FOUNDYR,
+	TT_SRS,
 	TT_ENDOFTOKENS
 } TokenType;
 
@@ -160,6 +161,7 @@ static const char *keywords[] = {
 	"IZ",          /* TT_IZ */
 	"IF U SAY SO", /* TT_IFUSAYSO */
 	"FOUND YR",    /* TT_FOUNDYR */
+	"SRS",         /* TT_SRS */
 	"",            /* TT_ENDOFTOKENS */
 };
 
