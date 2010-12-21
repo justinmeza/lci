@@ -96,7 +96,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <getopt.h>
 
 #include "lexer.h"
@@ -110,8 +109,8 @@ static char *program_name;
 
 static char *shortopt = "hv";
 static struct option longopt[] = {
-	{ "help", no_argument, NULL, 'h' },
-	{ "version", no_argument, NULL, 'v' },
+	{ "help", no_argument, NULL, (int)'h' },
+	{ "version", no_argument, NULL, (int)'v' },
 	{ 0, 0, 0, 0 }
 };
 
@@ -129,8 +128,8 @@ static void version (char *revision) {
 
 int main(int argc, char **argv)
 {
-	long size = 0;
-	long length = 0;
+	unsigned int size = 0;
+	unsigned int length = 0;
 	char *buffer = NULL;
 	LexemeList *lexemes = NULL;
 	Token **tokens = NULL;
@@ -148,12 +147,9 @@ int main(int argc, char **argv)
 				fprintf (stderr, "Incorrect option '%c'\n", ch);
 				help();
 				exit(EXIT_FAILURE);
-
 			case 'h':
 				help();
 				exit(EXIT_SUCCESS);
-				break;
-
 			case 'v':
 				version(revision);
 				exit(EXIT_SUCCESS);
@@ -188,7 +184,11 @@ int main(int argc, char **argv)
 			length += fread((buffer + size) - READSIZE, 1, READSIZE, file);
 		}
 
-		fclose(file);
+		if (fclose(file) != 0) {
+			fprintf(stderr, "Error closing file.\n");
+			if (buffer) free(buffer);
+			return 1;
+		}
 		if (!buffer) return 1;
 		buffer[length] = '\0';
 

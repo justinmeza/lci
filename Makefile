@@ -5,6 +5,7 @@ SRCS = lexer.c tokenizer.c parser.c interpreter.c unicode.c main.c
 HDRS = lexer.h tokenizer.h parser.h interpreter.h unicode.h
 INSTALL = /usr/local/bin/install -c
 CPPFLAGS = -O3
+LINT = splint -nullret -temptrans -compdestroy -usereleased -compdef -compmempass -mustfreefresh -boolops -predboolint -nullpass -nullderef +boolint -predboolothers -uniondef -unqualifiedtrans -nullstate -bufferoverflowhigh -branchstate -mustfreeonly -nullassign -shiftimplementation -exportlocal
 
 prefix = /usr/local
 bindir = $(prefix)/bin
@@ -16,7 +17,10 @@ $(TARGET): $(OBJS) $(LIBS)
 	$(CC) $(CPPFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
 
 pedantic: $(OBJS) $(LIBS)
-	$(CC) -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wundef -W -Wall -ansi -pedantic -g -o $(TARGET) $(OBJS) $(LIBS)
+	$(CC) -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wundef -Wall -ansi -pedantic -g -o $(TARGET) $(SRCS) $(HDRS) $(LIBS)
+
+lint: all
+	$(LINT) $(SRCS)
 
 check: all
 	@cd $(testdir) && ./testDir.sh -q ../$(TARGET) 1.3-Tests/

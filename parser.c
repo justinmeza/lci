@@ -112,7 +112,10 @@ BlockNodeList *createBlockNodeList(void)
   *       \a list will be updated accordingly.
   *
   * \retval 0 realloc was unable to allocate memory.
-  * \retval 1 \a node was added to \a list. */
+  * \retval 1 \a node was added to \a list.
+  *
+  * \see createBlockNodeList(void)
+  * \see deleteBlockNodeList(BlockNodeList *) */
 int addBlockNode(BlockNodeList *list,  /**< [in,out] A pointer to the BlockNodeList structure to add \a node to. */
                  BlockNode *node)     /**< [in] A pointer to the BlockNode structure to add to \a list. */
 {
@@ -246,32 +249,31 @@ void deleteConstantNode(ConstantNode *node) /**< [in,out] A pointer to the Const
 
 /** Creates an IdentifierNode structure.
   *
-  * \note \a image is \b copied for use within the structure so it must be freed
-  *       by the caller.
-  *
   * \return A pointer to an IdentifierNode structure with the desired
   *         properties.
   *
   * \retval NULL malloc was unable to allocate memory.
   *
   * \see deleteIdentifierNode(IdentifierNode *) */
-IdentifierNode *createIdentifierNode(char *image,       /**< [in] An array of characters that name the identifier. */
-                                     const char *fname, /**< [in] A pointer to the name of the file containing the identifier. */
-                                     unsigned int line) /**< [in] The line number from the source file that the identifier occurred on. */
+IdentifierNode *createIdentifierNode(IdentifierType type, /**< [in] The type of IdentifierNode stored in \a id. */
+                                     void *id,            /**< [in] A pointer to the stored identifier data. */
+                                     const char *fname,   /**< [in] A pointer to the name of the file containing the identifier. */
+                                     unsigned int line)   /**< [in] The line number from the source file that the identifier occurred on. */
 {
 	IdentifierNode *p = malloc(sizeof(IdentifierNode));
 	if (!p) {
 		perror("malloc");
 		return NULL;
 	}
-	p->image = malloc(sizeof(char) * (strlen(image) + 1));
-	if (!p->image) {
-		free(p);
-		perror("malloc");
-		return NULL;
+	p->type = type;
+	p->id = id;
+	if (fname) {
+		p->fname = malloc(sizeof(char) * (strlen(fname) + 1));
+		strcpy(p->fname, fname);
 	}
-	strcpy(p->image, image);
-	p->fname = fname;
+	else {
+		p->fname = NULL;
+	}
 	p->line = line;
 	return p;
 }
@@ -287,7 +289,20 @@ IdentifierNode *createIdentifierNode(char *image,       /**< [in] An array of ch
 void deleteIdentifierNode(IdentifierNode *node) /**< [in,out] A pointer to the IdentifierNode structure to be deleted. */
 {
 	if (!node) return;
-	free(node->image);
+	switch (node->type) {
+		case IT_DIRECT: {
+			free(node->id);
+			break;
+		}
+		case IT_INDIRECT: {
+			deleteExprNode(node->id);
+			break;
+		}
+		default:
+			fprintf(stderr, "Unable to delete unknown identifier type\n");
+			break;
+	}
+	if (node->fname) free(node->fname);
 	free(node);
 }
 
@@ -320,7 +335,10 @@ IdentifierNodeList *createIdentifierNodeList(void)
   *       \a list will be updated accordingly.
   *
   * \retval 0 realloc was unable to allocate memory.
-  * \retval 1 \a node was added to \a list. */
+  * \retval 1 \a node was added to \a list.
+  *
+  * \see createIdentifierNodeList(void)
+  * \see deleteIdentifierNodeList(IdentifierNodeList *) */
 int addIdentifierNode(IdentifierNodeList *list,   /**< [in,out] A pointer to the IdentifierNodeList structure to add \a node to. */
                       IdentifierNode *node) /**< [in] A pointer to the IdentifierNode structure to add to \a list. */
 {
@@ -530,7 +548,10 @@ StmtNodeList *createStmtNodeList(void)
   *       \a list will be updated accordingly.
   *
   * \retval 0 malloc was unable to allocate memory.
-  * \retval 1 \a node was added to \a list. */
+  * \retval 1 \a node was added to \a list.
+  *
+  * \see createStmtNodeList(void)
+  * \see deleteStmtNodeList(StmtNodeList *) */
 int addStmtNode(StmtNodeList *list, /**< [in,out] A pointer to the StmtNodeList structure to add \a node to. */
                 StmtNode *node)     /**< [in] A pointer to the StmtNode structure to add to \a list. */
 {
@@ -1123,7 +1144,10 @@ ExprNodeList *createExprNodeList(void)
   *       \a list will be updated accordingly.
   *
   * \retval 0 realloc was unable to allocate memory.
-  * \retval 1 \a node was added to \a list. */
+  * \retval 1 \a node was added to \a list.
+  *
+  * \see createExprNodeList(void)
+  * \see deleteExprNodeList(ExprNodeList *) */
 int addExprNode(ExprNodeList *list, /**< [in,out] A pointer to the ExprNodeList structure to add \a node to. */
                 ExprNode *node)     /**< [in] A pointer to the ExprNode structure to add to \a list. */
 {
@@ -1367,7 +1391,7 @@ int nextToken(Token ***tokenp, /**< [in] A pointer to the position of the next t
 void error(const char *info, /**< [in] The array of characters to print. */
            Token **tokens)   /**< [in] A pointer to an array of tokens to parse. */
 {
-	fprintf(stderr, "%s:%d: %s at: %s\n", (*tokens)->fname, (*tokens)->line, info, (*tokens)->image);
+	fprintf(stderr, "%s:%u: %s at: %s\n", (*tokens)->fname, (*tokens)->line, info, (*tokens)->image);
 }
 
 /** Parses a set of tokens into a ConstantNode structure.  Parsing begins at the
@@ -1451,7 +1475,7 @@ ConstantNode *parseConstantNode(Token ***tokenp)
 	}
 	/* String */
 	else if (peekToken(&tokens, TT_STRING)) {
-		unsigned int len = strlen((*tokens)->image);
+		size_t len = strlen((*tokens)->image);
 		data = malloc(sizeof(char) * (len - 1));
 		if (!data) {
 			perror("malloc");
@@ -1606,6 +1630,12 @@ parseTypeNodeAbort: /* Exception handling */
   * \see parseMainNode(Token **) */
 IdentifierNode *parseIdentifierNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
 {
+	/* For direct identifier */
+	char *temp = NULL;
+
+	/* For indirect identifier */
+	ExprNode *expr = NULL;
+
 	IdentifierNode *ret = NULL;
 	int status;
 
@@ -1616,13 +1646,18 @@ IdentifierNode *parseIdentifierNode(Token ***tokenp) /**< [in,out] A pointer to 
 	shiftout();
 #endif
 
-	/* Make sure there is an identifier to parse */
+	/* Direct identifier */
 	if (peekToken(&tokens, TT_IDENTIFIER)) {
 #ifdef DEBUG
-		debug("IDENTIFIER");
+		debug("IT_DIRECT");
 #endif
+		/* Copy the token image */
+		temp = malloc(sizeof(char) * (strlen((*tokens)->image) + 1));
+		if (!temp) goto parseIdentifierNodeAbort;
+		strcpy(temp, (*tokens)->image);
+
 		/* Create the new IdentifierNode structure */
-		ret = createIdentifierNode((*tokens)->image, (*tokens)->fname, (*tokens)->line);
+		ret = createIdentifierNode(IT_DIRECT, temp, (*tokens)->fname, (*tokens)->line);
 		if (!ret) goto parseIdentifierNodeAbort;
 
 		/* This should succeed; it was checked for above */
@@ -1631,6 +1666,18 @@ IdentifierNode *parseIdentifierNode(Token ***tokenp) /**< [in,out] A pointer to 
 			error("expected identifier", tokens);
 			goto parseIdentifierNodeAbort;
 		}
+	}
+	else if (acceptToken(&tokens, TT_SRS)) {
+#ifdef DEBUG
+		debug("IT_INDIRECT");
+#endif
+		/* Parse the expression representing the identifier */
+		expr = parseExprNode(&tokens);
+		if (!expr) goto parseIdentifierNodeAbort;
+
+		/* Create the new IdentifierNode structure */
+		ret = createIdentifierNode(IT_INDIRECT, expr, (*tokens)->fname, (*tokens)->line);
+		if (!ret) goto parseIdentifierNodeAbort;
 	}
 	else {
 		error("expected identifier", tokens);
@@ -1649,6 +1696,13 @@ parseIdentifierNodeAbort: /* Exception handling */
 
 	/* Clean up any allocated structures */
 	if (ret) deleteIdentifierNode(ret);
+	else {
+		/* For indirect identifier */
+		if (expr) deleteExprNode(expr);
+
+		/* For direct identifier */
+		if (temp) free(temp);
+	}
 
 	return NULL;
 }
@@ -1696,7 +1750,7 @@ ExprNode *parseCastExprNode(Token ***tokenp)
 	if (!target) goto parseCastExprNodeAbort;
 
 	/* Optionally parse the cast-to token */
-	acceptToken(&tokens, TT_A);
+	status = acceptToken(&tokens, TT_A);
 
 	/* Parse the type to cast to */
 	newtype = parseTypeNode(&tokens);
@@ -1748,7 +1802,6 @@ ExprNode *parseConstantExprNode(Token ***tokenp)
 {
 	ConstantNode *node = NULL;
 	ExprNode *ret = NULL;
-	int status;
 
 	/* Work from a copy of the token stream in case something goes wrong */
 	Token **tokens = *tokenp;
@@ -1802,7 +1855,6 @@ ExprNode *parseIdentifierExprNode(Token ***tokenp)
 {
 	IdentifierNode *node = NULL;
 	ExprNode *ret = NULL;
-	int status;
 
 	/* Work from a copy of the token stream in case something goes wrong */
 	Token **tokens = *tokenp;
@@ -1967,9 +2019,9 @@ parseFuncCallExprNodeAbort: /* Exception handling */
 ExprNode *parseOpExprNode(Token ***tokenp)
 {
 	enum ArityType {
-		AR_UNARY,
-		AR_BINARY,
-		AR_NARY,
+		AT_UNARY,
+		AT_BINARY,
+		AT_NARY
 	};
 	enum ArityType arity;
 	ExprNodeList *args = NULL;
@@ -1985,7 +2037,7 @@ ExprNode *parseOpExprNode(Token ***tokenp)
 	/* Unary operations */
 	if (acceptToken(&tokens, TT_NOT)) {
 		type = OP_NOT;
-		arity = AR_UNARY;
+		arity = AT_UNARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_NOT)");
 #endif
@@ -1993,84 +2045,84 @@ ExprNode *parseOpExprNode(Token ***tokenp)
 	/* Binary operations */
 	else if (acceptToken(&tokens, TT_SUMOF)) {
 		type = OP_ADD;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_ADD)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_DIFFOF)) {
 		type = OP_SUB;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_SUB)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_PRODUKTOF)) {
 		type = OP_MULT;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_MULT)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_QUOSHUNTOF)) {
 		type = OP_DIV;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_DIV)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_MODOF)) {
 		type = OP_MOD;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_MOD)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_BIGGROF)) {
 		type = OP_MAX;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_MAX)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_SMALLROF)) {
 		type = OP_MIN;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_MIN)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_BOTHOF)) {
 		type = OP_AND;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_AND)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_EITHEROF)) {
 		type = OP_OR;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_OR)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_WONOF)) {
 		type = OP_XOR;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_XOR)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_BOTHSAEM)) {
 		type = OP_EQ;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_EQ)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_DIFFRINT)) {
 		type = OP_NEQ;
-		arity = AR_BINARY;
+		arity = AT_BINARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_NEQ)");
 #endif
@@ -2078,21 +2130,21 @@ ExprNode *parseOpExprNode(Token ***tokenp)
 	/* N-ary operators */
 	else if (acceptToken(&tokens, TT_ALLOF)) {
 		type = OP_AND;
-		arity = AR_NARY;
+		arity = AT_NARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_AND)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_ANYOF)) {
 		type = OP_OR;
-		arity = AR_NARY;
+		arity = AT_NARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_OR)");
 #endif
 	}
 	else if(acceptToken(&tokens, TT_SMOOSH)) {
 		type = OP_CAT;
-		arity = AR_NARY;
+		arity = AT_NARY;
 #ifdef DEBUG
 		debug("ET_OP (OP_CAT)");
 #endif
@@ -2107,7 +2159,7 @@ ExprNode *parseOpExprNode(Token ***tokenp)
 	if (!args) goto parseOpExprNodeAbort;
 
 	/* Parse the operation arguments */
-	if (arity == AR_UNARY) {
+	if (arity == AT_UNARY) {
 		/* Parse the argument */
 		arg = parseExprNode(&tokens);
 		if (!arg) goto parseOpExprNodeAbort;
@@ -2117,7 +2169,7 @@ ExprNode *parseOpExprNode(Token ***tokenp)
 		if (!status) goto parseOpExprNodeAbort;
 		arg = NULL;
 	}
-	else if (arity == AR_BINARY) {
+	else if (arity == AT_BINARY) {
 		/* Parse the first argument */
 		arg = parseExprNode(&tokens);
 		if (!arg) goto parseOpExprNodeAbort;
@@ -2128,7 +2180,7 @@ ExprNode *parseOpExprNode(Token ***tokenp)
 		arg = NULL;
 
 		/* Optionally parse the argument-separator token */
-		acceptToken(&tokens, TT_AN);
+		status = acceptToken(&tokens, TT_AN);
 
 		/* Parse the second argument */
 		arg = parseExprNode(&tokens);
@@ -2139,7 +2191,7 @@ ExprNode *parseOpExprNode(Token ***tokenp)
 		if (!status) goto parseOpExprNodeAbort;
 		arg = NULL;
 	}
-	else if (arity == AR_NARY) {
+	else if (arity == AT_NARY) {
 		/* Parse as many arguments as possible */
 		while (1) {
 			/* Parse an argument */
@@ -2155,7 +2207,7 @@ ExprNode *parseOpExprNode(Token ***tokenp)
 			if (acceptToken(&tokens, TT_MKAY)) break;
 
 			/* Optionally parse the argument-separator token */
-			acceptToken(&tokens, TT_AN);
+			status = acceptToken(&tokens, TT_AN);
 		}
 	}
 
@@ -2227,7 +2279,8 @@ ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position
 		ret = parseFuncCallExprNode(tokenp);
 	}
 	/* Identifier */
-	else if (peekToken(&tokens, TT_IDENTIFIER)) {
+	else if (peekToken(&tokens, TT_IDENTIFIER)
+			|| peekToken(&tokens, TT_SRS)) {
 		ret = parseIdentifierExprNode(tokenp);
 	}
 	/* Operation */
@@ -2419,7 +2472,7 @@ StmtNode *parsePrintStmtNode(Token ***tokenp)
 		arg = NULL;
 
 		/* Arguments can optionally be separated by an AN keyword */
-		acceptToken(&tokens, TT_AN);
+		status = acceptToken(&tokens, TT_AN);
 	} while (!peekToken(&tokens, TT_NEWLINE)
 			&& !peekToken(&tokens, TT_BANG));
 
@@ -2988,7 +3041,7 @@ StmtNode *parseSwitchStmtNode(Token ***tokenp)
 			if (((c->type == CT_BOOLEAN || c->type == CT_INTEGER)
 					&& c->data.i == test->data.i)
 					|| (c->type == CT_FLOAT
-					&& c->data.f == test->data.f)
+					&& fabs(c->data.f - test->data.f) < FLT_EPSILON)
 					|| (c->type == CT_STRING
 					&& !strcmp(c->data.s, test->data.s))) {
 				error("OMG literal must be unique", tokens);
@@ -3259,6 +3312,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 	IdentifierNode *name2 = NULL;
 	LoopStmtNode *stmt = NULL;
 	ExprNodeList *args = NULL;
+	char *id = NULL;
 
 	/* For increment and decrement loops */
 	IdentifierNode *varcopy = NULL;
@@ -3298,6 +3352,10 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 	/* Parse the loop name */
 	name1 = parseIdentifierNode(&tokens);
 	if (!name1) goto parseLoopStmtNodeAbort;
+	else if (name1->type != IT_DIRECT) {
+		error("expected loop name", tokens);
+		goto parseLoopStmtNodeAbort;
+	}
 
 	/* Check if an increment or decrement loop */
 	if (peekToken(&tokens, TT_UPPIN) || peekToken(&tokens, TT_NERFIN)) {
@@ -3339,8 +3397,12 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 		shiftin();
 #endif
 		/* Make a copy of the variable for use as a function argument */
-		varcopy = createIdentifierNode(var->image, var->fname, var->line);
+		id = malloc(sizeof(char) * (strlen(var->id) + 1));
+		if (!id) goto parseLoopStmtNodeAbort;
+		strcpy(id, var->id);
+		varcopy = createIdentifierNode(IT_DIRECT, id, var->fname, var->line);
 		if (!varcopy) goto parseLoopStmtNodeAbort;
+		id = NULL;
 
 		/* Package the variable into an identifier expression */
 		arg1 = createExprNode(ET_IDENTIFIER, varcopy);
@@ -3424,8 +3486,12 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 		arg = NULL;
 
 		/* Copy the identifier to make it the loop variable */
-		var = createIdentifierNode(temp->image, temp->fname, temp->line);
+		id = malloc(sizeof(char) * (strlen(temp->id) + 1));
+		if (!id) goto parseLoopStmtNodeAbort;
+		strcpy(id, temp->id);
+		var = createIdentifierNode(IT_DIRECT, id, temp->fname, temp->line);
 		if (!var) goto parseLoopStmtNodeAbort;
+		id = NULL;
 
 		/* Check for unary function */
 		status = acceptToken(&tokens, TT_MKAY);
@@ -3503,9 +3569,13 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 	/* Parse the end-of-loop name */
 	name2 = parseIdentifierNode(&tokens);
 	if (!name2) goto parseLoopStmtNodeAbort;
+	else if (name2->type != IT_DIRECT) {
+		error("expected loop name", tokens);
+		goto parseLoopStmtNodeAbort;
+	}
 
 	/* Make sure the beginning-of-loop and end-of-loop names match */
-	if (strcmp(name1->image, name2->image)) {
+	if (strcmp((char *)(name1->id), (char *)(name2->id))) {
 		error("expected matching loop name", tokens);
 		goto parseLoopStmtNodeAbort;
 	}
@@ -3546,6 +3616,7 @@ parseLoopStmtNodeAbort: /* Exception handling */
 		if (update) deleteExprNode(update);
 		if (var) deleteIdentifierNode(var);
 		if (name1) deleteIdentifierNode(name1);
+		if (id) free(id);
 
 		/* For increment and decrement loops */
 		if (op) deleteOpExprNode(op);
@@ -3646,6 +3717,8 @@ parseDeallocationStmtNodeAbort: /* Exception handling */
 	else {
 		if (target) deleteIdentifierNode(target);
 	}
+
+	return NULL;
 }
 
 /** Parses a set of tokens into a StmtNode structure containing a
@@ -3783,6 +3856,8 @@ parseFuncDefStmtNodeAbort: /* Exception handling */
 		if (name) deleteIdentifierNode(name);
 		if (scope) deleteIdentifierNode(scope);
 	}
+
+	return NULL;
 }
 
 /** Parses a set of tokens into a StmtNode structure.  Parsing begins at the
@@ -3815,9 +3890,64 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 	shiftout();
 #endif
 
-	/* Casting */
-	if (nextToken(&tokens, TT_ISNOWA)) {
-		ret = parseCastStmtNode(tokenp);
+	/* Parse context-sensitive expressions */
+	if (peekToken(&tokens, TT_IDENTIFIER)
+			|| peekToken(&tokens, TT_SRS)) {
+		IdentifierNode *id = NULL;
+
+		/* Remove the identifier from the token stream */
+		id = parseIdentifierNode(&tokens);
+		if (!id) return NULL;
+
+		/* We do not need to hold onto it */
+		deleteIdentifierNode(id);
+
+		/* Casting */
+		if (peekToken(&tokens, TT_ISNOWA)) {
+			ret = parseCastStmtNode(tokenp);
+		}
+		/* Assignment */
+		else if (peekToken(&tokens, TT_R)) {
+			ret = parseAssignmentStmtNode(tokenp);
+		}
+		/* Variable declaration */
+		else if (peekToken(&tokens, TT_HASA)) {
+			ret = parseDeclarationStmtNode(tokenp);
+		}
+		/* Deallocation */
+		else if (peekToken(&tokens, TT_RNOOB)) {
+			ret = parseDeallocationStmtNode(tokenp);
+		}
+		/* Bare identifier expression */
+		else {
+			/* Reset state and continue parsing */
+			tokens = *tokenp;
+
+			/* Parse the expression */
+			expr = parseExprNode(&tokens);
+			if (!expr) return NULL;
+
+#ifdef DEBUG
+			debug("ST_EXPR");
+#endif
+
+			/* The expression should appear on its own line */
+			if (!acceptToken(&tokens, TT_NEWLINE)) {
+				error("expected end of expression", tokens);
+				deleteExprNode(expr);
+				return NULL;
+			}
+
+			/* Create the new StmtNode structure */
+			ret = createStmtNode(ST_EXPR, expr);
+			if (!ret) {
+				deleteExprNode(expr);
+				return NULL;
+			}
+
+			/* Since we're successful, update the token stream */
+			*tokenp = tokens;
+		}
 	}
 	/* Print */
 	else if (peekToken(&tokens, TT_VISIBLE)) {
@@ -3826,14 +3956,6 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 	/* Input */
 	else if (peekToken(&tokens, TT_GIMMEH)) {
 		ret = parseInputStmtNode(tokenp);
-	}
-	/* Assignment */
-	else if (nextToken(&tokens, TT_R)) {
-		ret = parseAssignmentStmtNode(tokenp);
-	}
-	/* Variable declaration */
-	else if (nextToken(&tokens, TT_HASA)) {
-		ret = parseDeclarationStmtNode(tokenp);
 	}
 	/* If/then/else */
 	else if (peekToken(&tokens, TT_ORLY)) {
@@ -3855,15 +3977,11 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 	else if (peekToken(&tokens, TT_IMINYR)) {
 		ret = parseLoopStmtNode(tokenp);
 	}
-	/* Deallocation */
-	else if (nextToken(&tokens, TT_RNOOB)) {
-		ret = parseDeallocationStmtNode(tokenp);
-	}
 	/* Function definition */
 	else if (peekToken(&tokens, TT_HOWIZ)) {
 		ret = parseFuncDefStmtNode(tokenp);
 	}
-	/* Expression evaluation */
+	/* Bare expression */
 	else if ((expr = parseExprNode(&tokens))) {
 		int status;
 
@@ -3879,6 +3997,7 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 			return NULL;
 		}
 
+		/* Create the new StmtNode structure */
 		ret = createStmtNode(ST_EXPR, expr);
 		if (!ret) {
 			deleteExprNode(expr);

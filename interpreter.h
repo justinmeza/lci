@@ -88,7 +88,7 @@ typedef struct scopeobject {
 	struct scopeobject *parent; /**< A pointer to the parent ScopeObject. */
 	ValueObject *impvar;        /**< A pointer to the ValueObject representing the implicit variable for this scope. */
 	unsigned int numvals;       /**< The number of ValueObject structures in \a values. */
-	IdentifierNode **names;     /**< A pointer to the IdentifierNode structures naming the values in the scope. */
+	char **names;               /**< A pointer to the array of character strings naming the values in the scope. */
 	ValueObject **values;       /**< A pointer to an array of ValueObject structures in the scope. */
 } ScopeObject;
 
@@ -103,6 +103,7 @@ ValueObject *copyValueObject(ValueObject *);
 void deleteValueObject(ValueObject *);
 ReturnObject *createReturnObject(ReturnType, ValueObject *);
 void deleteReturnObject(ReturnObject *);
+char *resolveIdentifierName(IdentifierNode *, ScopeObject *);
 ScopeObject *createScopeObject(ScopeObject *);
 void deleteScopeObject(ScopeObject *);
 ValueObject *getScopeValue(ScopeObject *, IdentifierNode *);

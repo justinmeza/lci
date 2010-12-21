@@ -230,9 +230,68 @@ void deleteReturnObject(ReturnObject *object) /**< [in,out] The ReturnObject str
 	free(object);
 }
 
+/** Translates an identifier into a string naming a variable.
+  *
+  * \pre \a id was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
+  * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
+  *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
+  *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
+  *
+  * \return A newly-allocated array of characters representing the name of the
+  *         identifier.
+  *
+  * \retval NULL malloc was unable to allocate memory. */
+char *resolveIdentifierName(IdentifierNode *id, /**< [in] A pointer to the IdentifierNode structure to translate. */
+                            ScopeObject *scope) /**< [in] A pointer to the ScopeObject structure to translate \a id under. */
+{
+	ValueObject *val = NULL;
+	ValueObject *str = NULL;
+	char *ret = NULL;
+
+	if (!id) goto resolveIdentifierNameAbort;
+
+	if (id->type == IT_DIRECT) {
+		/* Just return a copy of the character array */
+		const char *temp = (char *)(id->id);
+		ret = malloc(sizeof(char) * (strlen(temp) + 1));
+		strcpy(ret, temp);
+	}
+	else if (id->type == IT_INDIRECT) {
+		ExprNode *expr = (ExprNode *)(id->id);
+
+		/* Interpret the identifier expression */
+		val = interpretExprNode(expr, scope);
+		if (!val) goto resolveIdentifierNameAbort;
+
+		/* Then cast it to a string */
+		str = castStringExplicit(val, scope);
+		if (!str) goto resolveIdentifierNameAbort;
+		deleteValueObject(val);
+
+		/* Copy the evaluated string */
+		ret = createString(getString(str));
+		if (!ret) goto resolveIdentifierNameAbort;
+		deleteValueObject(str);
+	}
+	else {
+		fprintf(stderr, "%s:%u: invalid identifier type\n", id->fname, id->line);
+	}
+
+	return ret;
+
+resolveIdentifierNameAbort: /* Exception handline */
+
+	/* Clean up any allocated structures */
+	if (ret) free(ret);
+	if (str) deleteValueObject(str);
+	if (val) deleteValueObject(val);
+
+	return NULL;
+}
+
 /** Creates a ScopeObject structure.
   *
-  * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
+  * \pre \a parent was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *)
   *      or is \c NULL if creating the root parent.
@@ -242,7 +301,7 @@ void deleteReturnObject(ReturnObject *object) /**< [in,out] The ReturnObject str
   * \retval NULL malloc was unable to allocate memory.
   *
   * \see deleteScopeObject(ScopeObject *) */
-ScopeObject *createScopeObject(ScopeObject *parent) /**< [in] A pointer to the parent ScopeObject. */
+ScopeObject *createScopeObject(ScopeObject *parent) /**< [in] A pointer to the parent ScopeObject structure. */
 {
 	ScopeObject *p = malloc(sizeof(ScopeObject));
 	if (!p) {
@@ -276,8 +335,7 @@ void deleteScopeObject(ScopeObject *scope) /**< [in,out] The ScopeObject structu
 	unsigned int n;
 	if (!scope) return;
 	for (n = 0; n < scope->numvals; n++) {
-		/* The individual names are pointers to existing IdentifierNode
-		 * structures, so don't free them here. */
+		free(scope->names[n]);
 		deleteValueObject(scope->values[n]);
 	}
 	free(scope->names);
@@ -306,15 +364,24 @@ ValueObject *getScopeValue(ScopeObject *scope,     /**< [in] The ScopeObject str
                            IdentifierNode *target) /**< [in] The name of the value to find. */
 {
 	ScopeObject *current = scope;
+	char *name = NULL;
+
+	/* Look up the identifier name */
+	name = resolveIdentifierName(target, scope);
+	if (!name) return NULL;
+
 	/* Traverse upwards through scopes */
 	do {
 		unsigned int n;
 		/* Check for value in current scope */
 		for (n = 0; n < current->numvals; n++) {
-			if (!strcmp(current->names[n]->image, target->image))
+			if (!strcmp(current->names[n], name)) {
+				free(name);
 				return current->values[n];
+			}
 		}
 	} while ((current = current->parent));
+	free(name);
 	return NULL;
 }
 
@@ -338,11 +405,20 @@ ValueObject *getLocalScopeValue(ScopeObject *scope,     /**< [in] The ScopeObjec
                                 IdentifierNode *target) /**< [in] The name of the value to find. */
 {
 	unsigned int n;
+	char *name = NULL;
+
+	/* Look up the identifier name */
+	name = resolveIdentifierName(target, scope);
+	if (!name) return NULL;
+
 	/* Check for value in current scope */
 	for (n = 0; n < scope->numvals; n++) {
-		if (!strcmp(scope->names[n]->image, target->image))
+		if (!strcmp(scope->names[n], name)) {
+			free(name);
 			return scope->values[n];
+		}
 	}
+	free(name);
 	return NULL;
 }
 
@@ -367,20 +443,28 @@ ValueObject *createScopeValue(ScopeObject *scope,     /**< [in,out] The ScopeObj
 {
 	unsigned int newnumvals = scope->numvals + 1;
 	void *mem1 = NULL, *mem2 = NULL;
+	char *name = NULL;
+
+	/* Look up the identifier name */
+	name = resolveIdentifierName(target, scope);
+	if (!name) return NULL;
+
 	/* Add value to local scope */
 	mem1 = realloc(scope->names, sizeof(IdentifierNode *) * newnumvals);
 	if (!mem1) {
 		perror("realloc");
+		free(name);
 		return NULL;
 	}
 	mem2 = realloc(scope->values, sizeof(ValueObject *) * newnumvals);
 	if (!mem2) {
 		perror("realloc");
+		free(name);
 		return NULL;
 	}
 	scope->names = mem1;
 	scope->values = mem2;
-	scope->names[scope->numvals] = target;
+	scope->names[scope->numvals] = name;
 	scope->values[scope->numvals] = createNilValueObject();
 	if (!scope->values[scope->numvals])
 		return NULL;
@@ -414,12 +498,19 @@ ValueObject *updateScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to
                               ValueObject *value)     /**< [in] A pointer to the ValueObject structure containing the value to copy for the update. */
 {
 	ScopeObject *current = scope;
+	char *name = NULL;
+
+	/* Look up the identifier name */
+	name = resolveIdentifierName(target, scope);
+	if (!name) return NULL;
+
 	/* Traverse upwards through scopes */
 	do {
 		unsigned int n;
 		/* Check for existing value in current scope */
 		for (n = 0; n < current->numvals; n++) {
-			if (!strcmp(current->names[n]->image, target->image)) {
+			if (!strcmp(current->names[n], name)) {
+				free(name);
 				/* Wipe out the old value */
 				deleteValueObject(current->values[n]);
 				/* Assign the new value */
@@ -431,7 +522,8 @@ ValueObject *updateScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to
 			}
 		}
 	} while ((current = current->parent));
-	fprintf(stderr, "%s:%d: unable to store variable at: %s\n", target->fname, target->line, target->image);
+	fprintf(stderr, "%s:%u: unable to store variable at: %s\n", target->fname, target->line, name);
+	free(name);
 	return NULL;
 }
 
@@ -451,15 +543,22 @@ void deleteScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to the Sco
                       IdentifierNode *target) /**< [in] A pointer to the IdentifierNode structure containing the name of the value to delete. */
 {
 	ScopeObject *current = scope;
+	char *name = NULL;
+
+	/* Look up the identifier name */
+	name = resolveIdentifierName(target, scope);
+	if (!name) return;
+
 	/* Traverse upwards through scopes */
 	do {
 		unsigned int n;
 		/* Check for existing value in current scope */
 		for (n = 0; n < current->numvals; n++) {
-			if (!strcmp(current->names[n]->image, target->image)) {
+			if (!strcmp(current->names[n], name)) {
 				unsigned int i;
 				unsigned int newnumvals = scope->numvals - 1;
 				void *mem1 = NULL, *mem2 = NULL;
+				free(name);
 				/* Don't delete anything in the names table
 				 * because it's just pointers to IdentifierNode
 				 * structures in the parse tree. */
@@ -488,6 +587,7 @@ void deleteScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to the Sco
 			}
 		}
 	} while ((current = current->parent));
+	free(name);
 }
 
 /** Checks if a string of characters follows the format for a number.
@@ -496,8 +596,8 @@ void deleteScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to the Sco
   * \retval 1 The string of characters is a number. */
 unsigned int isNumString(const char *stringdata) /**< [in] The array of characters to check the format of. */
 {
-	unsigned int n;
-	unsigned int len = strlen(stringdata);
+	size_t n;
+	size_t len = strlen(stringdata);
 	/* Check for empty string */
 	if (len == 0) return 0;
 	/* Check for non-digit, non-hyphen, and non-period characters */
@@ -517,8 +617,8 @@ unsigned int isNumString(const char *stringdata) /**< [in] The array of characte
   * \retval 1 The string of characters is a hexadecimal number. */
 unsigned int isHexString(const char *stringdata) /**< [in] The array of characters to check the format of. */
 {
-	unsigned int n;
-	unsigned int len = strlen(stringdata);
+	size_t n;
+	size_t len = strlen(stringdata);
 	/* Check for empty string */
 	if (len == 0) return 0;
 	/* Check for non-digit and non-A-through-F characters */
@@ -687,7 +787,7 @@ ValueObject *castBooleanExplicit(ValueObject *node,  /**< [in] The ValueObject s
 		case VT_INTEGER:
 			return createBooleanValueObject(getInteger(node) != 0);
 		case VT_FLOAT:
-			return createBooleanValueObject(getFloat(node) != 0.0);
+			return createBooleanValueObject(fabs(getFloat(node) - 0.0) > FLT_EPSILON);
 		case VT_STRING:
 			if (strstr(getString(node), ":{")) {
 				/* Perform interpolation */
@@ -700,9 +800,13 @@ ValueObject *castBooleanExplicit(ValueObject *node,  /**< [in] The ValueObject s
 			}
 			else
 				return createBooleanValueObject(getString(node)[0] != '\0');
+		case VT_FUNC:
+			fprintf(stderr, "Cannot cast functions to booleans\n");
+			return NULL;
+		default:
+			fprintf(stderr, "Unknown value type encountered during boolean cast\n");
+			return NULL;
 	}
-	fprintf(stderr, "Unknown value type encountered during boolean cast\n");
-	return NULL;
 }
 
 /** Casts the contents of a ValueObject structure to integer type in an
@@ -734,7 +838,7 @@ ValueObject *castIntegerExplicit(ValueObject *node,  /**< [in] The ValueObject s
 		case VT_INTEGER:
 			return createIntegerValueObject(getInteger(node));
 		case VT_FLOAT:
-			return createIntegerValueObject(getFloat(node));
+			return createIntegerValueObject((int)getFloat(node));
 		case VT_STRING:
 			if (strstr(getString(node), ":{")) {
 				/* Perform interpolation */
@@ -747,7 +851,11 @@ ValueObject *castIntegerExplicit(ValueObject *node,  /**< [in] The ValueObject s
 					deleteValueObject(interp);
 					return NULL;
 				}
-				sscanf(getString(interp), "%i", &value);
+				if (sscanf(getString(interp), "%i", &value) != 1) {
+					fprintf(stderr, "Expected integer value\n");
+					deleteValueObject(interp);
+					return NULL;
+				}
 				ret = createIntegerValueObject(value);
 				deleteValueObject(interp);
 				return ret;
@@ -758,12 +866,19 @@ ValueObject *castIntegerExplicit(ValueObject *node,  /**< [in] The ValueObject s
 					fprintf(stderr, "Unable to cast value\n");
 					return NULL;
 				}
-				sscanf(getString(node), "%i", &value);
+				if (sscanf(getString(node), "%i", &value) != 1) {
+					fprintf(stderr, "Expected integer value\n");
+					return NULL;
+				}
 				return createIntegerValueObject(value);
 			}
+		case VT_FUNC:
+			fprintf(stderr, "Cannot cast functions to integers\n");
+			return NULL;
+		default:
+			fprintf(stderr, "Unknown value type encountered during integer cast\n");
+			return NULL;
 	}
-	fprintf(stderr, "Unknown value type encountered during integer cast\n");
-	return NULL;
 }
 
 /** Casts the contents of a ValueObject structure to floating point decimal
@@ -793,7 +908,7 @@ ValueObject *castFloatExplicit(ValueObject *node,  /**< [in] The ValueObject str
 			return createFloatValueObject(0.0);
 		case VT_BOOLEAN:
 		case VT_INTEGER:
-			return createFloatValueObject(getInteger(node));
+			return createFloatValueObject((float)getInteger(node));
 		case VT_FLOAT:
 			return createFloatValueObject(getFloat(node));
 		case VT_STRING:
@@ -808,7 +923,11 @@ ValueObject *castFloatExplicit(ValueObject *node,  /**< [in] The ValueObject str
 					deleteValueObject(interp);
 					return NULL;
 				}
-				sscanf(getString(interp), "%f", &value);
+				if (sscanf(getString(interp), "%f", &value) != 1) {
+					fprintf(stderr, "Expected floating point decimal value\n");
+					deleteValueObject(interp);
+					return NULL;
+				}
 				ret = createFloatValueObject(value);
 				deleteValueObject(interp);
 				return ret;
@@ -819,12 +938,19 @@ ValueObject *castFloatExplicit(ValueObject *node,  /**< [in] The ValueObject str
 					fprintf(stderr, "Unable to cast value\n");
 					return NULL;
 				}
-				sscanf(getString(node), "%f", &value);
+				if (sscanf(getString(node), "%f", &value) != 1) {
+					fprintf(stderr, "Expected floating point decimal value\n");
+					return NULL;
+				}
 				return createFloatValueObject(value);
 			}
+		case VT_FUNC:
+			fprintf(stderr, "Cannot cast functions to floats\n");
+			return NULL;
+		default:
+			fprintf(stderr, "Unknown value type encountered during floating point decimal cast\n");
+			return NULL;
 	}
-	fprintf(stderr, "Unknown value type encountered during floating point decimal cast\n");
-	return NULL;
 }
 
 /** Casts the contents of a ValueObject structure to string type in an explicit
@@ -892,7 +1018,8 @@ ValueObject *castStringExplicit(ValueObject *node,  /**< [in] The ValueObject st
 			char *temp = NULL;
 			char *data = NULL;
 			char *str = getString(node);
-			unsigned int a, b, size;
+			unsigned int a, b;
+			size_t size;
 			/* Perform interpolation */
 			size = strlen(getString(node)) + 1;
 			temp = malloc(sizeof(char) * size);
@@ -920,12 +1047,19 @@ ValueObject *castStringExplicit(ValueObject *node,  /**< [in] The ValueObject st
 				else if (!strncmp(str + b, ":(", 2)) {
 					const char *start = str + b + 2;
 					const char *end = strchr(start, ')');
-					unsigned short len = end - start;
-					char *image = malloc(sizeof(char) * (len + 1));
+					size_t len;
+					char *image = NULL;
 					long codepoint;
 					char out[3];
-					unsigned short num;
+					size_t num;
 					void *mem = NULL;
+					if (end < start) {
+						fprintf(stderr, "Expected closing parenthesis after :(\n");
+						free(temp);
+						return NULL;
+					}
+					len = (size_t)(end - start);
+					image = malloc(sizeof(char) * (len + 1));
 					strncpy(image, start, len);
 					image[len] = '\0';
 					if (!isHexString(image)) {
@@ -936,7 +1070,12 @@ ValueObject *castStringExplicit(ValueObject *node,  /**< [in] The ValueObject st
 					}
 					codepoint = strtol(image, NULL, 16);
 					free(image);
-					num = convertCodePointToUTF8(codepoint, out);
+					if (codepoint < 0) {
+						fprintf(stderr, "Code point is supposed to be positive\n");
+						free(temp);
+						return NULL;
+					}
+					num = convertCodePointToUTF8((unsigned int)codepoint, out);
 					if (num == 0) {
 						free(temp);
 						return NULL;
@@ -955,22 +1094,30 @@ ValueObject *castStringExplicit(ValueObject *node,  /**< [in] The ValueObject st
 				else if (!strncmp(str + b, ":[", 2)) {
 					const char *start = str + b + 2;
 					const char *end = strchr(start, ']');
-					unsigned short len = end - start;
-					char *image = malloc(sizeof(char) * (len + 1));
+					size_t len;
+					char *image = NULL;
 					long codepoint;
 					char out[3];
-					unsigned short num;
+					size_t num;
 					void *mem = NULL;
+					if (end < start) {
+						fprintf(stderr, "Expected closing square bracket after :[\n");
+						free(temp);
+						return NULL;
+					}
+					len = (size_t)(end - start);
+					image = malloc(sizeof(char) * (len + 1));
 					strncpy(image, start, len);
 					strncpy(image, start, len);
 					image[len] = '\0';
 					codepoint = convertNormativeNameToCodePoint(image);
 					free(image);
 					if (codepoint < 0) {
+						fprintf(stderr, "Code point is supposed to be positive\n");
 						free(temp);
 						return NULL;
 					}
-					num = convertCodePointToUTF8(codepoint, out);
+					num = convertCodePointToUTF8((unsigned int)codepoint, out);
 					size += num;
 					mem = realloc(temp, size);
 					if (!mem) {
@@ -988,9 +1135,16 @@ ValueObject *castStringExplicit(ValueObject *node,  /**< [in] The ValueObject st
 					/* Copy the variable name into image */
 					const char *start = str + b + 2;
 					const char *end = strchr(start, '}');
-					unsigned short len = end - start;
-					char *image = malloc(sizeof(char) * (len + 1));
+					size_t len;
+					char *image = NULL;
 					void *mem = NULL;
+					if (end < start) {
+						fprintf(stderr, "Expected closing curly brace after :{\n");
+						free(temp);
+						return NULL;
+					}
+					len = (size_t)(end - start);
+					image = malloc(sizeof(char) * (len + 1));
 					strncpy(image, start, len);
 					image[len] = '\0';
 					if (!strcmp(image, "IT"))
@@ -1000,7 +1154,7 @@ ValueObject *castStringExplicit(ValueObject *node,  /**< [in] The ValueObject st
 						/* Create a new IdentifierNode
 						 * structure and lookup its
 						 * value */
-						target = createIdentifierNode(image, NULL, 0);
+						target = createIdentifierNode(IT_DIRECT, image, NULL, 0);
 						if (!target) {
 							free(temp);
 							return NULL;
@@ -1043,9 +1197,14 @@ ValueObject *castStringExplicit(ValueObject *node,  /**< [in] The ValueObject st
 			free(temp);
 			return createStringValueObject(data);
 		}
+		case VT_FUNC: {
+			fprintf(stderr, "Cannot cast functions to strings\n");
+			return NULL;
+		}
+		default:
+			fprintf(stderr, "Unknown value type encountered during string cast\n");
+			return NULL;
 	}
-	fprintf(stderr, "Unknown value type encountered during string cast\n");
-	return NULL;
 }
 
 /** Interprets an implicit variable expression.
@@ -1157,14 +1316,22 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,     /**< [in] A pointer t
 	def = getScopeValue(scope, expr->name);
 	if (!def || def->type != VT_FUNC) {
 		IdentifierNode *id = (IdentifierNode *)(expr->name);
-		fprintf(stderr, "%s:%d: undefined function at: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%u: undefined function at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		deleteScopeObject(outer);
 		return NULL;
 	}
 	/* Check for correct supplied arity */
 	if (getFunction(def)->args->num != expr->args->num) {
 		IdentifierNode *id = (IdentifierNode *)(expr->name);
-		fprintf(stderr, "%s:%d: incorrect number of arguments supplied to: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%u: incorrect number of arguments supplied to: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		deleteScopeObject(outer);
 		return NULL;
 	}
@@ -1243,7 +1410,11 @@ ValueObject *interpretIdentifierExprNode(ExprNode *node,     /**< [in] A pointer
 	ValueObject *val = getScopeValue(scope, node->expr);
 	if (!val) {
 		IdentifierNode *id = (IdentifierNode *)(node->expr);
-		fprintf(stderr, "%s:%d: variable does not exist at: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%u: variable does not exist at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		return NULL;
 	}
 	return copyValueObject(val);
@@ -1502,7 +1673,7 @@ ValueObject *opModIntegerInteger(ValueObject *a, /**< [in] The dividend. */
 ValueObject *opAddIntegerFloat(ValueObject *a, /**< [in] The first term to add. */
                                ValueObject *b) /**< [in] The second term to add. */
 {
-	return createFloatValueObject(getInteger(a) + getFloat(b));
+	return createFloatValueObject((float)(getInteger(a) + getFloat(b)));
 }
 
 /** Subtracts an integer and a float.
@@ -1522,7 +1693,7 @@ ValueObject *opAddIntegerFloat(ValueObject *a, /**< [in] The first term to add. 
 ValueObject *opSubIntegerFloat(ValueObject *a, /**< [in] The minuend. */
                                ValueObject *b) /**< [in] The subtrahend. */
 {
-	return createFloatValueObject(getInteger(a) - getFloat(b));
+	return createFloatValueObject((float)(getInteger(a) - getFloat(b)));
 }
 
 /** Multiplies an integer and a float.
@@ -1542,7 +1713,7 @@ ValueObject *opSubIntegerFloat(ValueObject *a, /**< [in] The minuend. */
 ValueObject *opMultIntegerFloat(ValueObject *a, /**< [in] The first factor to multiply. */
                                 ValueObject *b) /**< [in] The second factor to multiply. */
 {
-	return createFloatValueObject(getInteger(a) * getFloat(b));
+	return createFloatValueObject((float)(getInteger(a) * getFloat(b)));
 }
 
 /** Divides an integer and a float.
@@ -1564,11 +1735,11 @@ ValueObject *opMultIntegerFloat(ValueObject *a, /**< [in] The first factor to mu
 ValueObject *opDivIntegerFloat(ValueObject *a, /**< [in] The dividend. */
                                ValueObject *b) /**< [in] The divisor. */
 {
-	if (getFloat(b) == 0.0) {
+	if (fabs(getFloat(b) - 0.0) < FLT_EPSILON) {
 		fprintf(stderr, "Division by zero undefined\n");
 		return NULL;
 	}
-	return createFloatValueObject(getInteger(a) / getFloat(b));
+	return createFloatValueObject((float)(getInteger(a) / getFloat(b)));
 }
 
 /** Finds the maximum of an integer and a float.
@@ -1588,7 +1759,7 @@ ValueObject *opDivIntegerFloat(ValueObject *a, /**< [in] The dividend. */
 ValueObject *opMaxIntegerFloat(ValueObject *a, /**< [in] The first number to compare. */
                                ValueObject *b) /**< [in] The second number to compare. */
 {
-	return createFloatValueObject(getInteger(a) > getFloat(b) ? getInteger(a) : getFloat(b));
+	return createFloatValueObject((float)(getInteger(a)) > getFloat(b) ? (float)(getInteger(a)) : getFloat(b));
 }
 
 /** Finds the minimum of an integer and a float.
@@ -1608,7 +1779,7 @@ ValueObject *opMaxIntegerFloat(ValueObject *a, /**< [in] The first number to com
 ValueObject *opMinIntegerFloat(ValueObject *a, /**< [in] The first number to compare. */
                                ValueObject *b) /**< [in] The second number to compare. */
 {
-	return createFloatValueObject(getInteger(a) < getFloat(b) ? getInteger(a) : getFloat(b));
+	return createFloatValueObject((float)(getInteger(a)) < getFloat(b) ? (float)(getInteger(a)) : getFloat(b));
 }
 
 /** Calculates the modulus of an integer and a float.
@@ -1628,11 +1799,11 @@ ValueObject *opMinIntegerFloat(ValueObject *a, /**< [in] The first number to com
 ValueObject *opModIntegerFloat(ValueObject *a, /**< [in] The dividend. */
                                ValueObject *b) /**< [in] The divisor. */
 {
-	if (getFloat(b) == 0.0) {
+	if (fabs(getFloat(b) - 0.0) < FLT_EPSILON) {
 		fprintf(stderr, "Division by zero undefined\n");
 		return NULL;
 	}
-	return createFloatValueObject(fmod(getInteger(a), getFloat(b)));
+	return createFloatValueObject((float)(fmod((double)(getInteger(a)), getFloat(b))));
 }
 
 /** Adds a float and an integer.
@@ -1737,7 +1908,7 @@ ValueObject *opDivFloatInteger(ValueObject *a, /**< [in] The dividend. */
 ValueObject *opMaxFloatInteger(ValueObject *a, /**< [in] The first number to compare. */
                                ValueObject *b) /**< [in] The second number to compare. */
 {
-	return createFloatValueObject(getFloat(a) > getInteger(b) ? getFloat(a) : getInteger(b));
+	return createFloatValueObject(getFloat(a) > (float)(getInteger(b)) ? getFloat(a) : (float)(getInteger(b)));
 }
 
 /** Finds the minimum of a float and an integer.
@@ -1757,7 +1928,7 @@ ValueObject *opMaxFloatInteger(ValueObject *a, /**< [in] The first number to com
 ValueObject *opMinFloatInteger(ValueObject *a, /**< [in] The first number to compare. */
                                ValueObject *b) /**< [in] The second number to compare. */
 {
-	return createFloatValueObject(getFloat(a) < getInteger(b) ? getFloat(a) : getInteger(b));
+	return createFloatValueObject(getFloat(a) < (float)(getInteger(b)) ? getFloat(a) : (float)(getInteger(b)));
 }
 
 /** Calculates the modulus of a float and an integer.
@@ -1781,7 +1952,7 @@ ValueObject *opModFloatInteger(ValueObject *a, /**< [in] The dividend. */
 		fprintf(stderr, "Division by zero undefined\n");
 		return NULL;
 	}
-	return createFloatValueObject(fmod(getFloat(a), getInteger(b)));
+	return createFloatValueObject((float)(fmod(getFloat(a), (double)(getInteger(b)))));
 }
 
 /** Adds two floats.
@@ -1859,7 +2030,7 @@ ValueObject *opMultFloatFloat(ValueObject *a, /**< [in] The first factor to mult
 ValueObject *opDivFloatFloat(ValueObject *a, /**< [in] The dividend. */
                              ValueObject *b) /**< [in] The divisor. */
 {
-	if (getFloat(b) == 0.0) {
+	if (fabs(getFloat(b) - 0.0) < FLT_EPSILON) {
 		fprintf(stderr, "Division by zero undefined\n");
 		return NULL;
 	}
@@ -1920,11 +2091,11 @@ ValueObject *opMinFloatFloat(ValueObject *a, /**< [in] The first number to compa
 ValueObject *opModFloatFloat(ValueObject *a, /**< [in] The dividend. */
                              ValueObject *b) /**< [in] The divisor. */
 {
-	if (getFloat(b) == 0.0) {
+	if (fabs(getFloat(b) - 0.0) < FLT_EPSILON) {
 		fprintf(stderr, "Division by zero undefined\n");
 		return NULL;
 	}
-	return createFloatValueObject(fmod(getFloat(a), getFloat(b)));
+	return createFloatValueObject((float)(fmod(getFloat(a), getFloat(b))));
 }
 
 /* A jump table for arithmetic operations.  The first index determines the
@@ -2096,7 +2267,7 @@ ValueObject *interpretBoolOpExprNode(OpExprNode *expr,   /**< [in] A pointer to 
 	for (n = 0; n < expr->args->num; n++) {
 		ValueObject *val = interpretExprNode(expr->args->exprs[n], scope);
 		ValueObject *use = val;
-		unsigned int temp;
+		int temp;
 		unsigned int cast = 0;
 		if (!val) return NULL;
 		if (val->type != VT_BOOLEAN && val->type != VT_INTEGER) {
@@ -2175,7 +2346,7 @@ ValueObject *opNeqIntegerInteger(ValueObject *a, /**< [in] The first value to te
 ValueObject *opEqIntegerFloat(ValueObject *a, /**< [in] The first value to test. */
                               ValueObject *b) /**< [in] The second value to test. */
 {
-	return createBooleanValueObject(getInteger(a) == getFloat(b));
+	return createBooleanValueObject(fabs((float)(getInteger(a)) - getFloat(b)) < FLT_EPSILON);
 }
 
 /** Tests if an integer and a float are not equal.
@@ -2190,7 +2361,7 @@ ValueObject *opEqIntegerFloat(ValueObject *a, /**< [in] The first value to test.
 ValueObject *opNeqIntegerFloat(ValueObject *a, /**< [in] The first value to test. */
                                ValueObject *b) /**< [in] The second value to test. */
 {
-	return createBooleanValueObject(getInteger(a) != getFloat(b));
+	return createBooleanValueObject(fabs((float)(getInteger(a)) - getFloat(b)) > FLT_EPSILON);
 }
 
 /** Tests if a float and an integer are equal.
@@ -2205,7 +2376,7 @@ ValueObject *opNeqIntegerFloat(ValueObject *a, /**< [in] The first value to test
 ValueObject *opEqFloatInteger(ValueObject *a, /**< [in] The first value to test. */
                               ValueObject *b) /**< [in] The second value to test. */
 {
-	return createBooleanValueObject(getFloat(a) == getInteger(b));
+	return createBooleanValueObject(fabs(getFloat(a) - (float)(getInteger(b))) < FLT_EPSILON);
 }
 
 /** Tests if a float and an integer are not equal.
@@ -2220,7 +2391,7 @@ ValueObject *opEqFloatInteger(ValueObject *a, /**< [in] The first value to test.
 ValueObject *opNeqFloatInteger(ValueObject *a, /**< [in] The first value to test. */
                                ValueObject *b) /**< [in] The second value to test. */
 {
-	return createBooleanValueObject(getFloat(a) != getInteger(b));
+	return createBooleanValueObject(fabs(getFloat(a) - (float)(getInteger(b))) > FLT_EPSILON);
 }
 
 /** Tests if two floats are equal.
@@ -2234,7 +2405,7 @@ ValueObject *opNeqFloatInteger(ValueObject *a, /**< [in] The first value to test
 ValueObject *opEqFloatFloat(ValueObject *a, /**< [in] The first value to test. */
                             ValueObject *b) /**< [in] The second value to test. */
 {
-	return createBooleanValueObject(getFloat(a) == getFloat(b));
+	return createBooleanValueObject(fabs(getFloat(a) - getFloat(b)) < FLT_EPSILON);
 }
 
 /** Tests if two floats are not equal.
@@ -2248,7 +2419,7 @@ ValueObject *opEqFloatFloat(ValueObject *a, /**< [in] The first value to test. *
 ValueObject *opNeqFloatFloat(ValueObject *a, /**< [in] The first value to test. */
                              ValueObject *b) /**< [in] The second value to test. */
 {
-	return createBooleanValueObject(getFloat(a) != getFloat(b));
+	return createBooleanValueObject(fabs(getFloat(a) - getFloat(b)) > FLT_EPSILON);
 }
 
 /** Tests if two boolean values are equal.
@@ -2608,7 +2779,11 @@ ReturnObject *interpretCastStmtNode(StmtNode *node,     /**< [in] A pointer to t
 	ValueObject *cast = NULL;
 	if (!val) {
 		IdentifierNode *id = (IdentifierNode *)(stmt->target);
-		fprintf(stderr, "%s:%d: variable does not exist at: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%u: variable does not exist at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		return NULL;
 	}
 	switch(stmt->newtype->type) {
@@ -2711,7 +2886,7 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,     /**< [in] A pointer to 
 	unsigned int size = 16;
 	unsigned int cur = 0;
 	char *temp = malloc(sizeof(char) * size);
-	char c;
+	int c;
 	void *mem = NULL;
 	InputStmtNode *stmt = (InputStmtNode *)node->stmt;
 	ValueObject *val = NULL;
@@ -2719,7 +2894,7 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,     /**< [in] A pointer to 
 		/** \note The specification is unclear as to the exact semantics
 		  *       of input.  Here, we read up until the first newline or
 		  *       EOF but do not store it. */
-		if (c == EOF || c == '\r' || c == '\n') break;
+		if (c == EOF || c == (int)'\r' || c == (int)'\n') break;
 		if (cur > size - 1) {
 			/* Increasing buffer size. */
 			size *= 2;
@@ -2731,7 +2906,7 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,     /**< [in] A pointer to 
 			}
 			temp = mem;
 		}
-		temp[cur] = c;
+		temp[cur] = (char)c;
 		cur++;
 	}
 	temp[cur] = '\0';
@@ -2815,7 +2990,11 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,     /**< [in] A point
 	ValueObject *init = NULL;
 	if (getLocalScopeValue(scope, stmt->target)) {
 		IdentifierNode *id = (IdentifierNode *)(stmt->target);
-		fprintf(stderr, "%s:%d: redefinition of existing variable at: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%u: redefinition of existing variable at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		return NULL;
 	}
 	if (stmt->expr)
@@ -2991,7 +3170,7 @@ ReturnObject *interpretSwitchStmtNode(StmtNode *node,     /**< [in] A pointer to
 						done = 1;
 					break;
 				case VT_FLOAT:
-					if (getFloat(use1) == getFloat(use2))
+					if (fabs(getFloat(use1) - getFloat(use2)) < FLT_EPSILON)
 						done = 1;
 					break;
 				case VT_STRING:
@@ -3291,7 +3470,11 @@ ReturnObject *interpretFuncDefStmtNode(StmtNode *node,     /**< Not used (see no
 	ValueObject *init = NULL;
 	if (getLocalScopeValue(scope, stmt->name)) {
 		IdentifierNode *id = (IdentifierNode *)(stmt->name);
-		fprintf(stderr, "%s:%d: function name already used by existing variable at: %s\n", id->fname, id->line, id->image);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%u: function name already used by existing variable at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
 		return NULL;
 	}
 	init = createFunctionValueObject(stmt);

@@ -41,7 +41,7 @@
   * ConstantNode ::= Boolean | Integer | Float | String
   *
   * \par
-  * IdentifierNode ::= Identifier
+  * IdentifierNode ::= Identifier | \c TT_SRS ExprNode
   *
   * \par
   * TypeNode ::= \c TT_NOOB | \c TT_TROOF | \c TT_NUMBR | \c TT_NUMBAR | \c TT_YARN
@@ -174,32 +174,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
+#include <float.h>
 
 #include "tokenizer.h"
 
 #undef DEBUG
-
-/** Stores an identifier.  An identifier is the string of characters that are
-  * used to uniquely name a particular variable.
-  *
-  * \see createIdentifierNode(char *, const char *, unsigned int)
-  * \see deleteIdentifierNode(IdentifierNode *) */
-typedef struct {
-	char *image;       /**< An array of characters that name the identifier. */
-	const char *fname; /**< A pointer to the name of the file containing the identifier. */
-	unsigned int line; /**< The line number from the source file that the identifier occurred on. */
-} IdentifierNode;
-
-/** Stores a list of identifiers.  This structure allows sets of identifiers
-  * to be grouped together.
-  *
-  * \see createIdentifierNodeList(void)
-  * \see addIdentifierNode(IdentifierNodeList *, IdentifierNode *)
-  * \see deleteIdentifierNodeList(IdentifierNodeList *) */
-typedef struct {
-	unsigned int num;     /**< The number of IdentifierNode structures stored. */
-	IdentifierNode **ids; /**< A pointer to the array of IdentifierNode structures. */
-} IdentifierNodeList;
 
 /** Denotes the type of statement a StmtNode stores. */
 typedef enum {
@@ -269,6 +249,35 @@ typedef struct {
 	unsigned int num; /**< The number of ExprNode structures stored. */
 	ExprNode **exprs; /**< A pointer to an array of ExprNode structures. */
 } ExprNodeList;
+
+/** Denotes the type of identifier an IdentifierNode is. */
+typedef enum {
+	IT_DIRECT,  /**< A direct IdentifierNode structure. */
+	IT_INDIRECT /**< An indirect IdentifierNode structure. */
+} IdentifierType;
+
+/** Stores an identifier.  An identifier either directly or indirectly names
+  * particular variable.
+  *
+  * \see createIdentifierNode(IdentifierType, void *)
+  * \see deleteIdentifierNode(IdentifierNode *) */
+typedef struct {
+	IdentifierType type; /**< The type of identifier stored in \a id. */
+	void *id;            /**< The identifier data stored. */
+	char *fname;         /**< A pointer to the name of the file containing the identifier. */
+	unsigned int line;   /**< The line number from the source file that the identifier occurred on. */
+} IdentifierNode;
+
+/** Stores a list of identifiers.  This structure allows sets of identifiers
+  * to be grouped together.
+  *
+  * \see createIdentifierNodeList(void)
+  * \see addIdentifierNode(IdentifierNodeList *, IdentifierNode *)
+  * \see deleteIdentifierNodeList(IdentifierNodeList *) */
+typedef struct {
+	unsigned int num;     /**< The number of IdentifierNode structures stored. */
+	IdentifierNode **ids; /**< A pointer to the array of IdentifierNode structures. */
+} IdentifierNodeList;
 
 /** Stores a a block of code.  A block of code consists of a set of statements.
   *
@@ -531,7 +540,7 @@ BlockNodeList *createBlockNodeList(void);
 int addBlockNode(BlockNodeList *, BlockNode *);
 void deleteBlockNodeList(BlockNodeList *);
 
-IdentifierNode *createIdentifierNode(char *, const char *, unsigned int);
+IdentifierNode *createIdentifierNode(IdentifierType, void *, const char *, unsigned int);
 void deleteIdentifierNode(IdentifierNode *);
 
 TypeNode *createTypeNode(ConstantType);
@@ -605,11 +614,13 @@ StmtNode *parseStmtNode(Token ***);
 BlockNode *parseBlockNode(Token ***);
 MainNode *parseMainNode(Token **);
 
+ExprNode *parseCastExprNode(Token ***);
 ExprNode *parseConstantExprNode(Token ***);
 ExprNode *parseIdentifierExprNode(Token ***);
 ExprNode *parseFuncCallExprNode(Token ***);
 ExprNode *parseOpExprNode(Token ***);
 
+StmtNode *parseCastStmtNode(Token ***);
 StmtNode *parsePrintStmtNode(Token ***);
 StmtNode *parseInputStmtNode(Token ***);
 StmtNode *parseAssignmentStmtNode(Token ***);
