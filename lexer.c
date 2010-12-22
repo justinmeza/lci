@@ -139,14 +139,15 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 	const char *start = buffer;
 	LexemeList *list = NULL;
 	unsigned int line = 1;
+	Lexeme *lex = NULL;
 	list = createLexemeList();
 	if (!list) return NULL;
 	while (start < buffer + size) {
 		char *temp = NULL;
-		unsigned int len = 1;
+		size_t len = 1;
 		/* Comma (,) is a soft newline */
 		if (*start == ',') {
-			Lexeme *lex = createLexeme("\n", fname, line);
+			lex = createLexeme("\n", fname, line);
 			if (!lex) {
 				deleteLexemeList(list);
 				return NULL;
@@ -161,7 +162,7 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 		}
 		/* Bang (!) is its own lexeme */
 		if (*start == '!') {
-			Lexeme *lex = createLexeme("!", fname, line);
+			lex = createLexeme("!", fname, line);
 			if (!lex) {
 				deleteLexemeList(list);
 				return NULL;
@@ -186,7 +187,7 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 				newline = 1;
 			}
 			if (newline) {
-				Lexeme *lex = createLexeme("\n", fname, line);
+				lex = createLexeme("\n", fname, line);
 				if (!lex) {
 					deleteLexemeList(list);
 					return NULL;
@@ -212,7 +213,7 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 			/* Make sure next line is not empty */
 			while (*test && isspace(*test)) {
 				if (*test == '\r' || *test == '\n') {
-					fprintf(stderr, "%s:%d: a line with continuation may not be followed by an empty line\n", fname, line);
+					fprintf(stderr, "%s:%u: a line with continuation may not be followed by an empty line\n", fname, line);
 					deleteLexemeList(list);
 					return NULL;
 				}
@@ -239,7 +240,7 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 				start++;
 			if (start == buffer || *start == ',' || *start == '\r' || *start == '\n')
 				continue;
-			fprintf(stderr, "%s:%d: multiple line comment may not appear on the same line as code\n", fname, line);
+			fprintf(stderr, "%s:%u: multiple line comment may not appear on the same line as code\n", fname, line);
 			deleteLexemeList(list);
 			return NULL;
 		}
@@ -270,7 +271,7 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 					&& *(start + len) != '!'
 					&& strncmp(start + len, "...", 3)
 					&& strncmp(start + len, "\xE2\x80\xA6", 3)) {
-				fprintf(stderr, "%s:%d: expected token delimiter after string literal\n", fname, line);
+				fprintf(stderr, "%s:%u: expected token delimiter after string literal\n", fname, line);
 				deleteLexemeList(list);
 				return NULL;
 			}
@@ -292,7 +293,7 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 		}
 		strncpy(temp, start, len);
 		temp[len] = '\0';
-		Lexeme *lex = createLexeme(temp, fname, line);
+		lex = createLexeme(temp, fname, line);
 		if (!lex) {
 			free(temp);
 			deleteLexemeList(list);
@@ -308,7 +309,7 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 		start += len;
 	}
 	/* Create an end-of-file lexeme */
-	Lexeme *lex = createLexeme("$", fname, line);
+	lex = createLexeme("$", fname, line);
 	if (!lex) {
 		deleteLexemeList(list);
 		return NULL;

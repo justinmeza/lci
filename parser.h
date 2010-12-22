@@ -174,6 +174,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
+#include <float.h>
 
 #include "tokenizer.h"
 
@@ -535,7 +537,7 @@ void deleteMainNode(MainNode *);
 BlockNode *createBlockNode(StmtNodeList *);
 void deleteBlockNode(BlockNode *);
 BlockNodeList *createBlockNodeList(void);
-BlockNode *addBlockNode(BlockNodeList *, BlockNode *);
+int addBlockNode(BlockNodeList *, BlockNode *);
 void deleteBlockNodeList(BlockNodeList *);
 
 IdentifierNode *createIdentifierNode(IdentifierType, void *, const char *, unsigned int);
@@ -547,7 +549,7 @@ void deleteTypeNode(TypeNode *);
 StmtNode *createStmtNode(StmtType, void *);
 void deleteStmtNode(StmtNode *);
 StmtNodeList *createStmtNodeList(void);
-StmtNode *addStmtNode(StmtNodeList *, StmtNode *);
+int addStmtNode(StmtNodeList *, StmtNode *);
 void deleteStmtNodeList(StmtNodeList *);
 
 CastStmtNode *createCastStmtNode(IdentifierNode *, TypeNode *);
@@ -586,7 +588,7 @@ void deleteFuncDefStmtNode(FuncDefStmtNode *);
 ExprNode *createExprNode(ExprType, void *);
 void deleteExprNode(ExprNode *);
 ExprNodeList *createExprNodeList(void);
-ExprNode *addExprNode(ExprNodeList *, ExprNode *);
+int addExprNode(ExprNodeList *, ExprNode *);
 void deleteExprNodeList(ExprNodeList *);
 
 CastExprNode *createCastExprNode(ExprNode *, TypeNode *);
@@ -612,6 +614,25 @@ StmtNode *parseStmtNode(Token ***);
 BlockNode *parseBlockNode(Token ***);
 MainNode *parseMainNode(Token **);
 
+ExprNode *parseCastExprNode(Token ***);
+ExprNode *parseConstantExprNode(Token ***);
+ExprNode *parseIdentifierExprNode(Token ***);
+ExprNode *parseFuncCallExprNode(Token ***);
+ExprNode *parseOpExprNode(Token ***);
+
+StmtNode *parseCastStmtNode(Token ***);
+StmtNode *parsePrintStmtNode(Token ***);
+StmtNode *parseInputStmtNode(Token ***);
+StmtNode *parseAssignmentStmtNode(Token ***);
+StmtNode *parseDeclarationStmtNode(Token ***);
+StmtNode *parseIfThenElseStmtNode(Token ***);
+StmtNode *parseSwitchStmtNode(Token ***);
+StmtNode *parseBreakStmtNode(Token ***);
+StmtNode *parseReturnStmtNode(Token ***);
+StmtNode *parseLoopStmtNode(Token ***);
+StmtNode *parseDeallocationStmtNode(Token ***);
+StmtNode *parseFuncDefStmtNode(Token ***);
+
 ConstantNode *createBooleanConstantNode(int);
 ConstantNode *createIntegerConstantNode(int);
 ConstantNode *createFloatConstantNode(float);
@@ -619,7 +640,7 @@ ConstantNode *createStringConstantNode(char *);
 void deleteConstantNode(ConstantNode *);
 
 IdentifierNodeList *createIdentifierNodeList(void);
-IdentifierNode *addIdentifierNode(IdentifierNodeList *, IdentifierNode *);
+int addIdentifierNode(IdentifierNodeList *, IdentifierNode *);
 void deleteIdentifierNodeList(IdentifierNodeList *);
 
 #endif /* __PARSER_H__ */

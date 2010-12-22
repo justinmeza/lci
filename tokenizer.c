@@ -1,5 +1,75 @@
 #include "tokenizer.h"
 
+static const char *keywords[] = {
+	"",            /* TT_INTEGER */
+	"",            /* TT_FLOAT */
+	"",            /* TT_STRING */
+	"",            /* TT_IDENTIFIER */
+	"",            /* TT_BOOLEAN */
+	"IT",          /* TT_IT */
+	"NOOB",        /* TT_NOOB */
+	"NUMBR",       /* TT_NUMBR */
+	"NUMBAR",      /* TT_NUMBAR */
+	"TROOF",       /* TT_TROOF */
+	"YARN",        /* TT_YARN */
+	"",            /* TT_EOF */
+	"",            /* TT_NEWLINE */
+	"HAI",         /* TT_HAI */
+	"KTHXBYE",     /* TT_KTHXBYE */
+	"HAS A",       /* TT_HASA */
+	"ITZ A",       /* TT_ITZA */
+	"ITZ",         /* TT_ITZ */
+	"R NOOB",      /* TT_RNOOB */
+	"R",           /* TT_R */
+	"AN YR",       /* TT_ANYR */
+	"AN",          /* TT_AN */
+	"SUM OF",      /* TT_SUMOF */
+	"DIFF OF",     /* TT_DIFFOF */
+	"PRODUKT OF",  /* TT_PRODUKTOF */
+	"QUOSHUNT OF", /* TT_QUOSHUNTOF */
+	"MOD OF",      /* TT_MODOF */
+	"BIGGR OF",    /* TT_BIGGROF */
+	"SMALLR OF",   /* TT_SMALLROF */
+	"BOTH OF",     /* TT_BOTHOF */
+	"EITHER OF",   /* TT_EITHEROF */
+	"WON OF",      /* TT_WONOF */
+	"NOT",         /* TT_NOT */
+	"MKAY",        /* TT_MKAY */
+	"ALL OF",      /* TT_ALLOF */
+	"ANY OF",      /* TT_ANYOF */
+	"BOTH SAEM",   /* TT_BOTHSAEM */
+	"DIFFRINT",    /* TT_DIFFRINT */
+	"MAEK",        /* TT_MAEK */
+	"A",           /* TT_A */
+	"IS NOW A",    /* TT_ISNOWA */
+	"VISIBLE",     /* TT_VISIBLE */
+	"SMOOSH",      /* TT_SMOOSH */
+	"!",           /* TT_BANG */
+	"GIMMEH",      /* TT_GIMMEH */
+	"O RLY?",      /* TT_ORLY */
+	"YA RLY",      /* TT_YARLY */
+	"MEBBE",       /* TT_MEBBE */
+	"NO WAI",      /* TT_NOWAI */
+	"OIC",         /* TT_OIC */
+	"WTF?",        /* TT_WTF */
+	"OMG",         /* TT_OMG */
+	"OMGWTF",      /* TT_OMGWTF */
+	"GTFO",        /* TT_GTFO */
+	"IM IN YR",    /* TT_IMINYR */
+	"UPPIN",       /* TT_UPPIN */
+	"NERFIN",      /* TT_NERFIN */
+	"YR",          /* TT_YR */
+	"TIL",         /* TT_TIL */
+	"WILE",        /* TT_WILE */
+	"IM OUTTA YR", /* TT_IMOUTTAYR */
+	"HOW IZ",      /* TT_HOWIZ */
+	"IZ",          /* TT_IZ */
+	"IF U SAY SO", /* TT_IFUSAYSO */
+	"FOUND YR",    /* TT_FOUNDYR */
+	"SRS",         /* TT_SRS */
+	""             /* TT_ENDOFTOKENS */
+};
+
 /** Checks if a string of characters follows the format for an integer.
   * Specifically, it checks if the string of characters matches the regular
   * expression: [-]?[1-9][0-9]* | 0
@@ -80,11 +150,6 @@ int isIdentifier(const char *image) /**< [in] The string of characters to compar
 	cur++;
 	while (*cur) {
 		if (isalnum(*cur) || *cur == '_') cur++;
-		/* Proposed LOLCODE Version 1.3 identifiers
-		 * Remember to update expression: [a-zA-Z][a-zA-Z0-9]*([!!|!?][a-zA-Z][a-zA-Z0-9]*)*
-		else if (*cur == '!' && *(cur + 1) && *(cur + 1) == '!') cur += 2;
-		else if (*cur == '!' && *(cur + 1) && *(cur + 1) == '?') cur += 2;
-		*/
 		else return 0;
 	}
 	return 1;
@@ -145,20 +210,19 @@ void deleteToken(Token *token)
   * \post \a token will be added on to the end of \a list and the value at \a num
   *       will be updated accordingly.
   *
-  * \return A pointer to the added Token structure (will be the same as \a token).
-  *
-  * \retval NULL realloc was unable to allocate memory.
+  * \retval 0 realloc was unable to allocate memory.
+  * \retval 1 \a node was added to \a list.
   *
   * \see deleteTokens(Token **) */
-Token *addToken(Token ***list,     /**< [in,out] A pointer to a pointer to an array of Token structures to add the new Token onto. */
-                unsigned int *num, /**< [in,out] A pointer to the number of elements in \a list. */
-                Token *token)      /**< [in] A pointer to the Token structure to add to \a list. */
+int addToken(Token ***list,     /**< [in,out] A pointer to a pointer to an array of Token structures to add the new Token onto. */
+             unsigned int *num, /**< [in,out] A pointer to the number of elements in \a list. */
+             Token *token)      /**< [in] A pointer to the Token structure to add to \a list. */
 {
 	unsigned int newsize = *num + 1;
 	void *mem = realloc(*list, sizeof(Token *) * newsize);
 	if (!mem) {
 		perror("realloc");
-		return NULL;
+		return 0;
 	}
 	*list = mem;
 	(*list)[*num] = token;
@@ -166,7 +230,7 @@ Token *addToken(Token ***list,     /**< [in,out] A pointer to a pointer to an ar
 #ifdef DEBUG
 	fprintf(stderr, "Adding token type %d [%s]\n", token->type, token->image);
 #endif
-	return token;
+	return 1;
 }
 
 /** Deletes an array of Token structures.
@@ -199,14 +263,15 @@ unsigned int acceptLexemes(LexemeList *lexemes, /**< [in] A pointer to a LexemeL
 	unsigned int offset = 0;
 	unsigned int n;
 	unsigned int i;
-	for (n = 0, i = 0; match[n] || lexemes->lexemes[start + offset]->image[i]; n++, i++) {
+	for (n = 0, i = 0; match[n] || lexemes->lexemes[start + offset]->image[i]; n++) {
 		if (match[n] == ' ') {
 			offset++;
-			i = -1;
+			i = 0;
 			continue;
 		}
 		if (lexemes->lexemes[start + offset]->image[i] != match[n])
 			return 0;
+		i++;
 	}
 	return offset + 1;
 }
@@ -234,7 +299,7 @@ Token *isKeyword(LexemeList *lexemes, /**< [in] A pointer to a LexemeList struct
 	const char *fname = lexemes->lexemes[*start]->fname;
 	unsigned int line = lexemes->lexemes[*start]->line;
 	for (type = 0; type != TT_ENDOFTOKENS; type++) {
-		int num = acceptLexemes(lexemes, *start, keywords[type]);
+		unsigned int num = acceptLexemes(lexemes, *start, keywords[type]);
 		if (!num) continue;
 		token = createToken(type, keywords[type], fname, line);
 		*start += (num - 1);
@@ -272,12 +337,16 @@ Token **tokenizeLexemes(LexemeList *list) /**< [in] A pointer to a LexemeList st
 		/* Float */
 		else if (isFloat(image)) {
 			token = createToken(TT_FLOAT, image, fname, line);
-			sscanf(lexeme->image, "%f", &(token->data.f));
+			if (sscanf(lexeme->image, "%f", &(token->data.f)) != 1) {
+				fprintf(stderr, "Expected floating point decimal value.\n");
+			}
 		}
 		/* Integer */
 		else if (isInteger(image)) {
 			token = createToken(TT_INTEGER, image, fname, line);
-			sscanf(lexeme->image, "%i", &(token->data.i));
+			if (sscanf(lexeme->image, "%i", &(token->data.i)) != 1) {
+				fprintf(stderr, "Expected integer value.\n");
+			}
 		}
 		/* FAIL */
 		else if (!strcmp(image, "FAIL")) {
@@ -333,14 +402,23 @@ Token **tokenizeLexemes(LexemeList *list) /**< [in] A pointer to a LexemeList st
 			token = createToken(TT_EOF, "end of file", fname, line);
 		}
 		else {
-			fprintf(stderr, "%s:%d: unknown token at: %s\n", fname, line, image);
+			fprintf(stderr, "%s:%u: unknown token at: %s\n", fname, line, image);
 			/* Clean up */
 			deleteToken(ret[retsize - 1]);
 			ret[retsize - 1] = NULL;
 			deleteTokens(ret);
 			return NULL;
 		}
-		addToken(&ret, &retsize, token);
+
+		/* Add the token to the token array */
+		if (!addToken(&ret, &retsize, token)) {
+			/* Clean up */
+			if (token) deleteToken(token);
+			deleteToken(ret[retsize - 1]);
+			ret[retsize - 1] = NULL;
+			deleteTokens(ret);
+			return NULL;
+		}
 	}
 	mem = realloc(ret, sizeof(Token *) * ++retsize);
 	if (!mem) {

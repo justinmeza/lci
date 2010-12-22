@@ -103,6 +103,7 @@ ValueObject *copyValueObject(ValueObject *);
 void deleteValueObject(ValueObject *);
 ReturnObject *createReturnObject(ReturnType, ValueObject *);
 void deleteReturnObject(ReturnObject *);
+char *resolveIdentifierName(IdentifierNode *, ScopeObject *);
 ScopeObject *createScopeObject(ScopeObject *);
 void deleteScopeObject(ScopeObject *);
 ValueObject *getScopeValue(ScopeObject *, IdentifierNode *);

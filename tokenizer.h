@@ -24,7 +24,9 @@
 /** Denotes the type of token present.  All of the token type names are
   * self-explainatory and correspond to either the semantic type of token data
   * (in the case of TT_INTEGER, TT_FLOAT, TT_STRING, or TT_IDENTIFIER) or the
-  * lexemes which make up the particular token. */
+  * lexemes which make up the particular token.
+  *
+  * \note Remember to update the keywords array with the token image. */
 typedef enum {
 	TT_INTEGER,
 	TT_FLOAT,
@@ -95,76 +97,6 @@ typedef enum {
 	TT_ENDOFTOKENS
 } TokenType;
 
-static const char *keywords[] = {
-	"",            /* TT_INTEGER */
-	"",            /* TT_FLOAT */
-	"",            /* TT_STRING */
-	"",            /* TT_IDENTIFIER */
-	"",            /* TT_BOOLEAN */
-	"IT",          /* TT_IT */
-	"NOOB",        /* TT_NOOB */
-	"NUMBR",       /* TT_NUMBR */
-	"NUMBAR",      /* TT_NUMBAR */
-	"TROOF",       /* TT_TROOF */
-	"YARN",        /* TT_YARN */
-	"",            /* TT_EOF */
-	"",            /* TT_NEWLINE */
-	"HAI",         /* TT_HAI */
-	"KTHXBYE",     /* TT_KTHXBYE */
-	"HAS A",       /* TT_HASA */
-	"ITZ A",       /* TT_ITZA */
-	"ITZ",         /* TT_ITZ */
-	"R NOOB",      /* TT_RNOOB */
-	"R",           /* TT_R */
-	"AN YR",       /* TT_ANYR */
-	"AN",          /* TT_AN */
-	"SUM OF",      /* TT_SUMOF */
-	"DIFF OF",     /* TT_DIFFOF */
-	"PRODUKT OF",  /* TT_PRODUKTOF */
-	"QUOSHUNT OF", /* TT_QUOSHUNTOF */
-	"MOD OF",      /* TT_MODOF */
-	"BIGGR OF",    /* TT_BIGGROF */
-	"SMALLR OF",   /* TT_SMALLROF */
-	"BOTH OF",     /* TT_BOTHOF */
-	"EITHER OF",   /* TT_EITHEROF */
-	"WON OF",      /* TT_WONOF */
-	"NOT",         /* TT_NOT */
-	"MKAY",        /* TT_MKAY */
-	"ALL OF",      /* TT_ALLOF */
-	"ANY OF",      /* TT_ANYOF */
-	"BOTH SAEM",   /* TT_BOTHSAEM */
-	"DIFFRINT",    /* TT_DIFFRINT */
-	"MAEK",        /* TT_MAEK */
-	"A",           /* TT_A */
-	"IS NOW A",    /* TT_ISNOWA */
-	"VISIBLE",     /* TT_VISIBLE */
-	"SMOOSH",      /* TT_SMOOSH */
-	"!",           /* TT_BANG */
-	"GIMMEH",      /* TT_GIMMEH */
-	"O RLY?",      /* TT_ORLY */
-	"YA RLY",      /* TT_YARLY */
-	"MEBBE",       /* TT_MEBBE */
-	"NO WAI",      /* TT_NOWAI */
-	"OIC",         /* TT_OIC */
-	"WTF?",        /* TT_WTF */
-	"OMG",         /* TT_OMG */
-	"OMGWTF",      /* TT_OMGWTF */
-	"GTFO",        /* TT_GTFO */
-	"IM IN YR",    /* TT_IMINYR */
-	"UPPIN",       /* TT_UPPIN */
-	"NERFIN",      /* TT_NERFIN */
-	"YR",          /* TT_YR */
-	"TIL",         /* TT_TIL */
-	"WILE",        /* TT_WILE */
-	"IM OUTTA YR", /* TT_IMOUTTAYR */
-	"HOW IZ",      /* TT_HOWIZ */
-	"IZ",          /* TT_IZ */
-	"IF U SAY SO", /* TT_IFUSAYSO */
-	"FOUND YR",    /* TT_FOUNDYR */
-	"SRS",         /* TT_SRS */
-	"",            /* TT_ENDOFTOKENS */
-};
-
 /** Stores the data associated with a Token structure. */
 typedef union {
 	int i;   /**< Integer data. */
@@ -186,7 +118,7 @@ int isString(const char *);
 int isIdentifier(const char *);
 Token *createToken(TokenType, const char *, const char *, unsigned int);
 void deleteToken(Token *);
-Token *addToken(Token ***, unsigned int *, Token*);
+int addToken(Token ***, unsigned int *, Token*);
 void deleteTokens(Token **);
 unsigned int acceptLexemes(LexemeList *, unsigned int, const char *);
 Token *isKeyword(LexemeList *, unsigned int *);
