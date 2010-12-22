@@ -20,7 +20,14 @@ char *createString(char *data) /**< [in] A pointer to the string data to store. 
   *
   * \return A pointer to a nil type ValueObject structure.
   *
-  * \retval NULL malloc was unable to allocate memory. */
+  * \retval NULL malloc was unable to allocate memory.
+  *
+  * \see createBooleanValueObject(int)
+  * \see createIntegerValueObject(int)
+  * \see createFloatValueObject(float)
+  * \see createStringValueObject(char *)
+  * \see createFunctionValueObject(FuncDefStmtNode *)
+  * \see deleteValueObject(ValueObject *) */
 ValueObject *createNilValueObject(void)
 {
 	ValueObject *p = malloc(sizeof(ValueObject));
@@ -38,7 +45,14 @@ ValueObject *createNilValueObject(void)
   * \return A pointer to a boolean type ValueObject structure with value
   *         \c 0 if \a data equals 0 and \c 1 otherwise.
   *
-  * \retval NULL malloc was unable to allocate memory. */
+  * \retval NULL malloc was unable to allocate memory.
+  *
+  * \see createNilValueObject(void)
+  * \see createIntegerValueObject(int)
+  * \see createFloatValueObject(float)
+  * \see createStringValueObject(char *)
+  * \see createFunctionValueObject(FuncDefStmtNode *)
+  * \see deleteValueObject(ValueObject *) */
 ValueObject *createBooleanValueObject(int data) /**< [in] The boolean data to store. */
 {
 	ValueObject *p = malloc(sizeof(ValueObject));
@@ -57,7 +71,14 @@ ValueObject *createBooleanValueObject(int data) /**< [in] The boolean data to st
   * \return A pointer to an integer type ValueObject structure with value
   *         \a data.
   *
-  * \retval NULL malloc was unable to allocate memory. */
+  * \retval NULL malloc was unable to allocate memory.
+  *
+  * \see createNilValueObject(void)
+  * \see createBooleanValueObject(int)
+  * \see createFloatValueObject(float)
+  * \see createStringValueObject(char *)
+  * \see createFunctionValueObject(FuncDefStmtNode *)
+  * \see deleteValueObject(ValueObject *) */
 ValueObject *createIntegerValueObject(int data) /**< [in] The integer data to store. */
 {
 	ValueObject *p = malloc(sizeof(ValueObject));
@@ -76,7 +97,14 @@ ValueObject *createIntegerValueObject(int data) /**< [in] The integer data to st
   * \return A pointer to a floating point decimal type ValueObject structure
   *         with value \a data.
   *
-  * \retval NULL malloc was unable to allocate memory. */
+  * \retval NULL malloc was unable to allocate memory.
+  *
+  * \see createNilValueObject(void)
+  * \see createBooleanValueObject(int)
+  * \see createIntegerValueObject(int)
+  * \see createStringValueObject(char *)
+  * \see createFunctionValueObject(FuncDefStmtNode *)
+  * \see deleteValueObject(ValueObject *) */
 ValueObject *createFloatValueObject(float data) /**< [in] The floating point data to store. */
 {
 	ValueObject *p = malloc(sizeof(ValueObject));
@@ -94,7 +122,14 @@ ValueObject *createFloatValueObject(float data) /**< [in] The floating point dat
   *
   * \return A pointer to a string type ValueObject structure with value \a data.
   *
-  * \retval NULL malloc was unable to allocate memory. */
+  * \retval NULL malloc was unable to allocate memory.
+  *
+  * \see createNilValueObject(void)
+  * \see createBooleanValueObject(int)
+  * \see createIntegerValueObject(int)
+  * \see createFloatValueObject(float)
+  * \see createFunctionValueObject(FuncDefStmtNode *)
+  * \see deleteValueObject(ValueObject *) */
 ValueObject *createStringValueObject(char *data) /**< [in] The string data to store. */
 {
 	ValueObject *p = malloc(sizeof(ValueObject));
@@ -112,7 +147,14 @@ ValueObject *createStringValueObject(char *data) /**< [in] The string data to st
   *
   * \return A pointer to a function type ValueObject structure with definition \a data.
   *
-  * \retval NULL malloc was unable to allocate memory. */
+  * \retval NULL malloc was unable to allocate memory.
+  *
+  * \see createNilValueObject(void)
+  * \see createBooleanValueObject(int)
+  * \see createIntegerValueObject(int)
+  * \see createFloatValueObject(float)
+  * \see createStringValueObject(char *)
+  * \see deleteValueObject(ValueObject *) */
 ValueObject *createFunctionValueObject(FuncDefStmtNode *data) /**< [in] The function definition to store. */
 {
 	ValueObject *p = malloc(sizeof(ValueObject));
@@ -350,7 +392,7 @@ void deleteScopeObject(ScopeObject *scope) /**< [in,out] The ScopeObject structu
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   *
   * \return A pointer to the stored ValueObject structure named by \a target.
   *
@@ -391,7 +433,7 @@ ValueObject *getScopeValue(ScopeObject *scope,     /**< [in] The ScopeObject str
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   *
   * \return A pointer to the stored ValueObject structure named by \a target.
   *
@@ -427,7 +469,7 @@ ValueObject *getLocalScopeValue(ScopeObject *scope,     /**< [in] The ScopeObjec
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   *
   * \return A pointer to the newly created ValueObject structure named by
   *         \a target.
@@ -478,7 +520,7 @@ ValueObject *createScopeValue(ScopeObject *scope,     /**< [in,out] The ScopeObj
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   * \pre The value named by \a target was created by createScopeValue(ScopeObject *, IdentifierNode *).
   * \pre \a value was created by either createNilValueObject(void), createBooleanValueObject(int),
   *      createIntegerValueObject(int), createFloatValueObject(float), createStringValueObject(char *),
@@ -533,7 +575,7 @@ ValueObject *updateScopeValue(ScopeObject *scope,     /**< [in,out] A pointer to
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   *
   * \see getScopeValue(ScopeObject *, IdentifierNode *)
   * \see getLocalScopeValue(ScopeObject *, IdentifierNode *)
@@ -1289,7 +1331,7 @@ ValueObject *interpretCastExprNode(ExprNode *node,     /**< [in] A pointer to an
   *
   * \pre \a node was created by createExprNode(ExprType type, void *expr)
   *      where \a type is ET_FUNCCALL and \a expr is a FunctionCallExprNode
-  *      structure created by createFuncCallExprNode(FuncDefStmtNode *, ExprNodeList *).
+  *      structure created by createFuncCallExprNode(IdentifierNode *, IdentifierNode *, ExprNodeList *).
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
@@ -1386,7 +1428,7 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,     /**< [in] A pointer t
   *
   * \pre \a node was created by createExprNode(ExprType type, void *expr)
   *      where \a type is ET_IDENTIFIER and \a expr is an IdentifierNode
-  *      structure created by createIdentifierNode(char *, const char *, unsigned int).
+  *      structure created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
@@ -2424,7 +2466,7 @@ ValueObject *opNeqFloatFloat(ValueObject *a, /**< [in] The first value to test. 
 
 /** Tests if two boolean values are equal.
   *
-  * \pre \a a and \a b were created by createBooleanValueObject(float).
+  * \pre \a a and \a b were created by createBooleanValueObject(int).
   *
   * \return A pointer to a ValueObject structure containing a boolean value
   *         indicating whether \a a is equal to \a b.
@@ -2438,7 +2480,7 @@ ValueObject *opEqBooleanBoolean(ValueObject *a, /**< [in] The first value to tes
 
 /** Tests if two boolean values are not equal.
   *
-  * \pre \a a and \a b were created by createBooleanValueObject(float).
+  * \pre \a a and \a b were created by createBooleanValueObject(int).
   *
   * \return A pointer to a ValueObject structure containing a boolean value
   *         indicating whether \a a is not equal to \a b.
@@ -2962,7 +3004,7 @@ ReturnObject *interpretAssignmentStmtNode(StmtNode *node,     /**< [in] A pointe
 /** Interprets a declaration statement.
   *
   * \pre \a node was created by createStmtNode(StmtType type, void *stmt) where
-  *      \a type is ST_DECLARATION and \a stmt was created by createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *).
+  *      \a type is ST_DECLARATION and \a stmt was created by createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, TypeNode *).
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).
@@ -3437,7 +3479,7 @@ ReturnObject *interpretDeallocationStmtNode(StmtNode *node,     /**< [in] A poin
 /** Interprets a function definition statement.
   *
   * \pre \a node was created by createStmtNode(StmtType type, void *stmt) where
-  *      \a type is ST_SWITCH and \a stmt was created by createSwitchStmtNode(IdentifierNode *, IdentifierNode *, IdentifierNodeList *, BlockNode *).
+  *      \a type is ST_SWITCH and \a stmt was created by createSwitchStmtNode(ExprNodeList *, BlockNodeList *, BlockNode *).
   * \pre \a scope was created by createScopeObject(ScopeObject *) and contains
   *      contents added by createScopeValue(ScopeObject *, IdentifierNode *) and
   *      contents updated by updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *).

@@ -1,5 +1,5 @@
 /** Data and functions for converting from Unicode normative names to
-  * codepoints.
+  * code points.
   *
   * \file   unicode.h
   *

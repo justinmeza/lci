@@ -150,11 +150,6 @@ int isIdentifier(const char *image) /**< [in] The string of characters to compar
 	cur++;
 	while (*cur) {
 		if (isalnum(*cur) || *cur == '_') cur++;
-		/* Proposed LOLCODE Version 1.3 identifiers
-		 * Remember to update expression: [a-zA-Z][a-zA-Z0-9]*([!!|!?][a-zA-Z][a-zA-Z0-9]*)*
-		else if (*cur == '!' && *(cur + 1) && *(cur + 1) == '!') cur += 2;
-		else if (*cur == '!' && *(cur + 1) && *(cur + 1) == '?') cur += 2;
-		*/
 		else return 0;
 	}
 	return 1;

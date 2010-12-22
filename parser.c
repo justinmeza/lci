@@ -280,12 +280,12 @@ IdentifierNode *createIdentifierNode(IdentifierType type, /**< [in] The type of 
 
 /** Deletes an IdentifierNode structure.
   *
-  * \pre \a node was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a node was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   *
   * \post The memory at \a node and any of its associated members will be
   *       freed.
   *
-  * \see createIdentifierNode(char *, const char *, unsigned int) */
+  * \see createIdentifierNode(IdentifierType, void *, const char *, unsigned int) */
 void deleteIdentifierNode(IdentifierNode *node) /**< [in,out] A pointer to the IdentifierNode structure to be deleted. */
 {
 	if (!node) return;
@@ -329,7 +329,7 @@ IdentifierNodeList *createIdentifierNodeList(void)
 /** Adds an IdentifierNode structure to an IdentifierNodeList structure.
   *
   * \pre \a list was created by createIdentifierNodeList(void).
-  * \pre \a node was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a node was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   *
   * \post \a node will be added on to the end of \a list and the size of
   *       \a list will be updated accordingly.
@@ -412,7 +412,7 @@ void deleteTypeNode(TypeNode *node) /**< [in,out] A pointer to the TypeNode stru
   *      - ST_PRINT: createPrintStmtNode(ExprNodeList *, int)
   *      - ST_INPUT: createInputStmtNode(IdentifierNode *)
   *      - ST_ASSIGNMENT: createAssignmentStmtNode(IdentifierNode *, ExprNode *)
-  *      - ST_DECLARATION: createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *)
+  *      - ST_DECLARATION: createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, TypeNode *)
   *      - ST_IFTHENELSE: createIfThenElseStmtNode(BlockNode *, BlockNode *, ExprNodeList *, BlockNodeList *)
   *      - ST_SWITCH: createSwitchStmtNode(ExprNodeList *, BlockNodeList *, BlockNode *)
   *      - ST_BREAK: no structure needed, use \c NULL
@@ -588,7 +588,7 @@ void deleteStmtNodeList(StmtNodeList *list) /**< [in,out] A pointer to the StmtN
 
 /** Creates a CastStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   * \pre \a newtype was created by createTypeNode(ConstantType).
   *
   * \return A pointer to a CastStmtNode structure with the desired properties.
@@ -665,7 +665,7 @@ void deletePrintStmtNode(PrintStmtNode *node) /**< [in,out] A pointer to the Pri
 
 /** Creates an InputStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   *
   * \return A pointer to an InputStmtNode structure with the desired properties.
   *
@@ -700,7 +700,7 @@ void deleteInputStmtNode(InputStmtNode *node) /**< [in,out] A pointer to the Inp
 
 /** Creates an AssignmentStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   * \pre \a expr was created by createExprNode(ExprType, void *).
   *
   * \return A pointer to an AssignmentStmtNode structure with the desired
@@ -740,8 +740,8 @@ void deleteAssignmentStmtNode(AssignmentStmtNode *node) /**< [in,out] A pointer 
 
 /** Creates a DeclarationStmtNode structure.
   *
-  * \pre \a scope was created by createIdentifierNode(char *, const char *, unsigned int).
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a scope was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   * \pre \a expr was created by createExprNode(ExprType, void *).
   *
   * \return A pointer to a DeclarationStmtNode structure with the desired
@@ -769,12 +769,12 @@ DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *scope,  /**< [in]
 
 /** Deletes a DeclarationStmtNode structure.
   *
-  * \pre \a node was created by createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *).
+  * \pre \a node was created by createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, TypeNode *).
   *
   * \post The memory at \a node and any of its associated members will be
   *       freed.
   *
-  * \see createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *) */
+  * \see createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, TypeNode *) */
 void deleteDeclarationStmtNode(DeclarationStmtNode *node) /**< [in,out] A pointer to the DeclarationStmtNode structure to be deleted. */
 {
 	if (!node) return;
@@ -917,8 +917,8 @@ void deleteReturnStmtNode(ReturnStmtNode *node) /**< [in,out] A pointer to the R
 
 /** Creates a LoopStmtNode structure.
   *
-  * \pre \a name was created by createIdentifierNode(char *, const char *, unsigned int).
-  * \pre \a var was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a name was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
+  * \pre \a var was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   * \pre \a guard was created by createExprNode(ExprType, void *).
   * \pre \a update was created by createExprNode(ExprType, void *).
   * \pre \a body was created by createBlockNode(StmtNodeList *).
@@ -968,7 +968,7 @@ void deleteLoopStmtNode(LoopStmtNode *node) /**< [in,out] A pointer to the LoopS
 
 /** Creates a DeallocationStmtNode structure.
   *
-  * \pre \a target was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   *
   * \return A pointer to a DeallocationStmtNode structure with the desired
   *         properties.
@@ -1004,8 +1004,8 @@ void deleteDeallocationStmtNode(DeallocationStmtNode *node) /**< [in,out] A poin
 
 /** Creates a FuncDefStmtNode structure.
   *
-  * \pre \a scope was created by createIdentifierNode(char *, const char *, unsigned int).
-  * \pre \a name was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a scope was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
+  * \pre \a name was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   * \pre \a args was created by createIdentifierNodeList(void) and contains
   *      items added by addIdentifierNode(IdentifierNodeList *, IdentifierNode *).
   * \pre \a body was created by createBlockNode(StmtNodeList *).
@@ -1057,7 +1057,7 @@ void deleteFuncDefStmtNode(FuncDefStmtNode *node) /**< [in,out] A pointer to the
   *      - ET_CAST: createCastExprNode(ExprNode *, TypeNode *)
   *      - ET_CONSTANT: createBooleanConstantNode(int), createIntegerConstantNode(int),
   *        createFloatConstantNode(float), or createStringConstantNode(char *)
-  *      - ET_IDENTIFIER: createIdentifierNode(char *, const char *, unsigned int)
+  *      - ET_IDENTIFIER: createIdentifierNode(IdentifierType, void *, const char *, unsigned int)
   *      - ET_FUNCCALL: createFuncCallExprNode(IdentifierNode *, IdentifierNode *, ExprNodeList *)
   *      - ET_OP: createOpExprNode(OpType, ExprNodeList *)
   *      - ET_IMPVAR: (for the \ref impvar "implicit variable") no structure needed, use \c NULL
@@ -1223,8 +1223,8 @@ void deleteCastExprNode(CastExprNode *node) /**< [in,out] A pointer to the CastE
 
 /** Creates a FuncCallExprNode structure.
   *
-  * \pre \a scope was created by createIdentifierNode(char *, const char *, unsigned int).
-  * \pre \a name was created by createIdentifierNode(char *, const char *, unsigned int).
+  * \pre \a scope was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
+  * \pre \a name was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
   * \pre \a args was created by createIdentifierNodeList(void) and contains
   *      items added by addIdentifierNode(IdentifierNodeList *, IdentifierNode *).
   *
@@ -1311,7 +1311,7 @@ void deleteOpExprNode(OpExprNode *node) /**< [in,out] A pointer to the OpExprNod
   *       function \b does modify \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *      tokenizeLexemes(Lexeme **).
+  *      tokenizeLexemes(LexemeList *).
   *
   * \post If the token pointed to by \a tokenp does not match \a token,
   *       \a tokenp will point to the same token as when the function was
@@ -1340,7 +1340,7 @@ int acceptToken(Token ***tokenp, /**< [in,out] A pointer to the position of the 
   *       modify \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *      tokenizeLexemes(Lexeme **).
+  *      tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the same token as when the function was
   *       called.
@@ -1365,7 +1365,7 @@ int peekToken(Token ***tokenp, /**< [in] A pointer to the position of the next t
   *       modify \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *      tokenizeLexemes(Lexeme **).
+  *      tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the same token as when the function was
   *       called.
@@ -1387,7 +1387,7 @@ int nextToken(Token ***tokenp, /**< [in] A pointer to the position of the next t
   * is the line the next token appears on, INFO is \a info and NEXT is the image
   * of the next token.
   *
-  * \pre \a tokens was created by tokenizeLexemes(Lexeme **). */
+  * \pre \a tokens was created by tokenizeLexemes(LexemeList *). */
 void error(const char *info, /**< [in] The array of characters to print. */
            Token **tokens)   /**< [in] A pointer to an array of tokens to parse. */
 {
@@ -1398,7 +1398,7 @@ void error(const char *info, /**< [in] The array of characters to print. */
   * token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *      tokenizeLexemes(Lexeme **).
+  *      tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -1524,7 +1524,7 @@ parseConstantNodeAbort: /* Exception handling */
   * token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *      tokenizeLexemes(Lexeme **).
+  *      tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -1614,7 +1614,7 @@ parseTypeNodeAbort: /* Exception handling */
   * the token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -1711,7 +1711,7 @@ parseIdentifierNodeAbort: /* Exception handling */
   * structure.  Parsing begins at the token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -1786,7 +1786,7 @@ parseCastExprNodeAbort: /* Exception handling */
   * structure.  Parsing begins at the token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -1839,7 +1839,7 @@ parseConstantExprNodeAbort: /* Exception handling */
   * \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -1892,7 +1892,7 @@ parseIdentifierExprNodeAbort: /* Exception handling */
   * \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -2004,7 +2004,7 @@ parseFuncCallExprNodeAbort: /* Exception handling */
   * \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -2241,7 +2241,7 @@ parseOpExprNodeAbort: /* Exception handling */
   * token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -2330,7 +2330,7 @@ ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position
   * structure.  Parsing begins at the token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -2416,7 +2416,7 @@ parseCastStmtNodeAbort: /* Exception handling */
   * structure.  Parsing begins at the token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -2516,7 +2516,7 @@ parsePrintStmtNodeAbort: /* Exception handling */
   * structure.  Parsing begins at the token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -2597,7 +2597,7 @@ parseInputStmtNodeAbort: /* Exception handling */
   * \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -2683,7 +2683,7 @@ parseAssignmentStmtNodeAbort: /* Exception handling */
   * \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -2786,7 +2786,7 @@ parseDeclarationStmtNodeAbort: /* Exception handling */
   * \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -2951,7 +2951,7 @@ parseIfThenElseStmtNodeAbort: /* Exception handling */
   * structure.  Parsing begins at the token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -3137,7 +3137,7 @@ parseSwitchStmtNodeAbort: /* Exception handling */
   * statement.  Parsing begins at the token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -3203,7 +3203,7 @@ parseBreakStmtNodeAbort: /* Exception handling */
   * structure.  Parsing begins at the token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -3282,7 +3282,7 @@ parseReturnStmtNodeAbort: /* Exception handling */
   * structure.  Parsing begins at the token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -3645,7 +3645,7 @@ parseLoopStmtNodeAbort: /* Exception handling */
   * \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -3726,7 +3726,7 @@ parseDeallocationStmtNodeAbort: /* Exception handling */
   * \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -3864,7 +3864,7 @@ parseFuncDefStmtNodeAbort: /* Exception handling */
   * token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -4022,7 +4022,7 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
   * token pointed to by \a tokenp.
   *
   * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(Lexeme **).
+  *     tokenizeLexemes(LexemeList *).
   *
   * \post \a tokenp will point to the next \b unparsed token in the array.
   *
@@ -4103,7 +4103,7 @@ parseBlockNodeAbort: /* Exception handling */
   * passed along to a later stage of processing such as, for example, an
   * interpreter.
   *
-  * \pre \a tokens was created by tokenizeLexemes(Lexeme **).
+  * \pre \a tokens was created by tokenizeLexemes(LexemeList *).
   *
   * \return A pointer to the generated MainNode structure.
   *
