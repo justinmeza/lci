@@ -11,10 +11,10 @@ testdir = ./test
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS) $(LIBS)
+$(TARGET): $(OBJS)
 	$(CC) $(CPPFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
 
-pedantic: $(OBJS) $(LIBS)
+pedantic: $(OBJS)
 	$(CC) -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wundef -W -Wall -ansi -pedantic -g -o $(TARGET) $(OBJS) $(LIBS)
 
 check: all
