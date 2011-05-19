@@ -4,6 +4,7 @@ import sys
 import tempfile
 import argparse
 
+MEMERR = 127
   
 parser = argparse.ArgumentParser(description="Driver for lci tests")
 parser.add_argument('pathToLCI', help="The absolute path the the lci executable")
@@ -37,10 +38,18 @@ if args.outputFile != None:
   expectedOutput = args.outputFile.read()
   args.outputFile.close()
 
-  
+command = []
+if args.memCheck:
+  command.append("valgrind -q --lead-check=full --error-exitcode=" + str(MEMERR))
+command.append(args.pathToLCI)
+command.append(args.lolcodeFile)
 
-p = subprocess.Popen([args.pathToLCI, args.lolcodeFile], stdin=args.inputFile, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+p = subprocess.Popen(command, stdin=args.inputFile, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 results = p.communicate()
+
+if p.returncode == MEMERR:
+  print("Failure!\n Memory leak detected, check output for more information.)")
 
 if args.expectError:
   if p.returncode == 0:
@@ -52,7 +61,10 @@ if args.expectError:
     print(results[1])
  
 if args.outputFile:
-  if expectedOutput != results[0]:
+  if p.returncode != 0:
+    print("Failure! Return error code: " + str(p.returncode))
+    sys.exit(1)
+  elif expectedOutput != results[0]:
     print("Expected output didn't match!")
     print("Expected output:")
     print(expectedOutput)
