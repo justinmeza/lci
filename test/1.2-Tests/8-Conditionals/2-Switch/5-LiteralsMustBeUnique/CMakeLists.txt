@@ -1,2 +1,2 @@
 INCLUDE(AddLolTest)
-Add_LOL_TEST(5-LiteralsMustBeUnique)
+ADD_LOL_TEST(5-LiteralsMustBeUnique ERROR)

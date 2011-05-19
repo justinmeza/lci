@@ -1,2 +1,2 @@
 INCLUDE(AddLolTest)
-Add_LOL_TEST(1-False)
+Add_LOL_TEST(1-False ERROR)

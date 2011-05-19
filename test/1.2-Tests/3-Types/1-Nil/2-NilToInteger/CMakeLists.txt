@@ -1,2 +1,2 @@
 INCLUDE(AddLolTest)
-Add_LOL_TEST(2-NilToInteger)
+Add_LOL_TEST(2-NilToInteger ERROR)
