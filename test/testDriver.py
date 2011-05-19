@@ -43,7 +43,7 @@ p = subprocess.Popen([args.pathToLCI, args.lolcodeFile], stdin=args.inputFile, s
 results = p.communicate()
 
 if args.expectError:
-  if results[1] == "":
+  if p.returncode == 0:
     print("Failure! Expected an error but did not recieve one")
     sys.exit(1)
   else:
