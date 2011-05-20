@@ -32,6 +32,10 @@ if args.outputFile == None:
 else:
   print("Using output file: " + args.outputFile.name) 
 
+if args.memCheck:
+  print("Doing memory check.")
+else:
+  print("Not doing memory check.")
 
 expectedOutput = ""
 if args.outputFile != None:
@@ -40,10 +44,14 @@ if args.outputFile != None:
 
 command = []
 if args.memCheck:
-  command.append("valgrind -q --lead-check=full --error-exitcode=" + str(MEMERR))
+  command.append("valgrind")
+  command.append("-q")
+  command.append("--leak-check=full")
+  command.append("--error-exitcode=" + str(MEMERR))
 command.append(args.pathToLCI)
 command.append(args.lolcodeFile)
 
+print("Command: " + " ".join(command))
 
 p = subprocess.Popen(command, stdin=args.inputFile, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 results = p.communicate()
