@@ -4,6 +4,7 @@ import argparse
 import sys
 import os
 
+#Checks if a string is a positive integer
 def positiveInt(string):
   value = int(string)
   if not value >= 1:
@@ -11,6 +12,13 @@ def positiveInt(string):
     raise argparse.ArgumentTypeError(msg)
   return value
 
+"""
+Runs a subprocess using the command parameter.
+Before running the command it displays a message
+that contains the provided description and where
+the output will be sent. If an error occurs, 
+the errorMsg is displayed.
+"""
 def runSubProc(command, description, errorMsg, output):
   msg = description
   msg += "and writing results to " + output +"."
@@ -23,6 +31,10 @@ def runSubProc(command, description, errorMsg, output):
     print("Error installing: " + errorMsg)
     sys.exit(1)
 
+#Remove the CMakeCache.txt so we can garuntee a fresh configure
+if os.path.exists("CMakeCache.txt"):
+  os.remove("CMakeCache.txt")
+
 parser = argparse.ArgumentParser(description="Installation script for lci")
 parser.add_argument('-p', '--prefix', default=None, help="Installation prefix")
 parser.add_argument('-m', '--enableMemCheck', action="store_true", help="Enable memory testing")
@@ -30,18 +42,16 @@ parser.add_argument('-d', '--buildDocs', action="store_true", help="Build docume
 parser.add_argument('-t', '--runTests', action="store_true", help="Run Tests")
 parser.add_argument('-j', metavar="NumProcs", type=positiveInt, default=1, help="Number of processes for make to use and (if enabled) how many processes CTest should use.")
 
-if os.path.exists("CMakeCache.txt"):
-  os.remove("CMakeCache.txt")
-cmakeCommand = ["cmake"]
 args = parser.parse_args()
 j = str(args.j)
 
+cmakeCommand = ["cmake"]
 if args.prefix != None:
   cmakeCommand.append("-DCMAKE_INSTALL_PREFIX:STRING="+args.prefix)
 if args.enableMemCheck:
   cmakeCommand.append("-DPERFORM_MEM_TESTS:BOOL=ON")
-
 cmakeCommand.append(".")
+
 runSubProc(
   cmakeCommand, 
   "Running cmake with command: \n\"" + " ".join(cmakeCommand)+"\"\n",
