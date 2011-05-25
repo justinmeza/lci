@@ -1,0 +1,6 @@
+add_subdirectory(1-Nil)
+add_subdirectory(2-Boolean)
+add_subdirectory(3-Integer)
+add_subdirectory(4-Float)
+add_subdirectory(5-String)
+add_subdirectory(6-OptionalAN)

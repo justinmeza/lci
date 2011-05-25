@@ -39,19 +39,60 @@ http://github.com/justinmeza/lci/issues.
 
 Created and maintained by Justin J. Meza <justin.meza@gmail.com>.
 
-INSTALLATION
+PREREQUISITES
 
-To install lci, you should be able to
+1. You must have CMake installed (www.cmake.org). 
+  a) If you're using a Linux distro with package managment CMake should be in 
+    your repositories.
 
-    $ make && make check
+2. Python 2.7+ or Python 2.x with the argparse module installed.
 
-and, assuming no errors are encountered (if there are, please let us know at
-http://groups.google.com/group/lci-general) go ahead and run (with administrator
-privileges)
+INSTALLATION: THE EASY WAY ON LINUX OR MAC OSX
 
-    # make install
+1. run the script install.py. Note that
 
-Optionally, you may want to make documentation for lci.  This requires the
-doxygen program.  To do so, do
+  $ ./install.py -h
 
-    $ make docs
+  will display a list of relavent install options. For
+  example, if I wanted to install lci to the directory
+  "/home/kurtis/opt" I would run:
+
+  $ ./install.py --prefix="/home/kurtis/opt"
+  
+
+INSTALLATION: THE MORE INVOLVED WAY ON LINUX OR MAC OSX
+
+1. Configure lci using CMake. This can be as simple as opening up the terminal, 
+  navigating to the directory containing lci and typing:
+
+  $ cmake .
+
+  You can also provide any other argument to the CMake configuration process
+  you'd like. To enable Memory testing turn the PERFORM_MEM_TESTS option on
+  like so:
+
+  $ cmake -DPERFORM_MEM_TESTS:BOOL=ON .
+
+  You can also use the "ccmake" command or the CMake GUI if you prefer.
+  See the cmake documentation for more details.
+
+2. Build the project:
+
+  $ make
+
+3. Install
+   
+  $ make install
+
+4. (Optional) Build documentation:
+
+  $ make doc
+
+5. (Optional) Run tests:
+
+  $ ctest
+
+INSTALTION ON WINDOWS
+
+1. TODO Could some one please provide an example of using CMake to generate
+a visual studio project and build the project?

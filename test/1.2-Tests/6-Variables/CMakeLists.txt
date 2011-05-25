@@ -1,0 +1,7 @@
+add_subdirectory(1-MustDeclare)
+add_subdirectory(2-NoRedefinition)
+add_subdirectory(3-Initialization)
+add_subdirectory(4-CaseSensitivity)
+add_subdirectory(5-UninitializedNil)
+add_subdirectory(6-Assignment)
+add_subdirectory(7-AssignmentSameVariable)
