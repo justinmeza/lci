@@ -2370,6 +2370,7 @@ StmtNode *parseStmtNode(Token ***tokenp,        /**< [in,out] A pointer to the p
 								deleteExprNodeList(guards);
 								deleteBlockNodeList(blocks);
 								deleteConstantNode(c);
+								error("duplicate OMG literal", tokens);
 								return NULL;
 					}
 				}
