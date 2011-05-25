@@ -58,6 +58,7 @@ results = p.communicate()
 
 if p.returncode == MEMERR:
   print("Failure!\n Memory leak detected, check output for more information.)")
+  sys.exit(1)
 
 if args.expectError:
   if p.returncode == 0:
