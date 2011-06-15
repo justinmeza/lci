@@ -13,16 +13,16 @@ void debug(const char *info)
 }
 #endif
 
-/** Creates a MainNode structure.
-  *
-  * \pre \a block was created by createBlockNode(StmtNodeList *).
-  *
-  * \return A pointer to a MainNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteMainNode(MainNode *) */
-MainNode *createMainNode(BlockNode *block) /**< [in] A pointer to the block of code to execute first. */
+/**
+ * Creates the main code block of a program.
+ *
+ * \param [in] block The first code block to execute.
+ *
+ * \return A pointer to the main code block with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+MainNode *createMainNode(BlockNode *block)
 {
 	MainNode *p = malloc(sizeof(MainNode));
 	if (!p) {
@@ -33,32 +33,30 @@ MainNode *createMainNode(BlockNode *block) /**< [in] A pointer to the block of c
 	return p;
 }
 
-/** Deletes a MainNode structure.
-  *
-  * \pre \a node was created by createMainNode(BlockNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createMainNode(BlockNode *) */
-void deleteMainNode(MainNode *node) /**< [in,out] A pointer to the MainNode structure to be deleted. */
+/**
+ * Deletes the main code block of a program.
+ *
+ * \param [in,out] node The main code block to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteMainNode(MainNode *node)
 {
 	if (!node) return;
 	deleteBlockNode(node->block);
 	free(node);
 }
 
-/** Creates a BlockNode structure.
-  *
-  * \pre \a stmts was created by createStmtNodeList(void) and contains contents
-  *      added by addStmtNode(StmtNodeList *, StmtNode *).
-  *
-  * \return A pointer to a BlockNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteBlockNode(BlockNode *) */
-BlockNode *createBlockNode(StmtNodeList *stmts) /**< [in] A pointer to the list of statements which comprise the block of code. */
+/**
+ * Creates a code block.
+ *
+ * \param [in] stmts The list of statements which comprise the code block.
+ *
+ * \return A pointer to the code block with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+BlockNode *createBlockNode(StmtNodeList *stmts)
 {
 	BlockNode *p = malloc(sizeof(BlockNode));
 	if (!p) {
@@ -69,28 +67,27 @@ BlockNode *createBlockNode(StmtNodeList *stmts) /**< [in] A pointer to the list 
 	return p;
 }
 
-/** Deletes a BlockNode structure.
-  *
-  * \pre \a node was created by createBlockNode(StmtNodeList *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createBlockNode(StmtNodeList *) */
-void deleteBlockNode(BlockNode *node) /**< [in,out] A pointer to the BlockNode structure to be deleted. */
+/**
+ * Deletes a code block.
+ *
+ * \param [in,out] node The code block to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteBlockNode(BlockNode *node)
 {
 	if (!node) return;
 	deleteStmtNodeList(node->stmts);
 	free(node);
 }
 
-/** Creates a BlockNodeList structure.
-  *
-  * \return A pointer to a BlockNodeList structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteBlockNodeList(BlockNodeList *) */
+/**
+ * Creates an empty code block list.
+ *
+ * \return A pointer to an empty code block list.
+ *
+ * \retval NULL Memory allocation failed.
+ */
 BlockNodeList *createBlockNodeList(void)
 {
 	BlockNodeList *p = malloc(sizeof(BlockNodeList));
@@ -103,21 +100,21 @@ BlockNodeList *createBlockNodeList(void)
 	return p;
 }
 
-/** Adds a BlockNode structure to a BlockNodeList structure.
-  *
-  * \pre \a list was created by createBlockNodeList(void).
-  * \pre \a node was created by createBlockNode(StmtNodeList *).
-  *
-  * \post \a node will be added on to the end of \a list and the size of
-  *       \a list will be updated accordingly.
-  *
-  * \retval 0 realloc was unable to allocate memory.
-  * \retval 1 \a node was added to \a list.
-  *
-  * \see createBlockNodeList(void)
-  * \see deleteBlockNodeList(BlockNodeList *) */
-int addBlockNode(BlockNodeList *list,  /**< [in,out] A pointer to the BlockNodeList structure to add \a node to. */
-                 BlockNode *node)     /**< [in] A pointer to the BlockNode structure to add to \a list. */
+/**
+ * Adds a code block to a list.
+ *
+ * \param [in,out] list The code block list to add \a node to.
+ *
+ * \param [in] node The code block to add to \a list.
+ *
+ * \post \a node will be added to \a list and its size will be updated.
+ *
+ * \retval 0 Memory allocation failed.
+ *
+ * \retval 1 \a node was added to \a list.
+ */
+int addBlockNode(BlockNodeList *list,
+                 BlockNode *node)
 {
 	unsigned int newsize = list->num + 1;
 	void *mem = realloc(list->blocks, sizeof(BlockNode *) * newsize);
@@ -131,16 +128,14 @@ int addBlockNode(BlockNodeList *list,  /**< [in,out] A pointer to the BlockNodeL
 	return 1;
 }
 
-/** Deletes a BlockNodeList structure.
-  *
-  * \pre \a list was created by createBlockNodeList(void) and contains items
-  *      added by addBlockNode(BlockNodeList *, BlockNode *).
-  *
-  * \post The memory at \a list and any of its associated members will be
-  *       freed.
-  *
-  * \see createBlockNodeList(void) */
-void deleteBlockNodeList(BlockNodeList *list) /**< [in,out] A pointer to the BlockNodeList structure to delete. */
+/**
+ * Deletes a code block list.
+ *
+ * \param [in,out] list The code block list to delete.
+ *
+ * \post The memory at \a list and all of its members will be freed.
+ */
+void deleteBlockNodeList(BlockNodeList *list)
 {
 	unsigned int n;
 	if (!list) return;
@@ -150,15 +145,17 @@ void deleteBlockNodeList(BlockNodeList *list) /**< [in,out] A pointer to the Blo
 	free(list);
 }
 
-/** Creates a boolean type ConstantNode structure.
-  *
-  * \return A pointer to a boolean type ConstantNode structure with value
-  *         \c 0 if \a data equals 0 and \c 1 otherwise.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteConstantNode(ConstantNode *) */
-ConstantNode *createBooleanConstantNode(int data) /**< [in] The constant boolean data. */
+/**
+ * Creates a boolean constant.
+ *
+ * \param [in] data The boolean constant value.
+ *
+ * \return A pointer to a boolean constant which will be FALSE if \a data is \c
+ * 0 and TRUE otherwise.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+ConstantNode *createBooleanConstantNode(int data)
 {
 	ConstantNode *p = malloc(sizeof(ConstantNode));
 	if (!p) {
@@ -170,14 +167,16 @@ ConstantNode *createBooleanConstantNode(int data) /**< [in] The constant boolean
 	return p;
 }
 
-/** Creates an integer type ConstantNode structure.
-  *
-  * \return A pointer to an integer type ConstantNode storing the desired value.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteConstantNode(ConstantNode *) */
-ConstantNode *createIntegerConstantNode(int data) /**< [in] The constant integer data. */
+/**
+ * Creates an integer constant.
+ *
+ * \param [in] data The integer constant value.
+ *
+ * \return A pointer to an integer constant whose value is \a data.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+ConstantNode *createIntegerConstantNode(int data)
 {
 	ConstantNode *p = malloc(sizeof(ConstantNode));
 	if (!p) {
@@ -189,15 +188,16 @@ ConstantNode *createIntegerConstantNode(int data) /**< [in] The constant integer
 	return p;
 }
 
-/** Creates a floating point decimal type ConstantNode structure.
-  *
-  * \return A pointer to a floating point decimal type ConstantNode storing the
-  *         desired value.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteConstantNode(ConstantNode *) */
-ConstantNode *createFloatConstantNode(float data) /**< [in] The constant floating point decimal data. */
+/**
+ * Creates a float constant.
+ *
+ * \param [in] data The float constant value.
+ *
+ * \return A pointer to a float constant whose value is \a data.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+ConstantNode *createFloatConstantNode(float data)
 {
 	ConstantNode *p = malloc(sizeof(ConstantNode));
 	if (!p) {
@@ -209,14 +209,16 @@ ConstantNode *createFloatConstantNode(float data) /**< [in] The constant floatin
 	return p;
 }
 
-/** Creates a string type ConstantNode structure.
-  *
-  * \return A pointer to a string type ConstantNode storing the desired value.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteConstantNode(ConstantNode *) */
-ConstantNode *createStringConstantNode(char *data) /**< [in] The constant character string data. */
+/**
+ * Creates a string constant.
+ *
+ * \param [in] data The string constant value.
+ *
+ * \return A pointer to the string constant whose value is \a data.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+ConstantNode *createStringConstantNode(char *data)
 {
 	ConstantNode *p = malloc(sizeof(ConstantNode));
 	if (!p) {
@@ -228,37 +230,42 @@ ConstantNode *createStringConstantNode(char *data) /**< [in] The constant charac
 	return p;
 }
 
-/** Deletes a ConstantNode structure.
-  *
-  * \pre \a node was created by either createBooleanConstantNode(int), createIntegerConstantNode(int),
-  *      createFloatConstantNode(float), or createStringConstantNode(char *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createBooleanConstantNode(int)
-  * \see createIntegerConstantNode(int)
-  * \see createFloatConstantNode(float)
-  * \see createStringConstantNode(char *) */
-void deleteConstantNode(ConstantNode *node) /**< [in,out] A pointer to the ConstantNode structure to be deleted. */
+/**
+ * Deletes a constant.
+ *
+ * \param [in,out] node The constant to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteConstantNode(ConstantNode *node)
 {
 	if (!node) return;
 	if (node->type == CT_STRING) free(node->data.s);
 	free(node);
 }
 
-/** Creates an IdentifierNode structure.
-  *
-  * \return A pointer to an IdentifierNode structure with the desired
-  *         properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteIdentifierNode(IdentifierNode *) */
-IdentifierNode *createIdentifierNode(IdentifierType type, /**< [in] The type of IdentifierNode stored in \a id. */
-                                     void *id,            /**< [in] A pointer to the stored identifier data. */
-                                     const char *fname,   /**< [in] A pointer to the name of the file containing the identifier. */
-                                     unsigned int line)   /**< [in] The line number from the source file that the identifier occurred on. */
+/**
+ * Creates an indentifier.
+ *
+ * \param [in] type The type of the identifier \a id.
+ *
+ * \param [in] id The identifier data.
+ *
+ * \param [in] slot An optional slot to index.
+ *
+ * \param [in] fname The file containing the identifier.
+ *
+ * \param [in] line The line the identifier occurred on.
+ *
+ * \return A pointer to the identifier with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+IdentifierNode *createIdentifierNode(IdentifierType type,
+                                     void *id,
+                                     IdentifierNode *slot,
+                                     const char *fname,
+                                     unsigned int line)
 {
 	IdentifierNode *p = malloc(sizeof(IdentifierNode));
 	if (!p) {
@@ -267,6 +274,7 @@ IdentifierNode *createIdentifierNode(IdentifierType type, /**< [in] The type of 
 	}
 	p->type = type;
 	p->id = id;
+	p->slot = slot;
 	if (fname) {
 		p->fname = malloc(sizeof(char) * (strlen(fname) + 1));
 		strcpy(p->fname, fname);
@@ -278,15 +286,14 @@ IdentifierNode *createIdentifierNode(IdentifierType type, /**< [in] The type of 
 	return p;
 }
 
-/** Deletes an IdentifierNode structure.
-  *
-  * \pre \a node was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createIdentifierNode(IdentifierType, void *, const char *, unsigned int) */
-void deleteIdentifierNode(IdentifierNode *node) /**< [in,out] A pointer to the IdentifierNode structure to be deleted. */
+/**
+ * Deletes an identifier.
+ *
+ * \param [in,out] node The identifier to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteIdentifierNode(IdentifierNode *node)
 {
 	if (!node) return;
 	switch (node->type) {
@@ -302,18 +309,18 @@ void deleteIdentifierNode(IdentifierNode *node) /**< [in,out] A pointer to the I
 			fprintf(stderr, "Unable to delete unknown identifier type\n");
 			break;
 	}
+	if (node->slot) deleteIdentifierNode(node->slot);
 	if (node->fname) free(node->fname);
 	free(node);
 }
 
-/** Creates an IdentifierNodeList structure.
-  *
-  * \return A pointer to a IdentifierNodeList structure with the desired
-  *         properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteIdentifierNodeList(IdentifierNodeList *) */
+/**
+ * Creates an identifier list.
+ *
+ * \return A pointer to an identifier list.
+ *
+ * \retval NULL Memory allocation failed.
+ */
 IdentifierNodeList *createIdentifierNodeList(void)
 {
 	IdentifierNodeList *p = malloc(sizeof(IdentifierNodeList));
@@ -326,21 +333,22 @@ IdentifierNodeList *createIdentifierNodeList(void)
 	return p;
 }
 
-/** Adds an IdentifierNode structure to an IdentifierNodeList structure.
-  *
-  * \pre \a list was created by createIdentifierNodeList(void).
-  * \pre \a node was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  *
-  * \post \a node will be added on to the end of \a list and the size of
-  *       \a list will be updated accordingly.
-  *
-  * \retval 0 realloc was unable to allocate memory.
-  * \retval 1 \a node was added to \a list.
-  *
-  * \see createIdentifierNodeList(void)
-  * \see deleteIdentifierNodeList(IdentifierNodeList *) */
-int addIdentifierNode(IdentifierNodeList *list,   /**< [in,out] A pointer to the IdentifierNodeList structure to add \a node to. */
-                      IdentifierNode *node) /**< [in] A pointer to the IdentifierNode structure to add to \a list. */
+/**
+ * Adds an identifier to a list.
+ *
+ * \param [in,out] list The list of identifiers to add \a node to.
+ *
+ * \param [in] node The identifier to add to \a list.
+ *
+ * \post \a token will be added to the end of \a list and the size of \a list
+ * will be updated.
+ *
+ * \retval 0 Memory allocation failed.
+ *
+ * \retval 1 \a node was added to \a list.
+ */
+int addIdentifierNode(IdentifierNodeList *list,
+                      IdentifierNode *node)
 {
 	unsigned int newsize = list->num + 1;
 	void *mem = realloc(list->ids, sizeof(IdentifierNode *) * newsize);
@@ -354,16 +362,14 @@ int addIdentifierNode(IdentifierNodeList *list,   /**< [in,out] A pointer to the
 	return 1;
 }
 
-/** Deletes an IdentifierNodeList structure.
-  *
-  * \pre \a list was created by createIdentifierNodeList(void) and contains
-  *      items added by addIdentifierNode(IdentifierNodeList *, IdentifierNode *).
-  *
-  * \post The memory at \a list and any of its associated members will be
-  *       freed.
-  *
-  * \see createIdentifierNodeList(void) */
-void deleteIdentifierNodeList(IdentifierNodeList *list) /**< [in,out] A pointer to the IdentifierNodeList structure to delete. */
+/**
+ * Deletes an identifier list.
+ *
+ * \param [in,out] list The list of identifiers to delete.
+ *
+ * \post The memory at \a list and all of its members will be freed.
+ */
+void deleteIdentifierNodeList(IdentifierNodeList *list)
 {
 	unsigned int n;
 	if (!list) return;
@@ -373,14 +379,16 @@ void deleteIdentifierNodeList(IdentifierNodeList *list) /**< [in,out] A pointer 
 	free(list);
 }
 
-/** Creates a TypeNode structure.
-  *
-  * \return A pointer to a TypeNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteTypeNode(TypeNode *) */
-TypeNode *createTypeNode(ConstantType type) /**< [in] The type of value. */
+/**
+ * Creates a type.
+ *
+ * \param [in] type The type to create.
+ *
+ * \return A pointer to a new type with the desired properties.
+ *
+ * \retval NULL Memory allocatin failed.
+ */
+TypeNode *createTypeNode(ConstantType type)
 {
 	TypeNode *p = malloc(sizeof(TypeNode));
 	if (!p) {
@@ -391,43 +399,32 @@ TypeNode *createTypeNode(ConstantType type) /**< [in] The type of value. */
 	return p;
 }
 
-/** Deletes a TypeNode structure.
-  *
-  * \pre \a node was created by createTypeNode(ConstantType).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createTypeNode(ConstantType) */
-void deleteTypeNode(TypeNode *node) /**< [in,out] A pointer to the TypeNode structure to be deleted. */
+/**
+ * Deletes a type.
+ *
+ * \param [in,out] node The type to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteTypeNode(TypeNode *node)
 {
 	if (!node) return;
 	free(node);
 }
 
-/** Creates a StmtNode structure.
-  *
-  * \pre \a stmt contains a structure created corresponding to \a type:
-  *      - ST_CAST: createCastStmtNode(IdentifierNode *, TypeNode *)
-  *      - ST_PRINT: createPrintStmtNode(ExprNodeList *, int)
-  *      - ST_INPUT: createInputStmtNode(IdentifierNode *)
-  *      - ST_ASSIGNMENT: createAssignmentStmtNode(IdentifierNode *, ExprNode *)
-  *      - ST_DECLARATION: createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, TypeNode *)
-  *      - ST_IFTHENELSE: createIfThenElseStmtNode(BlockNode *, BlockNode *, ExprNodeList *, BlockNodeList *)
-  *      - ST_SWITCH: createSwitchStmtNode(ExprNodeList *, BlockNodeList *, BlockNode *)
-  *      - ST_BREAK: no structure needed, use \c NULL
-  *      - ST_RETURN: createReturnStmtNode(ExprNode *)
-  *      - ST_LOOP: createLoopStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, ExprNode *, BlockNode *)
-  *      - ST_FUNCDEF: createFuncDefStmtNode(IdentifierNode *, IdentifierNode *, IdentifierNodeList *, BlockNode *)
-  *      - ST_EXPR: createExprNode(ExprType, void *)
-  *
-  * \return A pointer to a StmtNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteStmtNode(StmtNode *) */
-StmtNode *createStmtNode(StmtType type, /**< [in] The type of statement stored in \a node. */
-                         void *stmt)    /**< [in] A pointer to the particular statement structure. */
+/**
+ * Creates a statement.
+ *
+ * \param [in] type The type of statement.
+ *
+ * \param [in] stmt The statement data.
+ *
+ * \return A pointer to a statement with the desired properties.
+ *
+ * \retval NULL malloc was unable to allocate memory.
+ */
+StmtNode *createStmtNode(StmtType type,
+                         void *stmt)
 {
 	StmtNode *p = malloc(sizeof(StmtNode));
 	if (!p) {
@@ -439,15 +436,14 @@ StmtNode *createStmtNode(StmtType type, /**< [in] The type of statement stored i
 	return p;
 }
 
-/** Deletes a StmtNode structure.
-  *
-  * \pre \a node was created by createStmtNode(StmtType, void *).
-  *
-  * \post The memory at \a stmt and any of its associated members will be
-  *       freed.
-  *
-  * \see createStmtNode(StmtType, void *) */
-void deleteStmtNode(StmtNode *node) /**< [in, out] A pointer to the StmtNode structure to be deleted. */
+/**
+ * Deletes a statement.
+ *
+ * \param [in,out] node The statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteStmtNode(StmtNode *node)
 {
 	if (!node) return;
 	switch (node->type) {
@@ -520,13 +516,13 @@ void deleteStmtNode(StmtNode *node) /**< [in, out] A pointer to the StmtNode str
 	free(node);
 }
 
-/** Creates a StmtNodeList structure.
-  *
-  * \return A pointer to a StmtNodeList structure with no elements.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteStmtNodeList(StmtNodeList *) */
+/**
+ * Creates an empty statement list.
+ *
+ * \return A pointer to an empty statement list.
+ *
+ * \retval NULL Memory allocation failed.
+ */
 StmtNodeList *createStmtNodeList(void)
 {
 	StmtNodeList *p = malloc(sizeof(StmtNodeList));
@@ -539,21 +535,21 @@ StmtNodeList *createStmtNodeList(void)
 	return p;
 }
 
-/** Adds a StmtNode to a StmtNodeList structure.
-  *
-  * \pre \a list was created by createStmtNodeList(void).
-  * \pre \a node was created by createStmtNode(StmtType, void *).
-  *
-  * \post \a node will be added on to the end of \a list and the size of
-  *       \a list will be updated accordingly.
-  *
-  * \retval 0 malloc was unable to allocate memory.
-  * \retval 1 \a node was added to \a list.
-  *
-  * \see createStmtNodeList(void)
-  * \see deleteStmtNodeList(StmtNodeList *) */
-int addStmtNode(StmtNodeList *list, /**< [in,out] A pointer to the StmtNodeList structure to add \a node to. */
-                StmtNode *node)     /**< [in] A pointer to the StmtNode structure to add to \a list. */
+/**
+ * Adds a statement to a list.
+ *
+ * \param [in,out] list The statement list to add \a node to.
+ *
+ * \param [in] node The statement to add to \a list.
+ *
+ * \post \a node will be added to \a list and its size will be updated.
+ *
+ * \retval 0 Memory allocation failed.
+ *
+ * \retval 1 \a node was added to \a list.
+ */
+int addStmtNode(StmtNodeList *list,
+                StmtNode *node)
 {
 	unsigned int newsize = list->num + 1;
 	void *mem = realloc(list->stmts, sizeof(StmtNode *) * newsize);
@@ -567,16 +563,14 @@ int addStmtNode(StmtNodeList *list, /**< [in,out] A pointer to the StmtNodeList 
 	return 1;
 }
 
-/** Deletes a StmtNodeList structure.
-  *
-  * \pre \a list was created by createStmtNodeList(void) and contains items added
-  *      by addStmtNode(StmtNodeList *, StmtNode *).
-  *
-  * \post The memory at \a list and any of its associated members will be
-  *       freed.
-  *
-  * \see createStmtNodeList(void) */
-void deleteStmtNodeList(StmtNodeList *list) /**< [in,out] A pointer to the StmtNodeList structure to delete. */
+/**
+ * Deletes a statement list.
+ *
+ * \param [in,out] list The statement list to delete.
+ *
+ * \post The memory at \a list and all of its members will be freed.
+ */
+void deleteStmtNodeList(StmtNodeList *list)
 {
 	unsigned int n;
 	if (!list) return;
@@ -586,18 +580,19 @@ void deleteStmtNodeList(StmtNodeList *list) /**< [in,out] A pointer to the StmtN
 	free(list);
 }
 
-/** Creates a CastStmtNode structure.
-  *
-  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  * \pre \a newtype was created by createTypeNode(ConstantType).
-  *
-  * \return A pointer to a CastStmtNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteCastStmtNode(CastStmtNode *) */
-CastStmtNode *createCastStmtNode(IdentifierNode *target, /**< [in] A pointer to the name of the variable whose type is to be changed to \a newtype. */
-                                 TypeNode *newtype)      /**< [in] A pointer to the type to change \a target to. */
+/**
+ * Creates a cast statement.
+ *
+ * \param [in] target The variable to cast to \a newtype.
+ *
+ * \param [in] newtype The type to cast \a target to.
+ *
+ * \return A pointer to a cast statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+CastStmtNode *createCastStmtNode(IdentifierNode *target,
+                                 TypeNode *newtype)
 {
 	CastStmtNode *p = malloc(sizeof(CastStmtNode));
 	if (!p) {
@@ -609,15 +604,14 @@ CastStmtNode *createCastStmtNode(IdentifierNode *target, /**< [in] A pointer to 
 	return p;
 }
 
-/** Deletes a CastStmtNode structure.
-  *
-  * \pre \a node was created by createCastStmtNode(IdentifierNode *, TypeNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createCastStmtNode(IdentifierNode *, TypeNode *) */
-void deleteCastStmtNode(CastStmtNode *node) /**< [in,out] A pointer to the CastStmtNode structure to be deleted. */
+/**
+ * Deletes a cast statement.
+ *
+ * \param [in,out] node The cast statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteCastStmtNode(CastStmtNode *node)
 {
 	if (!node) return;
 	deleteIdentifierNode(node->target);
@@ -625,18 +619,19 @@ void deleteCastStmtNode(CastStmtNode *node) /**< [in,out] A pointer to the CastS
 	free(node);
 }
 
-/** Creates a PrintStmtNode structure.
-  *
-  * \pre \a args was created by createExprNodeList(void) and contains items
-  *      added by addExprNode(ExprNodeList *, ExprNode *).
-  *
-  * \return A pointer to a PrintStmtNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deletePrintStmtNode(PrintStmtNode *) */
-PrintStmtNode *createPrintStmtNode(ExprNodeList *args, /**< [in] A pointer to the list of expressions to evaluate and print. */
-                                   int nonl)           /**< [in] Denotes an ending newline should be surpressed if not \c 0 and printed if \c 0. */
+/**
+ * Creates a print statement.
+ *
+ * \param [in] args The expressions to print.
+ *
+ * \param [in] nonl Whether an ending newline should be surpressed.
+ *
+ * \return A pointer to the print statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+PrintStmtNode *createPrintStmtNode(ExprNodeList *args,
+                                   int nonl)
 {
 	PrintStmtNode *p = malloc(sizeof(PrintStmtNode));
 	if (!p) {
@@ -648,31 +643,30 @@ PrintStmtNode *createPrintStmtNode(ExprNodeList *args, /**< [in] A pointer to th
 	return p;
 }
 
-/** Deletes a PrintStmtNode structure.
-  *
-  * \pre \a node was created by createPrintStmtNode(ExprNodeList *, int).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createPrintStmtNode(ExprNodeList *, int) */
-void deletePrintStmtNode(PrintStmtNode *node) /**< [in,out] A pointer to the PrintStmtNode structure to be deleted. */
+/**
+ * Deletes a print statement.
+ *
+ * \param [in,out] node The print statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deletePrintStmtNode(PrintStmtNode *node)
 {
 	if (!node) return;
 	deleteExprNodeList(node->args);
 	free(node);
 }
 
-/** Creates an InputStmtNode structure.
-  *
-  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  *
-  * \return A pointer to an InputStmtNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteInputStmtNode(InputStmtNode *) */
-InputStmtNode *createInputStmtNode(IdentifierNode *target) /**< [in] A pointer to the name of the variable to store the input in. */
+/**
+ * Creates an input statement.
+ *
+ * \param [in] target The variable to store input in.
+ *
+ * \return A pointer to an input statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+InputStmtNode *createInputStmtNode(IdentifierNode *target)
 {
 	InputStmtNode *p = malloc(sizeof(InputStmtNode));
 	if (!p) {
@@ -683,34 +677,33 @@ InputStmtNode *createInputStmtNode(IdentifierNode *target) /**< [in] A pointer t
 	return p;
 }
 
-/** Deletes an InputStmtNode structure.
-  *
-  * \pre \a node was created by createInputStmtNode(IdentifierNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createInputStmtNode(IdentifierNode *) */
-void deleteInputStmtNode(InputStmtNode *node) /**< [in,out] A pointer to the InputStmtNode structure to be deleted. */
+/**
+ * Deletes an input statement.
+ *
+ * \param [in,out] node The input statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteInputStmtNode(InputStmtNode *node)
 {
 	if (!node) return;
 	deleteIdentifierNode(node->target);
 	free(node);
 }
 
-/** Creates an AssignmentStmtNode structure.
-  *
-  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  * \pre \a expr was created by createExprNode(ExprType, void *).
-  *
-  * \return A pointer to an AssignmentStmtNode structure with the desired
-  *         properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteAssignmentStmtNode(AssignmentStmtNode *) */
-AssignmentStmtNode *createAssignmentStmtNode(IdentifierNode *target, /**< [in] A pointer to the name of the variable to store the evaluated contents of a \a expr into. */
-                                             ExprNode *expr)         /**< [in] A pointer to the expression to evaluate and store in \a target. */
+/**
+ * Creates an assignment statement.
+ *
+ * \param [in] target The variable to store \a expr in.
+ *
+ * \param [in] expr The expression to store in \a target.
+ *
+ * \return A pointer to an assignment statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+AssignmentStmtNode *createAssignmentStmtNode(IdentifierNode *target,
+                                             ExprNode *expr)
 {
 	AssignmentStmtNode *p = malloc(sizeof(AssignmentStmtNode));
 	if (!p) {
@@ -722,15 +715,14 @@ AssignmentStmtNode *createAssignmentStmtNode(IdentifierNode *target, /**< [in] A
 	return p;
 }
 
-/** Deletes an AssignmentStmtNode structure.
-  *
-  * \pre \a node was created by createAssignmentStmtNode(IdentifierNode *, ExprNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createAssignmentStmtNode(IdentifierNode *, ExprNode *) */
-void deleteAssignmentStmtNode(AssignmentStmtNode *node) /**< [in,out] A pointer to the AssignmentStmtNode structure to be deleted. */
+/**
+ * Deletes an assignment statement.
+ *
+ * \param [in,out] node The assignment statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteAssignmentStmtNode(AssignmentStmtNode *node)
 {
 	if (!node) return;
 	deleteIdentifierNode(node->target);
@@ -738,22 +730,25 @@ void deleteAssignmentStmtNode(AssignmentStmtNode *node) /**< [in,out] A pointer 
 	free(node);
 }
 
-/** Creates a DeclarationStmtNode structure.
-  *
-  * \pre \a scope was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  * \pre \a expr was created by createExprNode(ExprType, void *).
-  *
-  * \return A pointer to a DeclarationStmtNode structure with the desired
-  *         properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteDeclarationStmtNode(DeclarationStmtNode *) */
-DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *scope,  /**< [in] A pointer to the scope to create the variable in. */
-                                               IdentifierNode *target, /**< [in] A pointer to the name of the variable to create. */
-                                               ExprNode *expr,         /**< [in] An optional pointer to the expression to initialize \a target to. */
-                                               TypeNode *type)         /**< [in] An optional pointer to the type to initialize \a target to. */
+/**
+ * Creates a declaration statement.
+ *
+ * \param [in] scope The scope to create the variable in.
+ *
+ * \param [in] target The variable to create.
+ *
+ * \param [in] expr An optional expression to initialize \a target to.
+ *
+ * \param [in] type An optional type to initialize \a target to.
+ *
+ * \return A pointer to a declaration statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *scope,
+                                               IdentifierNode *target,
+                                               ExprNode *expr,
+                                               TypeNode *type)
 {
 	DeclarationStmtNode *p = malloc(sizeof(DeclarationStmtNode));
 	if (!p) {
@@ -767,15 +762,14 @@ DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *scope,  /**< [in]
 	return p;
 }
 
-/** Deletes a DeclarationStmtNode structure.
-  *
-  * \pre \a node was created by createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, TypeNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, TypeNode *) */
-void deleteDeclarationStmtNode(DeclarationStmtNode *node) /**< [in,out] A pointer to the DeclarationStmtNode structure to be deleted. */
+/**
+ * Deletes a declaration statement.
+ *
+ * \param [in,out] node The declaration statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteDeclarationStmtNode(DeclarationStmtNode *node)
 {
 	if (!node) return;
 	deleteIdentifierNode(node->scope);
@@ -785,25 +779,29 @@ void deleteDeclarationStmtNode(DeclarationStmtNode *node) /**< [in,out] A pointe
 	free(node);
 }
 
-/** Creates an IfThenElseStmtNode structure.
-  *
-  * \pre \a yes was created by createBlockNode(StmtNodeList *).
-  * \pre \a no was created by createBlockNode(StmtNodeList *).
-  * \pre \a guards was created by createExprNodeList(void) and contains items
-  *      added by addExprNode(ExprNodeList *, ExprNode *).
-  * \pre \a blocks was created by createBlockNodeList(void) and contains items
-  *      added by addBlockNode(BlockNodeList *, BlockNode *).
-  *
-  * \return A pointer to a IfThenElseStmtNode structure with the desired
-  *         properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteIfThenElseStmtNode(IfThenElseStmtNode *) */
-IfThenElseStmtNode *createIfThenElseStmtNode(BlockNode *yes,        /**< [in] A pointer to the block of code to execute if the \ref impvar "implicit variable" casts to \c false. */
-                                             BlockNode *no,         /**< [in] A pointer to the block of code to execute if the \ref impvar "implicit variable" casts to \c false \b and the evaluations of all of the \a guards cast to \c false. */
-                                             ExprNodeList *guards,  /**< [in] A pointer to the expressions to test if the \ref impvar "implicit variable" casts to \c false. */
-                                             BlockNodeList *blocks) /**< [in] A pointer to the respective blocks of code to execute if one of the evaluated \a guards casts to \c true. */
+/**
+ * Creates an if/then/else statement.
+ *
+ * \param [in] yes The code block to execute if the \ref impvar "implicit
+ * variable" is \c true.
+ *
+ * \param [in] no The code block to execute if the \ref impvar "implicit
+ * variable" is \c false and all \a guards are \c false.
+ *
+ * \param [in] guards The expressions to test if the \ref impvar "implicit
+ * variable" is \c false.
+ *
+ * \param [in] blocks The code blocks to execute if the respective guard is \c
+ * true.
+ *
+ * \return A pointer to the if/then/else statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+IfThenElseStmtNode *createIfThenElseStmtNode(BlockNode *yes,
+                                             BlockNode *no,
+                                             ExprNodeList *guards,
+                                             BlockNodeList *blocks)
 {
 	IfThenElseStmtNode *p = malloc(sizeof(IfThenElseStmtNode));
 	if (!p) {
@@ -817,15 +815,14 @@ IfThenElseStmtNode *createIfThenElseStmtNode(BlockNode *yes,        /**< [in] A 
 	return p;
 }
 
-/** Deletes a IfThenElseStmtNode structure.
-  *
-  * \pre \a node was created by createIfThenElseStmtNode(BlockNode *, BlockNode *, ExprNodeList *, BlockNodeList *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createIfThenElseStmtNode(BlockNode *, BlockNode *, ExprNodeList *, BlockNodeList *) */
-void deleteIfThenElseStmtNode(IfThenElseStmtNode *node) /**< [in,out] A pointer to the IfThenElseStmtNode structure to be deleted. */
+/**
+ * Deletes an if/then/else statement.
+ *
+ * \param [in,out] node The if/then/else statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteIfThenElseStmtNode(IfThenElseStmtNode *node)
 {
 	if (!node) return;
 	deleteBlockNode(node->yes);
@@ -835,22 +832,25 @@ void deleteIfThenElseStmtNode(IfThenElseStmtNode *node) /**< [in,out] A pointer 
 	free(node);
 }
 
-/** Creates a SwitchStmtNode structure.
-  *
-  * \pre \a guards was created by createExprNodeList(void) and contains items
-  *      added by addExprNode(ExprNodeList *, ExprNode *).
-  * \pre \a blocks was created by createBlockNodeList(void) and contains items
-  *      added by addBlockNode(BlockNodeList *, BlockNode *).
-  * \pre \a def was created by createBlockNode(StmtNodeList *).
-  *
-  * \return A pointer to a SwitchStmtNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteSwitchStmtNode(SwitchStmtNode *) */
-SwitchStmtNode *createSwitchStmtNode(ExprNodeList *guards,  /**< [in] A pointer to the expressions to evaluate and compare to the \ref impvar "implicit variable". */
-                                     BlockNodeList *blocks, /**< [in] A pointer to the respective blocks of code to execute if one of the \a guards matches the \ref impvar "implicit variable". */
-                                     BlockNode *def)        /**< [in] A pointer to the default block of code to execute if none of the \a guards match the \ref impvar "implicit variable". */
+/**
+ * Creates a switch statement.
+ *
+ * \param [in] guards The expressions to compare the the \ref impvar "implicit
+ * variable".
+ *
+ * \param [in] blocks The code blocks to execute if a respective guard matches
+ * the \ref impvar "implicit variable".
+ *
+ * \param [in] def The default code block to execute if none of the \a guards
+ * match the \ref impvar "implicit variable".
+ *
+ * \return A pointer to a switch statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+SwitchStmtNode *createSwitchStmtNode(ExprNodeList *guards,
+                                     BlockNodeList *blocks,
+                                     BlockNode *def)
 {
 	SwitchStmtNode *p = malloc(sizeof(SwitchStmtNode));
 	if (!p) {
@@ -863,15 +863,14 @@ SwitchStmtNode *createSwitchStmtNode(ExprNodeList *guards,  /**< [in] A pointer 
 	return p;
 }
 
-/** Deletes a SwitchStmtNode structure.
-  *
-  * \pre \a node was created by createSwitchStmtNode(ExprNodeList *, BlockNodeList *, BlockNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createSwitchStmtNode(ExprNodeList *, BlockNodeList *, BlockNode *) */
-void deleteSwitchStmtNode(SwitchStmtNode *node) /**< [in,out] A pointer to the SwitchStmtNode structure to be deleted. */
+/**
+ * Deletes a switch statement.
+ *
+ * \param [in,out] node The switch statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteSwitchStmtNode(SwitchStmtNode *node)
 {
 	if (!node) return;
 	deleteExprNodeList(node->guards);
@@ -880,16 +879,16 @@ void deleteSwitchStmtNode(SwitchStmtNode *node) /**< [in,out] A pointer to the S
 	free(node);
 }
 
-/** Creates a ReturnStmtNode structure.
-  *
-  * \pre \a value was created by createExprNode(ExprType, void *).
-  *
-  * \return A pointer to a ReturnStmtNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteReturnStmtNode(ReturnStmtNode *) */
-ReturnStmtNode *createReturnStmtNode(ExprNode *value) /**< [in] A pointer to the value to return. */
+/**
+ * Creates a return statement.
+ *
+ * \param [in] value The return value.
+ *
+ * \return A pointer to a return statement of the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+ReturnStmtNode *createReturnStmtNode(ExprNode *value)
 {
 	ReturnStmtNode *p = malloc(sizeof(ReturnStmtNode));
 	if (!p) {
@@ -900,39 +899,42 @@ ReturnStmtNode *createReturnStmtNode(ExprNode *value) /**< [in] A pointer to the
 	return p;
 }
 
-/** Deletes a ReturnStmtNode structure.
-  *
-  * \pre \a node was created by createReturnStmtNode(ExprNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createReturnStmtNode(ExprNode *) */
-void deleteReturnStmtNode(ReturnStmtNode *node) /**< [in,out] A pointer to the ReturnStmtNode structure to be deleted. */
+/**
+ * Deletes a return statement.
+ *
+ * \param [in,out] node The return statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteReturnStmtNode(ReturnStmtNode *node)
 {
 	if (!node) return;
 	deleteExprNode(node->value);
 	free(node);
 }
 
-/** Creates a LoopStmtNode structure.
-  *
-  * \pre \a name was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  * \pre \a var was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  * \pre \a guard was created by createExprNode(ExprType, void *).
-  * \pre \a update was created by createExprNode(ExprType, void *).
-  * \pre \a body was created by createBlockNode(StmtNodeList *).
-  *
-  * \return A pointer to a LoopStmtNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteLoopStmtNode(LoopStmtNode *) */
-LoopStmtNode *createLoopStmtNode(IdentifierNode *name, /**< [in] A pointer to the name of the loop. */
-                                 IdentifierNode *var,  /**< [in] A pointer to the name of the variable to be updated by \a update. */
-                                 ExprNode *guard,      /**< [in] A pointer to the expression to determine if the loop will continue. */
-                                 ExprNode *update,     /**< [in] A pointer to the expression to evaluate to update \a var. */
-                                 BlockNode *body)      /**< [in] A pointer to the block of code to be executed with each iteration of the loop. */
+/**
+ * Creates a loop statement.
+ *
+ * \param [in] name The name of the loop.
+ *
+ * \param [in] var The induction variable.
+ *
+ * \param [in] guard The expression to determine if the loop continues.
+ *
+ * \param [in] update The expression to update \a var using.
+ *
+ * \param [in] body The code block to execute with each loop iteration.
+ *
+ * \return A pointer to a loop statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+LoopStmtNode *createLoopStmtNode(IdentifierNode *name,
+                                 IdentifierNode *var,
+                                 ExprNode *guard,
+                                 ExprNode *update,
+                                 BlockNode *body)
 {
 	LoopStmtNode *p = malloc(sizeof(LoopStmtNode));
 	if (!p) {
@@ -947,15 +949,14 @@ LoopStmtNode *createLoopStmtNode(IdentifierNode *name, /**< [in] A pointer to th
 	return p;
 }
 
-/** Deletes a LoopStmtNode structure.
-  *
-  * \pre \a node was created by createLoopStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, ExprNode *, BlockNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createLoopStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, ExprNode *, BlockNode *) */
-void deleteLoopStmtNode(LoopStmtNode *node) /**< [in,out] A pointer to the LoopStmtNode structure to be deleted. */
+/**
+ * Deletes a loop statement.
+ *
+ * \param [in,out] node The loop statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteLoopStmtNode(LoopStmtNode *node)
 {
 	if (!node) return;
 	deleteIdentifierNode(node->name);
@@ -966,17 +967,16 @@ void deleteLoopStmtNode(LoopStmtNode *node) /**< [in,out] A pointer to the LoopS
 	free(node);
 }
 
-/** Creates a DeallocationStmtNode structure.
-  *
-  * \pre \a target was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  *
-  * \return A pointer to a DeallocationStmtNode structure with the desired
-  *         properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteDeallocationStmtNode(DeallocationStmtNode *) */
-DeallocationStmtNode *createDeallocationStmtNode(IdentifierNode *target) /**< [in] A pointer to the name of the variable. */
+/**
+ * Creates a deallocation statement.
+ *
+ * \param [in] target The variable to deallocate.
+ *
+ * \return A pointer to a deallocation statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+DeallocationStmtNode *createDeallocationStmtNode(IdentifierNode *target)
 {
 	DeallocationStmtNode *p = malloc(sizeof(DeallocationStmtNode));
 	if (!p) {
@@ -987,39 +987,40 @@ DeallocationStmtNode *createDeallocationStmtNode(IdentifierNode *target) /**< [i
 	return p;
 }
 
-/** Deletes a DeallocationStmtNode structure.
-  *
-  * \pre \a node was created by createDeallocationStmtNode(IdentifierNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createDeallocationStmtNode(IdentifierNode *) */
-void deleteDeallocationStmtNode(DeallocationStmtNode *node) /**< [in,out] A pointer to the DeallocationStmtNode structure to be deleted. */
+/**
+ * Deletes a deallocation statement.
+ *
+ * \param [in,out] node The deallocation statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteDeallocationStmtNode(DeallocationStmtNode *node)
 {
 	if (!node) return;
 	deleteIdentifierNode(node->target);
 	free(node);
 }
 
-/** Creates a FuncDefStmtNode structure.
-  *
-  * \pre \a scope was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  * \pre \a name was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  * \pre \a args was created by createIdentifierNodeList(void) and contains
-  *      items added by addIdentifierNode(IdentifierNodeList *, IdentifierNode *).
-  * \pre \a body was created by createBlockNode(StmtNodeList *).
-  *
-  * \return A pointer to a FuncDefStmtNode structure with the desired
-  *         properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteFuncDefStmtNode(FuncDefStmtNode *) */
-FuncDefStmtNode *createFuncDefStmtNode(IdentifierNode *scope,    /**< [in] A pointer to the scope to define the function in. */
-                                       IdentifierNode *name,     /**< [in] A pointer to the name of the function. */
-                                       IdentifierNodeList *args, /**< [in] A pointer to an array of the names of the arguments of the function. */
-                                       BlockNode *body)          /**< [in] A pointer to the block of code defined by the function. */
+/**
+ * Creates a function definition statement.
+ *
+ * \param [in] scope The scope to define the function in.
+ *
+ * \param [in] name The name of the function.
+ *
+ * \param [in] args The function arguments names.
+ *
+ * \param [in] body The function's code block.
+ *
+ * \return A pointer to a function definition statement with the desired
+ * properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+FuncDefStmtNode *createFuncDefStmtNode(IdentifierNode *scope,
+                                       IdentifierNode *name,
+                                       IdentifierNodeList *args,
+                                       BlockNode *body)
 {
 	FuncDefStmtNode *p = malloc(sizeof(FuncDefStmtNode));
 	if (!p) {
@@ -1033,15 +1034,14 @@ FuncDefStmtNode *createFuncDefStmtNode(IdentifierNode *scope,    /**< [in] A poi
 	return p;
 }
 
-/** Deletes a FuncDefStmtNode structure.
-  *
-  * \pre \a node was created by createFuncDefStmtNode(IdentifierNode *, IdentifierNode *, IdentifierNodeList *, BlockNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createFuncDefStmtNode(IdentifierNode *, IdentifierNode *, IdentifierNodeList *, BlockNode *) */
-void deleteFuncDefStmtNode(FuncDefStmtNode *node) /**< [in,out] A pointer to the FuncDefStmtNode structure to be deleted. */
+/**
+ * Deletes a function definition statement.
+ *
+ * \param [in,out] node The function definition statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteFuncDefStmtNode(FuncDefStmtNode *node)
 {
 	if (!node) return;
 	deleteIdentifierNode(node->scope);
@@ -1051,24 +1051,19 @@ void deleteFuncDefStmtNode(FuncDefStmtNode *node) /**< [in,out] A pointer to the
 	free(node);
 }
 
-/** Creates an ExprNode structure.
-  *
-  * \pre \a expr contains a structure created corresponding to \a type:
-  *      - ET_CAST: createCastExprNode(ExprNode *, TypeNode *)
-  *      - ET_CONSTANT: createBooleanConstantNode(int), createIntegerConstantNode(int),
-  *        createFloatConstantNode(float), or createStringConstantNode(char *)
-  *      - ET_IDENTIFIER: createIdentifierNode(IdentifierType, void *, const char *, unsigned int)
-  *      - ET_FUNCCALL: createFuncCallExprNode(IdentifierNode *, IdentifierNode *, ExprNodeList *)
-  *      - ET_OP: createOpExprNode(OpType, ExprNodeList *)
-  *      - ET_IMPVAR: (for the \ref impvar "implicit variable") no structure needed, use \c NULL
-  *
-  * \return A pointer to an ExprNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteExprNode(ExprNode *) */
-ExprNode *createExprNode(ExprType type, /**< [in] The type of expression stored in \a expr. */
-                         void *expr)    /**< [in] A pointer to the particular expression structure. */
+/**
+ * Creates an expression.
+ *
+ * \param [in] type The type of expression.
+ *
+ * \param [in] expr The expression data.
+ *
+ * \return A pointer to an expression with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+ExprNode *createExprNode(ExprType type,
+                         void *expr)
 {
 	ExprNode *p = malloc(sizeof(ExprNode));
 	if (!p) {
@@ -1080,15 +1075,14 @@ ExprNode *createExprNode(ExprType type, /**< [in] The type of expression stored 
 	return p;
 }
 
-/** Deletes an ExprNode structure.
-  *
-  * \pre \a node was created by createExprNode(ExprType, void *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createExprNode(ExprType, void *) */
-void deleteExprNode(ExprNode *node) /**< [in,out] A pointer to the ExprNode structure to be deleted. */
+/**
+ * Deletes an expression.
+ *
+ * \param [in,out] node The expression to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteExprNode(ExprNode *node)
 {
 	if (!node) return;
 	switch (node->type) {
@@ -1116,13 +1110,13 @@ void deleteExprNode(ExprNode *node) /**< [in,out] A pointer to the ExprNode stru
 	free(node);
 }
 
-/** Creates an ExprNodeList structure.
-  *
-  * \return A pointer to an ExprNodeList structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteExprNodeList(ExprNodeList *) */
+/**
+ * Creates an empty expression list.
+ *
+ * \return A pointer to an empty expression list.
+ *
+ * \retval NULL Memory allocation failed.
+ */
 ExprNodeList *createExprNodeList(void)
 {
 	ExprNodeList *p = malloc(sizeof(ExprNodeList));
@@ -1135,21 +1129,21 @@ ExprNodeList *createExprNodeList(void)
 	return p;
 }
 
-/** Adds an ExprNode structure to an ExprNodeList structure.
-  *
-  * \pre \a list was created by createExprNodeList(void).
-  * \pre \a node was created by createExprNode(ExprType, void *).
-  *
-  * \post \a node will be added on to the end of \a list and the size of
-  *       \a list will be updated accordingly.
-  *
-  * \retval 0 realloc was unable to allocate memory.
-  * \retval 1 \a node was added to \a list.
-  *
-  * \see createExprNodeList(void)
-  * \see deleteExprNodeList(ExprNodeList *) */
-int addExprNode(ExprNodeList *list, /**< [in,out] A pointer to the ExprNodeList structure to add \a node to. */
-                ExprNode *node)     /**< [in] A pointer to the ExprNode structure to add to \a list. */
+/**
+ * Adds an expression to a list.
+ *
+ * \param [in,out] list The expression list to add \a node to.
+ *
+ * \param [in] node The expression to add to \a list.
+ *
+ * \post \a node will be added to \a list and its size will be updated.
+ *
+ * \retval 0 Memory allocation failed.
+ *
+ * \retval 1 \a node was added to \a list.
+ */
+int addExprNode(ExprNodeList *list,
+                ExprNode *node)
 {
 	unsigned int newsize = list->num + 1;
 	void *mem = realloc(list->exprs, sizeof(ExprNode *) * newsize);
@@ -1163,16 +1157,14 @@ int addExprNode(ExprNodeList *list, /**< [in,out] A pointer to the ExprNodeList 
 	return 1;
 }
 
-/** Deletes an ExprNodeList structure.
-  *
-  * \pre \a list was created by createExprNodeList(void) and contains items
-  *      added by addExprNode(ExprNodeList *, ExprNode *).
-  *
-  * \post The memory at \a list and any of its associated members will be
-  *       freed.
-  *
-  * \see createExprNodeList(void) */
-void deleteExprNodeList(ExprNodeList *list) /**< [in,out] A pointer to the ExprNodeList structure to delete. */
+/**
+ * Deletes an expression list.
+ *
+ * \param [in,out] list The expression list to delete.
+ *
+ * \post The memory at \a list and all of its members will be freed.
+ */
+void deleteExprNodeList(ExprNodeList *list)
 {
 	unsigned int n;
 	if (!list) return;
@@ -1182,18 +1174,19 @@ void deleteExprNodeList(ExprNodeList *list) /**< [in,out] A pointer to the ExprN
 	free(list);
 }
 
-/** Creates a CastExprNode structure.
-  *
-  * \pre \a target was created by createExprNode(ExprType, void *).
-  * \pre \a newtype was created by createTypeNode(ConstantType).
-  *
-  * \return A pointer to a CastExprNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteCastExprNode(CastExprNode *) */
-CastExprNode *createCastExprNode(ExprNode *target,  /**< [in] A pointer to the expression to cast. */
-                                 TypeNode *newtype) /**< [in] A pointer to the type to cast the copy of \a target to. */
+/**
+ * Creates a cast expression.
+ *
+ * \param [in] target The expression to cast.
+ *
+ * \param [in] newtype The type to cast \a target to.
+ *
+ * \return A pointer to a cast expression with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+CastExprNode *createCastExprNode(ExprNode *target,
+                                 TypeNode *newtype)
 {
 	CastExprNode *p = malloc(sizeof(CastExprNode));
 	if (!p) {
@@ -1205,15 +1198,14 @@ CastExprNode *createCastExprNode(ExprNode *target,  /**< [in] A pointer to the e
 	return p;
 }
 
-/** Deletes a CastExprNode structure.
-  *
-  * \pre \a node was created by createCastExprNode(ExprNode *, TypeNode *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createCastExprNode(ExprNode *, TypeNode *) */
-void deleteCastExprNode(CastExprNode *node) /**< [in,out] A pointer to the CastExprNode structure to be deleted. */
+/**
+ * Deletes a cast expression.
+ *
+ * \param [in,out] node The cast expression to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteCastExprNode(CastExprNode *node)
 {
 	if (!node) return;
 	deleteExprNode(node->target);
@@ -1221,22 +1213,22 @@ void deleteCastExprNode(CastExprNode *node) /**< [in,out] A pointer to the CastE
 	free(node);
 }
 
-/** Creates a FuncCallExprNode structure.
-  *
-  * \pre \a scope was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  * \pre \a name was created by createIdentifierNode(IdentifierType, void *, const char *, unsigned int).
-  * \pre \a args was created by createIdentifierNodeList(void) and contains
-  *      items added by addIdentifierNode(IdentifierNodeList *, IdentifierNode *).
-  *
-  * \return A pointer to a FuncCallExprNode structure with the desired
-  *         properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteFuncCallExprNode(FuncCallExprNode *) */
-FuncCallExprNode *createFuncCallExprNode(IdentifierNode *scope, /**< [in] A pointer to the scope the function is defined in. */
-                                         IdentifierNode *name,  /**< [in] A pointer to the name of the function. */
-                                         ExprNodeList *args)    /**< [in] A pointer to a list of ExprNode structure arguments supplied to the function definition. */
+/**
+ * Creates a function call expression.
+ *
+ * \param [in] scope The scope to lookup the function in.
+ *
+ * \param [in] name The name of the function.
+ *
+ * \param [in] args The arguments to supply the function.
+ *
+ * \return A pointer to a function call expression with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+FuncCallExprNode *createFuncCallExprNode(IdentifierNode *scope,
+                                         IdentifierNode *name,
+                                         ExprNodeList *args)
 {
 	FuncCallExprNode *p = malloc(sizeof(FuncCallExprNode));
 	if (!p) {
@@ -1249,15 +1241,14 @@ FuncCallExprNode *createFuncCallExprNode(IdentifierNode *scope, /**< [in] A poin
 	return p;
 }
 
-/** Deletes a FuncCallExprNode structure.
-  *
-  * \pre \a node was created by createFuncCallExprNode(IdentifierNode *, IdentifierNode *, ExprNodeList *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createFuncCallExprNode(IdentifierNode *, IdentifierNode *, ExprNodeList *) */
-void deleteFuncCallExprNode(FuncCallExprNode *node) /**< [in,out] A pointer to the FuncCallExprNode structure to be deleted. */
+/**
+ * Deletes a function call expression.
+ *
+ * \param [in,out] node The function call expression to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteFuncCallExprNode(FuncCallExprNode *node)
 {
 	if (!node) return;
 	deleteIdentifierNode(node->scope);
@@ -1266,18 +1257,19 @@ void deleteFuncCallExprNode(FuncCallExprNode *node) /**< [in,out] A pointer to t
 	free(node);
 }
 
-/** Creates an OpExprNode structure.
-  *
-  * \pre \a args was created by createExprNodeList(void) and contains items
-  *      added by addExprNode(ExprNodeList *, ExprNode *).
-  *
-  * \return A pointer to an OpExprNode structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteOpExprNode(OpExprNode *) */
-OpExprNode *createOpExprNode(OpType type,        /**< [in] The type of operation to perform on \a args. */
-                             ExprNodeList *args) /**< [in] A pointer to the arguments to perform the operation on. */
+/**
+ * Creates an operation expression.
+ *
+ * \param [in] type The type of operation to perform.
+ *
+ * \param [in] args The operands.
+ *
+ * \return A pointer to an operation expression with the desired properties.
+ *
+ * \retval NULL Memroy allocation failed.
+ */
+OpExprNode *createOpExprNode(OpType type,
+                             ExprNodeList *args)
 {
 	OpExprNode *p = malloc(sizeof(OpExprNode));
 	if (!p) {
@@ -1289,43 +1281,37 @@ OpExprNode *createOpExprNode(OpType type,        /**< [in] The type of operation
 	return p;
 }
 
-/** Deletes an OpExprNode structure.
-  *
-  * \pre \a node was created by createOpExprNode(OpType, ExprNodeList *).
-  *
-  * \post The memory at \a node and any of its associated members will be
-  *       freed.
-  *
-  * \see createOpExprNode(OpType, ExprNodeList *) */
-void deleteOpExprNode(OpExprNode *node) /**< [in,out] A pointer to the OpExprNode structure to be deleted. */
+/**
+ * Deletes an operation expression.
+ *
+ * \param [in,out] node The operation expression to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteOpExprNode(OpExprNode *node)
 {
 	if (!node) return;
 	deleteExprNodeList(node->args);
 	free(node);
 }
 
-/** Checks if the token pointed to by \a tokenp matches \a token and if it does,
-  * advances the token pointer to the next token in the array.
-  *
-  * \note Unlike peekToken(Token ***, TokenType) and nextToken(Token ***, TokenType), this
-  *       function \b does modify \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *      tokenizeLexemes(LexemeList *).
-  *
-  * \post If the token pointed to by \a tokenp does not match \a token,
-  *       \a tokenp will point to the same token as when the function was
-  *       called.
-  * \post If the token pointed to by \a tokenp matches \a token, \a tokenp will
-  *       point to the next token \b after the one matched.
-  *
-  * \retval 0 The token does not match \a token.
-  * \retval 1 The token matches \a token.
-  *
-  * \see peekToken(Token ***, TokenType)
-  * \see nextToken(Token ***, TokenType) */
-int acceptToken(Token ***tokenp, /**< [in,out] A pointer to the position of the next token to parse in an array of Token structures. */
-                TokenType token) /**< [in] The type of token to match. */
+/**
+ * Checks if a type of token is at a position in a token list, and if so,
+ * advances the position.
+ *
+ * \param [in,out] tokenp The position in a token list to check.
+ *
+ * \param [in] token The type of token to check for.
+ *
+ * \post If the type of \a tokenp is not \a token, \a tokenp will remain
+ * unchanged, else, it will point to the token after the one matched.
+ *
+ * \retval 0 The type of \a tokenp is \a token.
+ *
+ * \retval 1 The type of \a tokenp is not \a token.
+ */
+int acceptToken(Token ***tokenp,
+                TokenType token)
 {
 	Token **tokens = *tokenp;
 	if ((*tokens)->type != token) return 0;
@@ -1334,84 +1320,78 @@ int acceptToken(Token ***tokenp, /**< [in,out] A pointer to the position of the 
 	return 1;
 }
 
-/** Checks if the token pointed to by \a tokenp matches \a token.
-  *
-  * \note Unlike acceptToken(Token ***, TokenType), this function does not
-  *       modify \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *      tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the same token as when the function was
-  *       called.
-  *
-  * \retval 0 The token does not match \a token.
-  * \retval 1 The token matches \a token.
-  *
-  * \see acceptToken(Token ***, TokenType)
-  * \see nextToken(Token ***, TokenType) */
-int peekToken(Token ***tokenp, /**< [in] A pointer to the position of the next token to parse in an array of Token structures. */
-              TokenType token) /**< [in] The type of token to match. */
+/**
+ * Checks if a type of token is at a position in a token list.
+ *
+ * \param [in] tokenp The position in a token list to check.
+ *
+ * \param [in] token The type of token to check for.
+ *
+ * \post \a tokenp will remain unchanged.
+ *
+ * \retval 0 The type of \a tokenp is \a token.
+ *
+ * \retval 1 The type of \a tokenp is not \a token.
+ */
+int peekToken(Token ***tokenp,
+              TokenType token)
 {
 	Token **tokens = *tokenp;
 	if ((*tokens)->type != token) return 0;
 	return 1;
 }
 
-/** Checks if the token \b after the one pointed to by \a tokenp matches
-  * \a token.
-  *
-  * \note Unlike acceptToken(Token ***, TokenType), this function does not
-  *       modify \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *      tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the same token as when the function was
-  *       called.
-  *
-  * \retval 0 The next token does not match \a token.
-  * \retval 1 The next token matches \a token.
-  *
-  * \see acceptToken(Token ***, TokenType)
-  * \see peekToken(Token ***, TokenType) */
-int nextToken(Token ***tokenp, /**< [in] A pointer to the position of the next token to parse in an array of Token structures. */
-         TokenType token) /**< [in] The type of token to match. */
+/**
+ * Checks if a type of token is after a position in a token list.
+ *
+ * \param [in] tokenp The position in a token list to check after.
+ *
+ * \param [in] token The type of token to check for.
+ *
+ * \post \a tokenp will remain unchanged.
+ *
+ * \retval 0 The type of the token after \a tokenp is \a token.
+ *
+ * \retval 1 The type of the token after \a tokenp is not \a token.
+ */
+int nextToken(Token ***tokenp,
+         TokenType token)
 {
 	Token **tokens = *tokenp;
 	if ((*(tokens + 1))->type != token) return 0;
 	return 1;
 }
 
-/** Prints an error message of the form "LINE: INFO before: NEXT.\n", where LINE
-  * is the line the next token appears on, INFO is \a info and NEXT is the image
-  * of the next token.
-  *
-  * \pre \a tokens was created by tokenizeLexemes(LexemeList *). */
-void error(const char *info, /**< [in] The array of characters to print. */
-           Token **tokens)   /**< [in] A pointer to an array of tokens to parse. */
+/**
+ * Prints an error message of the form "FILE:LINE: INFO before: NEXT.\n", where
+ * LINE is the line the head of \a tokens appears on, INFO is \a info, and NEXT
+ * is the image of the head of \a tokens.
+ *
+ * \param [in] info The information to print.
+ *
+ * \param [in] tokens The tokens being parsed when the error occurred.
+ */
+void error(const char *info,
+           Token **tokens)
 {
-	fprintf(stderr, "%s:%u: %s at: %s\n", (*tokens)->fname, (*tokens)->line, info, (*tokens)->image);
+	fprintf(stderr, "%s:%u: %s at: %s\n",
+			(*tokens)->fname,
+			(*tokens)->line,
+			info,
+			(*tokens)->image);
 }
 
-/** Parses a set of tokens into a ConstantNode structure.  Parsing begins at the
-  * token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *      tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated ConstantNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseTypeNode(Token ***)
-  * \see parseIdentifierNode(Token ***)
-  * \see parseExprNode(Token ***)
-  * \see parseStmtNode(Token ***)
-  * \see parseBlockNode(Token ***)
-  * \see parseMainNode(Token **) */
+/**
+ * Parses tokens into a constant.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a constant.
+ *
+ * \retval NULL Unable to parse.
+ */
 ConstantNode *parseConstantNode(Token ***tokenp)
 {
 	ConstantNode *ret = NULL;
@@ -1520,25 +1500,18 @@ parseConstantNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a TypeNode structure.  Parsing begins at the
-  * token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *      tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated ExprNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseConstantNode(Token ***)
-  * \see parseIdentifierNode(Token ***)
-  * \see parseExprNode(Token ***)
-  * \see parseStmtNode(Token ***)
-  * \see parseBlockNode(Token ***)
-  * \see parseMainNode(Token **) */
-TypeNode *parseTypeNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
+/**
+ * Parses tokens into a type.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a type.
+ *
+ * \retval NULL Unable to parse.
+ */
+TypeNode *parseTypeNode(Token ***tokenp)
 {
 	TypeNode *ret = NULL;
 
@@ -1589,6 +1562,14 @@ TypeNode *parseTypeNode(Token ***tokenp) /**< [in,out] A pointer to the position
 		ret = createTypeNode(CT_STRING);
 		if (!ret) goto parseTypeNodeAbort;
 	}
+	/* Associative array */
+	else if (acceptToken(&tokens, TT_BUKKIT)) {
+#ifdef DEBUG
+		debug("CT_ARRAY");
+#endif
+		ret = createTypeNode(CT_ARRAY);
+		if (!ret) goto parseTypeNodeAbort;
+	}
 	else {
 		error("expected type", tokens);
 	}
@@ -1610,26 +1591,25 @@ parseTypeNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into an IdentifierNode structure.  Parsing begins at
-  * the token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated ExprNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseConstantNode(Token ***)
-  * \see parseTypeNode(Token ***)
-  * \see parseExprNode(Token ***)
-  * \see parseStmtNode(Token ***)
-  * \see parseBlockNode(Token ***)
-  * \see parseMainNode(Token **) */
-IdentifierNode *parseIdentifierNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
+/**
+ * Parses tokens into an identifier.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to an identifier.
+ *
+ * \retval NULL Unable to parse.
+ */
+IdentifierNode *parseIdentifierNode(Token ***tokenp)
 {
+	IdentifierType type;
+	void *data = NULL;
+	IdentifierNode *slot = NULL;
+	const char *fname = NULL;
+	unsigned int line;
+
 	/* For direct identifier */
 	char *temp = NULL;
 
@@ -1646,8 +1626,12 @@ IdentifierNode *parseIdentifierNode(Token ***tokenp) /**< [in,out] A pointer to 
 	shiftout();
 #endif
 
+	fname = (*tokens)->fname;
+	line = (*tokens)->line;
+
 	/* Direct identifier */
 	if (peekToken(&tokens, TT_IDENTIFIER)) {
+		type = IT_DIRECT;
 #ifdef DEBUG
 		debug("IT_DIRECT");
 #endif
@@ -1655,10 +1639,7 @@ IdentifierNode *parseIdentifierNode(Token ***tokenp) /**< [in,out] A pointer to 
 		temp = malloc(sizeof(char) * (strlen((*tokens)->image) + 1));
 		if (!temp) goto parseIdentifierNodeAbort;
 		strcpy(temp, (*tokens)->image);
-
-		/* Create the new IdentifierNode structure */
-		ret = createIdentifierNode(IT_DIRECT, temp, (*tokens)->fname, (*tokens)->line);
-		if (!ret) goto parseIdentifierNodeAbort;
+		data = temp;
 
 		/* This should succeed; it was checked for above */
 		status = acceptToken(&tokens, TT_IDENTIFIER);
@@ -1668,24 +1649,32 @@ IdentifierNode *parseIdentifierNode(Token ***tokenp) /**< [in,out] A pointer to 
 		}
 	}
 	else if (acceptToken(&tokens, TT_SRS)) {
+		type = IT_INDIRECT;
 #ifdef DEBUG
 		debug("IT_INDIRECT");
 #endif
 		/* Parse the expression representing the identifier */
 		expr = parseExprNode(&tokens);
 		if (!expr) goto parseIdentifierNodeAbort;
-
-		/* Create the new IdentifierNode structure */
-		ret = createIdentifierNode(IT_INDIRECT, expr, (*tokens)->fname, (*tokens)->line);
-		if (!ret) goto parseIdentifierNodeAbort;
+		data = expr;
 	}
 	else {
 		error("expected identifier", tokens);
 	}
 
+	/* Check if there is a slot access */
+	if (acceptToken(&tokens, TT_APOSTROPHEZ)) {
+		slot = parseIdentifierNode(&tokens);
+		if (!slot) goto parseIdentifierNodeAbort;
+	}
+
 #ifdef DEBUG
 	shiftin();
 #endif
+
+	/* Create the new IdentifierNode structure */
+	ret = createIdentifierNode(type, data, slot, fname, line);
+	if (!ret) goto parseIdentifierNodeAbort;
 
 	/* Since we're successful, update the token stream */
 	*tokenp = tokens;
@@ -1702,27 +1691,24 @@ parseIdentifierNodeAbort: /* Exception handling */
 
 		/* For direct identifier */
 		if (temp) free(temp);
+
+		if (slot) deleteIdentifierNode(slot);
 	}
 
 	return NULL;
 }
 
-/** Parses a set of tokens into an ExprNode structure containing a CastExprNode
-  * structure.  Parsing begins at the token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated ExprNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseConstantExprNode(Token ***)
-  * \see parseIdentifierExprNode(Token ***)
-  * \see parseFuncCallExprNode(Token ***)
-  * \see parseOpExprNode(Token ***) */
+/**
+ * Parses tokens into a cast expression.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a cast expression.
+ *
+ * \retval NULL Unable to parse.
+ */
 ExprNode *parseCastExprNode(Token ***tokenp)
 {
 	ExprNode *target = NULL;
@@ -1782,22 +1768,17 @@ parseCastExprNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into an ExprNode structure containing a ConstantExprNode
-  * structure.  Parsing begins at the token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated ExprNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastExprNode(Token ***)
-  * \see parseIdentifierExprNode(Token ***)
-  * \see parseFuncCallExprNode(Token ***)
-  * \see parseOpExprNode(Token ***) */
+/**
+ * Parses tokens into a constant expression.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a constant expression.
+ *
+ * \retval NULL Unable to parse.
+ */
 ExprNode *parseConstantExprNode(Token ***tokenp)
 {
 	ConstantNode *node = NULL;
@@ -1834,23 +1815,17 @@ parseConstantExprNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into an ExprNode structure containing an
-  * IdentifierExprNode structure.  Parsing begins at the token pointed to by
-  * \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated ExprNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastExprNode(Token ***)
-  * \see parseConstantExprNode(Token ***)
-  * \see parseFuncCallExprNode(Token ***)
-  * \see parseOpExprNode(Token ***) */
+/**
+ * Parses tokens into an identifier expression.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to an identifier expression.
+ *
+ * \retval NULL Unable to parse.
+ */
 ExprNode *parseIdentifierExprNode(Token ***tokenp)
 {
 	IdentifierNode *node = NULL;
@@ -1887,23 +1862,17 @@ parseIdentifierExprNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into an ExprNode structure containing a
-  * FuncCallExprNode structure.  Parsing begins at the token pointed to by
-  * \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated ExprNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastExprNode(Token ***)
-  * \see parseConstantExprNode(Token ***)
-  * \see parseIdentifierExprNode(Token ***)
-  * \see parseOpExprNode(Token ***) */
+/**
+ * Parses tokens into a function call expression.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a Tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a function call expression.
+ *
+ * \retval NULL Unable to parse.
+ */
 ExprNode *parseFuncCallExprNode(Token ***tokenp)
 {
 	IdentifierNode *scope = NULL;
@@ -1999,23 +1968,17 @@ parseFuncCallExprNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into an ExprNode structure containing an OpExprNode
-  * structure.  Parsing begins at the token pointed to by
-  * \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated ExprNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastExprNode(Token ***)
-  * \see parseConstantExprNode(Token ***)
-  * \see parseFuncCallExprNode(Token ***)
-  * \see parseOpExprNode(Token ***) */
+/**
+ * Parses tokens into an operation expression.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a operation expression.
+ *
+ * \retval NULL Unable to parse.
+ */
 ExprNode *parseOpExprNode(Token ***tokenp)
 {
 	enum ArityType {
@@ -2237,25 +2200,18 @@ parseOpExprNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into an ExprNode structure.  Parsing begins at the
-  * token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated ExprNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseConstantNode(Token ***)
-  * \see parseTypeNode(Token ***)
-  * \see parseIdentifierNode(Token ***)
-  * \see parseStmtNode(Token ***)
-  * \see parseBlockNode(Token ***)
-  * \see parseMainNode(Token **) */
-ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
+/**
+ * Parses tokens into an expression.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to an expression.
+ *
+ * \retval NULL Unable to parse.
+ */
+ExprNode *parseExprNode(Token ***tokenp)
 {
 	Token **tokens = *tokenp;
 	ExprNode *ret = NULL;
@@ -2264,8 +2220,32 @@ ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position
 	shiftout();
 #endif
 
+	/* Parse context-sensitive expressions */
+	if (peekToken(&tokens, TT_IDENTIFIER)
+			|| peekToken(&tokens, TT_SRS)) {
+		IdentifierNode *id = NULL;
+
+		/* Remove the identifier from the token stream */
+		/** \todo This works, but it also prints out the debug
+		  *       information as if it was parsed which can be confusing
+		  *       to see.  Fix it to not print this out. */
+		id = parseIdentifierNode(&tokens);
+		if (!id) return NULL;
+
+		/* We do not need to hold onto it */
+		deleteIdentifierNode(id);
+
+		/* Function call (must come before identifier) */
+		if (peekToken(&tokens, TT_IZ)) {
+			ret = parseFuncCallExprNode(tokenp);
+		}
+		/* Identifier */
+		else {
+			ret = parseIdentifierExprNode(tokenp);
+		}
+	}
 	/* Cast */
-	if (peekToken(&tokens, TT_MAEK)) {
+	else if (peekToken(&tokens, TT_MAEK)) {
 		ret = parseCastExprNode(tokenp);
 	}
 	/* Constant value */
@@ -2274,15 +2254,6 @@ ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position
 			|| peekToken(&tokens, TT_FLOAT)
 			|| peekToken(&tokens, TT_STRING))
 		ret = parseConstantExprNode(tokenp);
-	/* Function call (must come before identifier) */
-	else if (nextToken(&tokens, TT_IZ)) {
-		ret = parseFuncCallExprNode(tokenp);
-	}
-	/* Identifier */
-	else if (peekToken(&tokens, TT_IDENTIFIER)
-			|| peekToken(&tokens, TT_SRS)) {
-		ret = parseIdentifierExprNode(tokenp);
-	}
 	/* Operation */
 	else if (peekToken(&tokens, TT_SUMOF)
 			|| peekToken(&tokens, TT_DIFFOF)
@@ -2326,29 +2297,17 @@ ExprNode *parseExprNode(Token ***tokenp) /**< [in,out] A pointer to the position
 	return ret;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing a CastStmtNode
-  * structure.  Parsing begins at the token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***) */
+/**
+ * Parses tokens into a cast statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a cast statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parseCastStmtNode(Token ***tokenp)
 {
 	IdentifierNode *target = NULL;
@@ -2412,29 +2371,17 @@ parseCastStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing a PrintStmtNode
-  * structure.  Parsing begins at the token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***) */
+/**
+ * Parses tokens into a print statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a print statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parsePrintStmtNode(Token ***tokenp)
 {
 	ExprNode *arg = NULL;
@@ -2512,29 +2459,17 @@ parsePrintStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing an InputStmtNode
-  * structure.  Parsing begins at the token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***) */
+/**
+ * Parses tokens into an input statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to an input statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parseInputStmtNode(Token ***tokenp)
 {
 	IdentifierNode *target = NULL;
@@ -2592,30 +2527,17 @@ parseInputStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing an
-  * AssignmentStmtNode structure.  Parsing begins at the token pointed to by
-  * \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***) */
+/**
+ * Parses tokens into an assignment statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to an assignment statement.
+ *
+ * \retval NULL unable to parse.
+ */ 
 StmtNode *parseAssignmentStmtNode(Token ***tokenp)
 {
 	IdentifierNode *target = NULL;
@@ -2678,30 +2600,17 @@ parseAssignmentStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing a
-  * DeclarationStmtNode structure.  Parsing begins at the token pointed to by
-  * \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***) */
+/**
+ * Parses tokens into a declaration statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a declaration statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parseDeclarationStmtNode(Token ***tokenp)
 {
 	IdentifierNode *scope = NULL;
@@ -2781,30 +2690,17 @@ parseDeclarationStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing an
-  * IfThenElseStmtNode structure.  Parsing begins at the token pointed to by
-  * \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***) */
+/**
+ * Parses tokens into an if/then/else statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to an if/then/else statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parseIfThenElseStmtNode(Token ***tokenp)
 {
 	BlockNode *yes = NULL;
@@ -2947,29 +2843,17 @@ parseIfThenElseStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing a SwitchStmtNode
-  * structure.  Parsing begins at the token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***) */
+/**
+ * Parses tokens into a switch statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a switch statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parseSwitchStmtNode(Token ***tokenp)
 {
 	ExprNodeList *guards = NULL;
@@ -3133,30 +3017,17 @@ parseSwitchStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure representing a break
-  * statement.  Parsing begins at the token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***)
-  * \see parseExprNode(Token ***) */
+/**
+ * Parses tokens into a break statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a break statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parseBreakStmtNode(Token ***tokenp)
 {
 	StmtNode *ret = NULL;
@@ -3199,29 +3070,17 @@ parseBreakStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing a ReturnStmtNode
-  * structure.  Parsing begins at the token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***) */
+/**
+ * Parses tokens into a return statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a return statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parseReturnStmtNode(Token ***tokenp)
 {
 	ExprNode *value = NULL;
@@ -3278,29 +3137,17 @@ parseReturnStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing a LoopStmtNode
-  * structure.  Parsing begins at the token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***) */
+/**
+ * Parses tokens into a loop statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a loop statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parseLoopStmtNode(Token ***tokenp)
 {
 	IdentifierNode *name1 = NULL;
@@ -3400,7 +3247,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 		id = malloc(sizeof(char) * (strlen(var->id) + 1));
 		if (!id) goto parseLoopStmtNodeAbort;
 		strcpy(id, var->id);
-		varcopy = createIdentifierNode(IT_DIRECT, id, var->fname, var->line);
+		varcopy = createIdentifierNode(IT_DIRECT, id, NULL, var->fname, var->line);
 		if (!varcopy) goto parseLoopStmtNodeAbort;
 		id = NULL;
 
@@ -3489,7 +3336,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 		id = malloc(sizeof(char) * (strlen(temp->id) + 1));
 		if (!id) goto parseLoopStmtNodeAbort;
 		strcpy(id, temp->id);
-		var = createIdentifierNode(IT_DIRECT, id, temp->fname, temp->line);
+		var = createIdentifierNode(IT_DIRECT, id, NULL, temp->fname, temp->line);
 		if (!var) goto parseLoopStmtNodeAbort;
 		id = NULL;
 
@@ -3609,6 +3456,7 @@ parseLoopStmtNodeAbort: /* Exception handling */
 	if (ret) deleteStmtNode(ret);
 	else if (stmt) deleteLoopStmtNode(stmt);
 	else {
+		/** \todo Need to adjust this to properly clean up nested objects. */
 		if (name2) deleteIdentifierNode(name2);
 		if (def) deleteFuncDefStmtNode(def);
 		if (body) deleteBlockNode(body);
@@ -3640,30 +3488,17 @@ parseLoopStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing a
-  * DeallocationStmtNode structure.  Parsing begins at the token pointed to by
-  * \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseFuncDefStmtNode(Token ***) */
+/**
+ * Parses tokens into a deallocation statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a deallocation statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parseDeallocationStmtNode(Token ***tokenp)
 {
 	IdentifierNode *target = NULL;
@@ -3721,30 +3556,17 @@ parseDeallocationStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure containing a
-  * FuncDefStmtNode structure.  Parsing begins at the token pointed to by
-  * \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseCastStmtNode(Token ***)
-  * \see parsePrintStmtNode(Token ***)
-  * \see parseInputStmtNode(Token ***)
-  * \see parseAssignmentStmtNode(Token ***)
-  * \see parseDeclarationStmtNode(Token ***)
-  * \see parseIfThenElseStmtNode(Token ***)
-  * \see parseSwitchStmtNode(Token ***)
-  * \see parseBreakStmtNode(Token ***)
-  * \see parseReturnStmtNode(Token ***)
-  * \see parseLoopStmtNode(Token ***)
-  * \see parseDeallocationStmtNode(Token ***) */
+/**
+ * Parses tokens into a function definition statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a function definition statement.
+ *
+ * \retval NULL Unable to parse.
+ */
 StmtNode *parseFuncDefStmtNode(Token ***tokenp)
 {
 	IdentifierNode *scope = NULL;
@@ -3860,25 +3682,18 @@ parseFuncDefStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses a set of tokens into a StmtNode structure.  Parsing begins at the
-  * token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated StmtNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseConstantNode(Token ***)
-  * \see parseTypeNode(Token ***)
-  * \see parseIdentifierNode(Token ***)
-  * \see parseExprNode(Token ***)
-  * \see parseBlockNode(Token ***)
-  * \see parseMainNode(Token **) */
-StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
+/**
+ * Parses tokens into a statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a statement.
+ *
+ * \retval NULL Unable to parse.
+ */
+StmtNode *parseStmtNode(Token ***tokenp)
 {
 	StmtNode *ret = NULL;
 	ExprNode *expr = NULL;
@@ -3896,6 +3711,9 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 		IdentifierNode *id = NULL;
 
 		/* Remove the identifier from the token stream */
+		/** \todo This works, but it also prints out the debug
+		  *       information as if it was parsed which can be confusing
+		  *       to see.  Fix it to not print this out. */
 		id = parseIdentifierNode(&tokens);
 		if (!id) return NULL;
 
@@ -3923,13 +3741,13 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 			/* Reset state and continue parsing */
 			tokens = *tokenp;
 
-			/* Parse the expression */
-			expr = parseExprNode(&tokens);
-			if (!expr) return NULL;
-
 #ifdef DEBUG
 			debug("ST_EXPR");
 #endif
+
+			/* Parse the expression */
+			expr = parseExprNode(&tokens);
+			if (!expr) return NULL;
 
 			/* The expression should appear on its own line */
 			if (!acceptToken(&tokens, TT_NEWLINE)) {
@@ -4018,25 +3836,18 @@ StmtNode *parseStmtNode(Token ***tokenp) /**< [in,out] A pointer to the position
 	return ret;
 }
 
-/** Parses a set of tokens into a BlockNode structure.  Parsing begins at the
-  * token pointed to by \a tokenp.
-  *
-  * \pre \a tokenp points to a position in an array of tokens created by
-  *     tokenizeLexemes(LexemeList *).
-  *
-  * \post \a tokenp will point to the next \b unparsed token in the array.
-  *
-  * \return A pointer to the generated BlockNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseConstantNode(Token ***)
-  * \see parseTypeNode(Token ***)
-  * \see parseIdentifierNode(Token ***)
-  * \see parseExprNode(Token ***)
-  * \see parseStmtNode(Token ***)
-  * \see parseMainNode(Token **) */
-BlockNode *parseBlockNode(Token ***tokenp) /**< [in,out] A pointer to the position of the next token to parse. */
+/**
+ * Parses tokens into a code block.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a code block.
+ *
+ * \retval NULL Unable to parse.
+ */
+BlockNode *parseBlockNode(Token ***tokenp)
 {
 	StmtNodeList *stmts = NULL;
 	StmtNode *stmt = NULL;
@@ -4099,23 +3910,18 @@ parseBlockNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-/** Parses \a tokens into a MainNode structure, an intermediary form to be
-  * passed along to a later stage of processing such as, for example, an
-  * interpreter.
-  *
-  * \pre \a tokens was created by tokenizeLexemes(LexemeList *).
-  *
-  * \return A pointer to the generated MainNode structure.
-  *
-  * \retval NULL An error occurred during parsing.
-  *
-  * \see parseConstantNode(Token ***)
-  * \see parseTypeNode(Token ***)
-  * \see parseIdentifierNode(Token ***)
-  * \see parseExprNode(Token ***)
-  * \see parseStmtNode(Token ***)
-  * \see parseBlockNode(Token ***) */
-MainNode *parseMainNode(Token **tokens) /**< [in] A pointer to an array of tokens to parse. */
+/**
+ * Parses tokens into a main code block.
+ *
+ * \param [in] tokens The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a main node block.
+ *
+ * \retval NULL Unable to parse.
+ */
+MainNode *parseMainNode(Token **tokens)
 {
 	BlockNode *block = NULL;
 	MainNode *_main = NULL;

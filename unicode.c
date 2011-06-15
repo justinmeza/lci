@@ -36860,15 +36860,22 @@ static const long codepoints[] = {
 
 #define NUM_UNICODE 18426
 
-/** Performs a binary search on an array of strings.
-  *
-  * \return The index of the matching entry, if found.
-  *
-  * \retval -1 The entry does not exist in the array. */
-int binarySearch(const char **strings, /**< [in] A pointer to an array of character strings to search through. */
-                 int start,            /**< [in] The start of the range to search through. */
-                 int end,              /**< [in] The end of the range to search through. */
-                 const char *find)     /**< [in] The entry to search for. */
+/**
+ * Performs a binary search on an array of strings.
+ *
+ * \param [in] strings The array of string to search.
+ * \param [in] start The index to start searching at.
+ * \param [in] end The index to end searching at.
+ * \param [in] find The string to search for.
+ *
+ * \return The index of the matching string, if found.
+ *
+ * \retval -1 The string was not found in the array.
+ */
+int binarySearch(const char **strings,
+                 int start,
+                 int end,
+                 const char *find)
 {
 	int midpoint;
 	int cmp;
@@ -36884,12 +36891,16 @@ int binarySearch(const char **strings, /**< [in] A pointer to an array of charac
 	return -1;
 }
 
-/** Converts a Unicode normative name to a Unicode code point.
-  *
-  * \return The Unicode code point corresponding to the given Unicode name.
-  *
-  * \retval -1 An invalid Unicode normative name was supplied. */
-long convertNormativeNameToCodePoint(const char *name) /**< [in] A pointer to a string of characters representing the Unicode normative name desired. */
+/**
+ * Converts a Unicode normative name to a Unicode code point.
+ *
+ * \param [in] name The Unicode normative name to convert.
+ *
+ * \return The Unicode code point corresponding to \a name.
+ *
+ * \retval -1 An invalid Unicode normative name was supplied.
+ */
+long convertNormativeNameToCodePoint(const char *name)
 {
 	int index = binarySearch(names, 0, NUM_UNICODE - 1, name);
 	if (index < 0) {
@@ -36900,14 +36911,18 @@ long convertNormativeNameToCodePoint(const char *name) /**< [in] A pointer to a 
 		return codepoints[index];
 }
 
-/** Converts the bits in a long integer representing a Unicode code point to a
-  * series of one or more bytes representing a UTF-8 character.
-  *
-  * \return The number of characters in the converted multi-byte character.
-  *
-  * \retval 0 An invalid Unicode code point was supplied. */
-size_t convertCodePointToUTF8(unsigned long codepoint, /**< [in] The Unicode code point to convert to UTF-8. */
-                              char *out)               /**< [out] A pointer to the location to store the resulting UTF-8 bytes. */
+/**
+ * Converts a Unicode code point to a UTF-8 character.
+ *
+ * \param [in] codepoint The Unicode code point to convert to UTF-8.
+ * \param [out] out A pointer to the location to store the UTF-8 character.
+ *
+ * \return The length of the converted multi-byte UTF-8 character.
+ *
+ * \retval 0 An invalid Unicode code point was supplied.
+ */
+size_t convertCodePointToUTF8(unsigned long codepoint,
+                              char *out)
 {
 	/* Out of range */
 	if (codepoint > 0x10FFFF) {

@@ -1,11 +1,13 @@
-/** Data and functions for converting from Unicode normative names to
-  * code points.
-  *
-  * \file   unicode.h
-  *
-  * \author Justin J. Meza
-  *
-  * \date   2010 */
+/**
+ * Data and functions for converting from Unicode normative names to Unicode
+ * code points.
+ *
+ * \file   unicode.h
+ *
+ * \author Justin J. Meza
+ *
+ * \date   2010-2011
+ */
 
 #ifndef __UNICODE_H__
 #define __UNICODE_H__

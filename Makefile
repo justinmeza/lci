@@ -13,21 +13,24 @@ testdir = ./test
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS) $(LIBS)
+$(TARGET): $(OBJS)
 	$(CC) $(CPPFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
 
 pedantic: $(OBJS) $(LIBS)
-	$(CC) -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wundef -Wall -ansi -pedantic -g -o $(TARGET) $(SRCS) $(HDRS) $(LIBS)
+	$(CC) -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wundef -Wall -ansi -pedantic -o $(TARGET) $(SRCS) $(HDRS) $(LIBS)
 
 lint: all
 	$(LINT) $(SRCS)
 
+debug: $(OBJS) $(LIBS)
+	$(CC) -g -o $(TARGET) $(SRCS) $(LIBS)
+
 check: all
-	@cd $(testdir) && ./testDir.sh -q ../$(TARGET) 1.3-Tests/
+	@cd $(testdir) && ./testDir.sh -q ../$(TARGET) 1.3-Tests
 
 check-mem: all
 	@echo "This will take a long time!  Be patient!"
-	@cd $(testdir) && ./testDir.sh -q -m ../$(TARGET) 1.3-Tests/
+	@cd $(testdir) && ./testDir.sh -q -m ../$(TARGET) 1.3-Tests
 
 install: all
 	$(INSTALL) $(TARGET) $(bindir)/$(TARGET)

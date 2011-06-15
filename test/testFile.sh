@@ -61,7 +61,7 @@ then
 		test ! $QUIET && printf "Found output file ($OUTFILE)!\n"
 	fi
 	# Run the test
-	TMPFILE=$(mktemp) && test ! $QUIET && printf "Using temporary output file ($TMPFILE)...\n"
+	TMPFILE=$(mktemp /tmp/temp.XXXX) && test ! $QUIET && printf "Using temporary output file ($TMPFILE)...\n"
 	eval "$MEMCHK $PROGRAM $TESTFILE $IN > $TMPFILE"
 	RESULT=$?
 	# Check that program exited normally

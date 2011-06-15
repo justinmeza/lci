@@ -1,13 +1,15 @@
-/** Structures and functions for interpreting a parse tree. The interpreter
-  * traverses a parse tree in a depth-first manner, interpreting each node it
-  * reaches along the way.  This is the last stage of the processing of a source
-  * code file.
-  *
-  * \file   interpreter.h
-  *
-  * \author Justin J. Meza
-  *
-  * \date   2010 */
+/**
+ * Structures and functions for interpreting a parse tree.  The interpreter
+ * traverses a parse tree in a depth-first manner, interpreting each node it
+ * reaches along the way.  This is the last stage of the processing of a source
+ * code file.
+ *
+ * \file   interpreter.h
+ *
+ * \author Justin J. Meza
+ *
+ * \date   2010-2011
+ */
 
 #ifndef __INTERPRETER_H__
 #define __INTERPRETER_H__
@@ -19,127 +21,221 @@
 #include "parser.h"
 #include "unicode.h"
 
-/** Gets the integer data associated with a ValueObject structure. */
+/**
+ * Retrieves a value's integer data.
+ */
 #define getInteger(value) (value->data.i)
-/** Gets the floating point data associated with a ValueObject structure. */
+
+/**
+ * Retrieves a value's decimal data.
+ */
 #define getFloat(value) (value->data.f)
-/** Gets the string data associated with a ValueObject structure. */
+
+/**
+ * Retrieves a value's string data.
+ */
 #define getString(value) (value->data.s)
-/** Gets the function definition associated with a ValueObject structure. */
+
+/**
+ * Retrieves a value's function data.
+ */
 #define getFunction(value) (value->data.fn)
 
-/** Denotes the type of a value. */
+/**
+ * Retrieves a value's array data.
+ */
+#define getArray(value) (value->data.a)
+
+/**
+ * Represents a value type.
+ */
 typedef enum {
 	VT_INTEGER, /**< An integer value. */
-	VT_FLOAT,   /**< A floating point decimal value. */
-	VT_BOOLEAN, /**< A true/false value. */
-	VT_STRING,  /**< A character string value. */
+	VT_FLOAT,   /**< A decimal value. */
+	VT_BOOLEAN, /**< A boolean value. */
+	VT_STRING,  /**< A string value. */
 	VT_NIL,     /**< Represents no value. */
-	VT_FUNC     /**< A function. */
+	VT_FUNC,    /**< A function. */
+	VT_ARRAY    /**< An array. */
 } ValueType;
 
-/** Stores the data associated with a ValueObject structure. */
+/**
+ * Stores value data.
+ */
 typedef union {
-	int i;               /**< Integer data. */
-	float f;             /**< Floating point data. */
-	char *s;             /**< Character string data. */
-	FuncDefStmtNode *fn; /**< Function definition. */
+	int i;                 /**< Integer data. */
+	float f;               /**< Decimal data. */
+	char *s;               /**< String data. */
+	FuncDefStmtNode *fn;   /**< Function data. */
+	struct scopeobject *a; /**< Array data. */
 } ValueData;
 
-/** Increments the semaphore of a ValueObject structure. */
+/**
+ * Increments a value's semaphore.
+ */
 #define V(value) (value->semaphore++)
 
-/** Decrements the semaphore of a ValueObject structure. */
+/**
+ * Decrements a value's semaphore.
+ */
 #define P(value) (value->semaphore--)
 
-/** Stores a value.
-  * 
-  * \see copyValueObject(ValueObject *)
-  * \see deleteValueObject(ValueObject *) */
+/**
+ * Stores a value.
+ */
 typedef struct {
 	ValueType type;           /**< The type of value stored. */
-	ValueData data;           /**< The stored data. */
+	ValueData data;           /**< The value data. */
 	unsigned short semaphore; /**< A semaphore for value usage. */
 } ValueObject;
 
-/** Denotes the type of return encountered. */
+/**
+ * Represents the return type.
+ */
 typedef enum {
-	RT_DEFAULT, /**< A block of code returned after evaluating all of its statements. */
-	RT_BREAK,   /**< A block of code within a LoopStmtNode or SwitchStmtNode returned via a break statement. */
-	RT_RETURN   /**< A block of code within a FuncDefStmtNode called by a FuncCallExprNode returned (either with or without a value). */
+	RT_DEFAULT, /**< Code block completed successfully. */
+	RT_BREAK,   /**< Broke out of a loop or switch statement. */
+	RT_RETURN   /**< Returned from a function. */
 } ReturnType;
 
-/** Stores a return state.  Returns are encountered when
-  *   - a block of code evaluates all of its statements,
-  *   - a block of code within a LoopStmt or SwitchStmt encountered a break statement, or
-  *   - a block of code within a FunctionDefStmt called by a FunctionCallExpr encounters a ReturnStmt. */
+/**
+ * Stores return state.
+ */
 typedef struct {
 	ReturnType type;    /**< The type of return encountered. */
 	ValueObject *value; /**< The optional return value. */
 } ReturnObject;
 
-/** Stores the variables in a particular scope.  Scopes are arranged
-  * heirarchically from global (the ancestor of all other scopes) to local (the
-  * temporary scope of a BlockNode).
-  *
-  * \see createScopeObject(ScopeObject *)
-  * \see deleteScopeObject(ScopeObject *) */
+/**
+ * Stores a set of variables hierarchically.
+ */
 typedef struct scopeobject {
-	struct scopeobject *parent; /**< A pointer to the parent ScopeObject. */
-	ValueObject *impvar;        /**< A pointer to the ValueObject representing the implicit variable for this scope. */
-	unsigned int numvals;       /**< The number of ValueObject structures in \a values. */
-	char **names;               /**< A pointer to the array of character strings naming the values in the scope. */
-	ValueObject **values;       /**< A pointer to an array of ValueObject structures in the scope. */
+	struct scopeobject *parent; /**< The parent scope. */
+	ValueObject *impvar;        /**< The \ref impvar "implicit variable". */
+	unsigned int numvals;       /**< The number of values in the scope. */
+	char **names;               /**< The names of the values. */
+	ValueObject **values;       /**< The values in the scope. */
 } ScopeObject;
 
-char *createString(char *);
+/**
+ * \name Utilities
+ *
+ * Functions for performing helper tasks.
+ */
+/**@{*/
+void printInterpreterError(const char *, IdentifierNode *, ScopeObject *);
+char *copyString(char *);
+unsigned int isDecString(const char *);
+unsigned int isHexString(const char *);
+char *resolveIdentifierName(IdentifierNode *, ScopeObject *);
+/**@}*/
+
+/**
+ * \name Value object modifiers
+ *
+ * Functions for creating, copying, and deleting value objects.
+ */
+/**@{*/
 ValueObject *createNilValueObject(void);
 ValueObject *createBooleanValueObject(int);
 ValueObject *createIntegerValueObject(int);
 ValueObject *createFloatValueObject(float);
 ValueObject *createStringValueObject(char *);
 ValueObject *createFunctionValueObject(FuncDefStmtNode *);
+ValueObject *createArrayValueObject(ScopeObject *);
 ValueObject *copyValueObject(ValueObject *);
 void deleteValueObject(ValueObject *);
-ReturnObject *createReturnObject(ReturnType, ValueObject *);
-void deleteReturnObject(ReturnObject *);
-char *resolveIdentifierName(IdentifierNode *, ScopeObject *);
+/**@}*/
+
+/**
+ * \name Scope object modifiers
+ *
+ * Functions for manipulating scope objects and their data.
+ */
+/**@{*/
 ScopeObject *createScopeObject(ScopeObject *);
 void deleteScopeObject(ScopeObject *);
-ValueObject *getScopeValue(ScopeObject *, IdentifierNode *);
-ValueObject *getLocalScopeValue(ScopeObject *, IdentifierNode *);
-ValueObject *createScopeValue(ScopeObject *, IdentifierNode *);
-ValueObject *updateScopeValue(ScopeObject *, IdentifierNode *, ValueObject *);
-void deleteScopeValue(ScopeObject *, IdentifierNode *);
-unsigned int isNumString(const char *);
-unsigned int isHexString(const char *);
-ValueObject *castBooleanExplicit(ValueObject *, ScopeObject *);
-ValueObject *castIntegerExplicit(ValueObject *, ScopeObject *);
-ValueObject *castFloatExplicit(ValueObject *, ScopeObject *);
-ValueObject *castStringExplicit(ValueObject *, ScopeObject *);
+ValueObject *createScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *);
+ValueObject *updateScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *, ValueObject *);
+ValueObject *getScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *);
+ValueObject *getScopeValueArray(ScopeObject *, ScopeObject *, IdentifierNode *);
+ValueObject *getScopeValueLocal(ScopeObject *, ScopeObject *, IdentifierNode *);
+ScopeObject *getScopeObject(ScopeObject *, ScopeObject *, IdentifierNode *);
+void deleteScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *);
+/**@}*/
+
+/**
+ * \name Return object modifiers
+ *
+ * Functions for creating and deleting return objects.
+ */
+/**@{*/
+ReturnObject *createReturnObject(ReturnType, ValueObject *);
+void deleteReturnObject(ReturnObject *);
+/**@}*/
+
+/**
+ * \name Casts
+ *
+ * Functions for performing casts between different types of values.
+ */
+/**@{*/
 ValueObject *castBooleanImplicit(ValueObject *, ScopeObject *);
 ValueObject *castIntegerImplicit(ValueObject *, ScopeObject *);
 ValueObject *castFloatImplicit(ValueObject *, ScopeObject *);
 ValueObject *castStringImplicit(ValueObject *, ScopeObject *);
+ValueObject *castBooleanExplicit(ValueObject *, ScopeObject *);
+ValueObject *castIntegerExplicit(ValueObject *, ScopeObject *);
+ValueObject *castFloatExplicit(ValueObject *, ScopeObject *);
+ValueObject *castStringExplicit(ValueObject *, ScopeObject *);
+/**@}*/
+
+/**
+ * \name Node interpreters
+ *
+ * Functions for interpreting basic parse tree nodes.
+ */
+/**@{*/
 ValueObject *interpretExprNode(ExprNode *, ScopeObject *);
 ReturnObject *interpretStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretStmtNodeList(StmtNodeList *, ScopeObject *);
 ReturnObject *interpretBlockNode(BlockNode *, ScopeObject *);
 int interpretMainNode(MainNode *);
+/**@}*/
 
+/**
+ * \name Expression interpreters
+ *
+ * Functions for interpreting expression parse tree nodes.
+ */
+/**@{*/
 ValueObject *interpretImpVarExprNode(ExprNode *, ScopeObject *);
 ValueObject *interpretCastExprNode(ExprNode *, ScopeObject *);
 ValueObject *interpretFuncCallExprNode(ExprNode *, ScopeObject *);
 ValueObject *interpretIdentifierExprNode(ExprNode *, ScopeObject *);
 ValueObject *interpretConstantExprNode(ExprNode *, ScopeObject *);
+/**@}*/
 
+/**
+ * \name Operation interpreters
+ *
+ * Functions for interpreting operation parse tree nodes.
+ */
+/**@{*/
 ValueObject *interpretNotOpExprNode(OpExprNode *, ScopeObject *);
 ValueObject *interpretArithOpExprNode(OpExprNode *, ScopeObject *);
 ValueObject *interpretBoolOpExprNode(OpExprNode *, ScopeObject *);
 ValueObject *interpretEqualityOpExprNode(OpExprNode *, ScopeObject *);
 ValueObject *interpretConcatOpExprNode(OpExprNode *, ScopeObject *);
 ValueObject *interpretOpExprNode(ExprNode *, ScopeObject *);
+/**@}*/
 
+/**
+ * \name Statement interpreters
+ *
+ * Functions for interpreting statement parse tree nodes.
+ */
+/**@{*/
 ReturnObject *interpretCastStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretPrintStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretInputStmtNode(StmtNode *, ScopeObject *);
@@ -153,7 +249,14 @@ ReturnObject *interpretLoopStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretDeallocationStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretFuncDefStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretExprStmtNode(StmtNode *, ScopeObject *);
+/**@}*/
 
+/**
+ * \name Arithmetic operations (integer-integer)
+ *
+ * Functions for performing integer-integer operations on values.
+ */
+/**@{*/
 ValueObject *opAddIntegerInteger(ValueObject *, ValueObject *);
 ValueObject *opSubIntegerInteger(ValueObject *, ValueObject *);
 ValueObject *opMultIntegerInteger(ValueObject *, ValueObject *);
@@ -161,7 +264,14 @@ ValueObject *opDivIntegerInteger(ValueObject *, ValueObject *);
 ValueObject *opMaxIntegerInteger(ValueObject *, ValueObject *);
 ValueObject *opMinIntegerInteger(ValueObject *, ValueObject *);
 ValueObject *opModIntegerInteger(ValueObject *, ValueObject *);
+/**@}*/
 
+/**
+ * \name Arithmetic operations (integer-float)
+ *
+ * Functions for performing integer-float operations on values.
+ */
+/**@{*/
 ValueObject *opAddIntegerFloat(ValueObject *, ValueObject *);
 ValueObject *opSubIntegerFloat(ValueObject *, ValueObject *);
 ValueObject *opMultIntegerFloat(ValueObject *, ValueObject *);
@@ -169,7 +279,14 @@ ValueObject *opDivIntegerFloat(ValueObject *, ValueObject *);
 ValueObject *opMaxIntegerFloat(ValueObject *, ValueObject *);
 ValueObject *opMinIntegerFloat(ValueObject *, ValueObject *);
 ValueObject *opModIntegerFloat(ValueObject *, ValueObject *);
+/**@}*/
 
+/**
+ * \name Arithmetic operations (float-integer)
+ *
+ * Functions for performing float-integer operations on values.
+ */
+/**@{*/
 ValueObject *opAddFloatInteger(ValueObject *, ValueObject *);
 ValueObject *opSubFloatInteger(ValueObject *, ValueObject *);
 ValueObject *opMultFloatInteger(ValueObject *, ValueObject *);
@@ -177,7 +294,14 @@ ValueObject *opDivFloatInteger(ValueObject *, ValueObject *);
 ValueObject *opMaxFloatInteger(ValueObject *, ValueObject *);
 ValueObject *opMinFloatInteger(ValueObject *, ValueObject *);
 ValueObject *opModFloatInteger(ValueObject *, ValueObject *);
+/**@}*/
 
+/**
+ * \name Arithmetic operations (float-float)
+ *
+ * Functions for performing float-float operations on values.
+ */
+/**@{*/
 ValueObject *opAddFloatFloat(ValueObject *, ValueObject *);
 ValueObject *opSubFloatFloat(ValueObject *, ValueObject *);
 ValueObject *opMultFloatFloat(ValueObject *, ValueObject *);
@@ -185,26 +309,76 @@ ValueObject *opDivFloatFloat(ValueObject *, ValueObject *);
 ValueObject *opMaxFloatFloat(ValueObject *, ValueObject *);
 ValueObject *opMinFloatFloat(ValueObject *, ValueObject *);
 ValueObject *opModFloatFloat(ValueObject *, ValueObject *);
+/**@}*/
 
+/**
+ * \name Equality operations (boolean-boolean)
+ *
+ * Functions for performing boolean-boolean operations on values.
+ */
+/**@{*/
 ValueObject *opEqBooleanBoolean(ValueObject *, ValueObject *);
 ValueObject *opNeqBooleanBoolean(ValueObject *, ValueObject *);
+/**@}*/
 
+/**
+ * \name Equality operations (integer-integer)
+ *
+ * Functions for performing integer-integer operations on values.
+ */
+/**@{*/
 ValueObject *opEqIntegerInteger(ValueObject *, ValueObject *);
 ValueObject *opNeqIntegerInteger(ValueObject *, ValueObject *);
+/**@}*/
 
+/**
+ * \name Equality operations (integer-float)
+ *
+ * Functions for performing integer-float operations on values.
+ */
+/**@{*/
 ValueObject *opEqIntegerFloat(ValueObject *, ValueObject *);
 ValueObject *opNeqIntegerFloat(ValueObject *, ValueObject *);
+/**@}*/
 
+/**
+ * \name Equality operations (float-integer)
+ *
+ * Functions for performing float-integer operations on values.
+ */
+/**@{*/
 ValueObject *opEqFloatInteger(ValueObject *, ValueObject *);
 ValueObject *opNeqFloatInteger(ValueObject *, ValueObject *);
+/**@}*/
 
+/**
+ * \name Equality operations (float-float)
+ *
+ * Functions for performing float-float operations on values.
+ */
+/**@{*/
 ValueObject *opEqFloatFloat(ValueObject *, ValueObject *);
 ValueObject *opNeqFloatFloat(ValueObject *, ValueObject *);
+/**@}*/
 
+/**
+ * \name Equality operations (string-string)
+ *
+ * Functions for performing string-string operations on values.
+ */
+/**@{*/
 ValueObject *opEqStringString(ValueObject *, ValueObject *);
 ValueObject *opNeqStringString(ValueObject *, ValueObject *);
+/**@}*/
 
+/**
+ * \name Equality operations (nil-nil)
+ *
+ * Functions for performing nil-nil operations on values.
+ */
+/**@{*/
 ValueObject *opEqNilNil(ValueObject *, ValueObject *);
 ValueObject *opNeqNilNil(ValueObject *, ValueObject *);
+/**@}*/
 
 #endif /* __INTERPRETER_H__ */

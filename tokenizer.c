@@ -12,6 +12,7 @@ static const char *keywords[] = {
 	"NUMBAR",      /* TT_NUMBAR */
 	"TROOF",       /* TT_TROOF */
 	"YARN",        /* TT_YARN */
+	"BUKKIT",      /* TT_BUKKIT */
 	"",            /* TT_EOF */
 	"",            /* TT_NEWLINE */
 	"HAI",         /* TT_HAI */
@@ -67,23 +68,27 @@ static const char *keywords[] = {
 	"IF U SAY SO", /* TT_IFUSAYSO */
 	"FOUND YR",    /* TT_FOUNDYR */
 	"SRS",         /* TT_SRS */
+	"'Z",          /* TT_APOSTROPHEZ */
+	"BUKKIT",      /* TT_BUKKIT */
 	""             /* TT_ENDOFTOKENS */
 };
 
-/** Checks if a string of characters follows the format for an integer.
-  * Specifically, it checks if the string of characters matches the regular
-  * expression: [-]?[1-9][0-9]* | 0
-  *
-  * \retval 0 The string of characters is not an integer.
-  * \retval 1 The string of characters is an integer.
-  *
-  * \see isFloat(const char *)
-  * \see isString(const char *)
-  * \see isIdentifier(const char *) */
-int isInteger(const char *image) /**< [in] The string of characters to compare. */
+/**
+ * Checks if a string follows the format for an integer.  Specifically, it
+ * checks if the string matches the regular expression: (-?[1-9][0-9]*|0).
+ *
+ * \param [in] image The string to check.
+ *
+ * \retval 0 \a image does not match the pattern for an integer.
+ *
+ * \retval 1 \a image matches the pattern for an integer.
+ */
+int isInteger(const char *image)
 {
 	const char *cur = image;
-	if (*cur == '-' || (isdigit(*cur) && *cur != '0') || (*cur == '0' && *(cur + 1) == '\0')) {
+	if (*cur == '-'
+			|| (isdigit(*cur) && *cur != '0')
+			|| (*cur == '0' && *(cur + 1) == '\0')) {
 		cur++;
 		while (isdigit(*cur)) cur++;
 		if (*cur == '\0') return 1;
@@ -91,17 +96,17 @@ int isInteger(const char *image) /**< [in] The string of characters to compare. 
 	return 0;
 }
 
-/** Checks if a string of characters follows the format for a floating
-  * point decimal.  Specifically, it checks if the string of characters matches
-  * the regular expression: [-]?[0-9].[0-9]*
-  *
-  * \retval 0 The string of characters is not a floating point decimal.
-  * \retval 1 The string of characters is a floating point decimal.
-  *
-  * \see isInteger(const char *)
-  * \see isString(const char *)
-  * \see isIdentifier(const char *) */
-int isFloat(const char *image) /**< [in] The string of characters to compare. */
+/**
+ * Checks if a string follows the format for a decimal.  Specifically, it checks
+ * if the string matches the regular expression: (-?[0-9].[0-9]*).
+ *
+ * \param [in] image The string to check.
+ *
+ * \retval 0 \a image does not match the pattern for a decimal.
+ *
+ * \retval 1 \a image matches the pattern for a decimal.
+ */
+int isFloat(const char *image)
 {
 	const char *cur = image;
 	if (*cur == '-' || isdigit(*cur)) {
@@ -116,33 +121,33 @@ int isFloat(const char *image) /**< [in] The string of characters to compare. */
 	return 0;
 }
 
-/** Checks if a string of characters follows the format for a string.
-  * Specifically, it checks if the string of characters begins and ends with a
-  * quote character.
-  *
-  * \retval 0 The string of characters is not a string.
-  * \retval 1 The string of characters is a string.
-  *
-  * \see isInteger(const char *)
-  * \see isFloat(const char *)
-  * \see isIdentifier(const char *) */
-int isString(const char *image) /**< [in] The string of characters to compare. */
+/**
+ * Checks if a string follows the format for a string literal.  Specifically, it
+ * checks if the string matches the regular expression: (".*").
+ *
+ * \param [in] image The string to check.
+ *
+ * \retval 0 \a image does not match the pattern for a string.
+ *
+ * \retval 1 \a image matches the pattern for a string.
+ */
+int isString(const char *image)
 {
 	size_t len = strlen(image);
 	return (len >= 2 && image[0] == '"' && image[len - 1] == '"');
 }
 
-/** Checks if a string of characters follows the format for an identifier.
-  * Specifically, it checks if the string of characters matches the regular
-  * expression: [a-zA-Z][a-zA-Z0-9_]*
-  *
-  * \retval 0 The string of characters is not an identifier.
-  * \retval 1 The string of characters is an identifier.
-  *
-  * \see isInteger(const char *)
-  * \see isFloat(const char *)
-  * \see isString(const char *) */
-int isIdentifier(const char *image) /**< [in] The string of characters to compare. */
+/**
+ * Checks if a string follows the format for an identifier.  Specifically, it
+ * checks if the string matches the regular expression: ([a-zA-Z][a-zA-Z0-9_]*).
+ *
+ * \param image [in] The string to check.
+ *
+ * \retval 0 \a image does not match the pattern for an identifier.
+ *
+ * \retval 1 \a image matches the pattern for an identifier.
+ */
+int isIdentifier(const char *image)
 {
 	const char *cur = image;
 	/* First character must be alphabetic */
@@ -155,17 +160,25 @@ int isIdentifier(const char *image) /**< [in] The string of characters to compar
 	return 1;
 }
 
-/** Creates a Token structure.
-  *
-  * \return A pointer to a Token structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteToken(Token *) */
-Token *createToken(TokenType type,    /**< [in] The type of token to create. */
-                   const char *image, /**< [in] The characters from the source file that represent the token. */
-                   const char *fname, /**< [in] A pointer to the name of the file containing the token. */
-                   unsigned int line) /**< [in] The line number from the source file that the token occurred on. */
+/**
+ * Creates a token.
+ *
+ * \param [in] type The type of token to create.
+ *
+ * \param [in] image The string that represents the token.
+ *
+ * \param [in] fname The name of the file containing the token.
+ *
+ * \param [in] line The number of the line containing the token.
+ *
+ * \return A pointer to a new token with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+Token *createToken(TokenType type,
+                   const char *image,
+                   const char *fname,
+                   unsigned int line)
 {
 	Token *ret = malloc(sizeof(Token));
 	if (!ret) {
@@ -180,20 +193,22 @@ Token *createToken(TokenType type,    /**< [in] The type of token to create. */
 		return NULL;
 	}
 	strcpy(ret->image, image);
-	/** \note fname is not copied because it would only one copy is stored
-	  *       for all Token structures that share it. */
+	/**
+	 * \note fname is not copied because only one copy is stored for all
+	 * Token structures that share it.
+	 */
 	ret->fname = fname;
 	ret->line = line;
 	return ret;
 }
 
-/** Deletes a Token structure.
-  *
-  * \pre \a token points to a Token structure created by createToken(TokenType, const char *, const char *, unsigned int).
-  *
-  * \post The memory at \a token and all of its elements will be freed.
-  *
-  * \see createToken(TokenType, const char *, const char *, unsigned int) */
+/**
+ * Deletes a token.
+ *
+ * \param [in,out] token The token to delete.
+ *
+ * \post The memory at \a token and all of its members will be freed.
+ */
 void deleteToken(Token *token)
 {
 	if (!token) return;
@@ -201,22 +216,25 @@ void deleteToken(Token *token)
 	free(token);
 }
 
-/** Adds a Token to an array of Token structures.
-  *
-  * \note \a list may be NULL in which case a new list is created.
-  *
-  * \pre \a num is the number of elements in \a list.
-  *
-  * \post \a token will be added on to the end of \a list and the value at \a num
-  *       will be updated accordingly.
-  *
-  * \retval 0 realloc was unable to allocate memory.
-  * \retval 1 \a node was added to \a list.
-  *
-  * \see deleteTokens(Token **) */
-int addToken(Token ***list,     /**< [in,out] A pointer to a pointer to an array of Token structures to add the new Token onto. */
-             unsigned int *num, /**< [in,out] A pointer to the number of elements in \a list. */
-             Token *token)      /**< [in] A pointer to the Token structure to add to \a list. */
+/**
+ * Adds a token to a list.
+ *
+ * \param [in,out] list The list of tokens to add \a token to.
+ *
+ * \param [in,out] num The number of tokens in \a list.
+ *
+ * \param [in] token The token to add to \a list.
+ *
+ * \post \a token will be added to the end of \a list and the size of \a list
+ * will be updated.
+ *
+ * \retval 0 Memory allocation failed.
+ *
+ * \retval 1 \a token was added to \a list.
+ */
+int addToken(Token ***list,
+             unsigned int *num,
+             Token *token)
 {
 	unsigned int newsize = *num + 1;
 	void *mem = realloc(*list, sizeof(Token *) * newsize);
@@ -233,14 +251,14 @@ int addToken(Token ***list,     /**< [in,out] A pointer to a pointer to an array
 	return 1;
 }
 
-/** Deletes an array of Token structures.
-  *
-  * \pre \a list was created by and contains items added by addToken(Token ***, unsigned int *, Token *).
-  *
-  * \post The memory at \a list and all of its elements will be freed.
-  *
-  * \see addToken(Token ***, unsigned int *, Token *) */
-void deleteTokens(Token **list) /**< [in,out] A pointer to an array of Token structures to be deleted. */
+/**
+ * Deletes a list of tokens.
+ *
+ * \param list [in,out] The list of tokens to delete.
+ *
+ * \post The memory at \a list and all of its members will be freed.
+ */
+void deleteTokens(Token **list)
 {
 	Token **tok = list;
 	while (*tok) {
@@ -250,20 +268,28 @@ void deleteTokens(Token **list) /**< [in,out] A pointer to an array of Token str
 	free(list);
 }
 
-/** Tries to match a sequence of lexemes.  Scans through \a lexemes starting at
-  * \a start and tries to match space-delimited lexemes from \a match.
-  *
-  * \pre \a lexemes was created by scanBuffer(const char *, unsigned int, const char *).
-  *
-  * \return The number of lexemes matched. */
-unsigned int acceptLexemes(LexemeList *lexemes, /**< [in] A pointer to a LexemeList structure to match lexemes from. */
-                           unsigned int start,  /**< [in] The position within \a lexemes to start matching at. */
-                           const char *match)   /**< [in] A pointer to a character array describing the sequence of lexemes to match. */
+/**
+ * Matches lexemes against a string.  Traverses \a lexemes starting at \a start
+ * and compares lexeme images to space-delimited substrings from \a match.
+ *
+ * \param lexemes [in] The list of lexemes to match from.
+ *
+ * \param start [in] The index within \a lexemes to start matching at.
+ * 
+ * \param match [in] A string of space-delimited substrings to match.
+ *
+ * \return The number of lexemes matched.
+ */
+unsigned int acceptLexemes(LexemeList *lexemes,
+                           unsigned int start,
+                           const char *match)
 {
 	unsigned int offset = 0;
 	unsigned int n;
 	unsigned int i;
-	for (n = 0, i = 0; match[n] || lexemes->lexemes[start + offset]->image[i]; n++) {
+	for (n = 0, i = 0;
+			match[n] || lexemes->lexemes[start + offset]->image[i];
+			n++) {
 		if (match[n] == ' ') {
 			offset++;
 			i = 0;
@@ -276,49 +302,59 @@ unsigned int acceptLexemes(LexemeList *lexemes, /**< [in] A pointer to a LexemeL
 	return offset + 1;
 }
 
-/** Checks if a sequence of lexemes is a keyword.  \a lexemes is searched
-  * starting at \a start for keywords.  If one is found, the appropriate Token
-  * structure is created and returned and the value of \a start is incremented
-  * by the number of lexemes matched minus one.
-  *
-  * \pre \a lexemes was created by scanBuffer(const char *, unsigned int, const char *).
-  *
-  * \post If a keyword is not found, \a start will be unmodified.  Otherwise,
-  *       \a start will be incremented by the number of lexemes matched minus
-  *       one.
-  *
-  * \return A pointer to a newly created keyword Token structure.
-  *
-  * \retval NULL No keywords were matched or there was an error allocating
-  *         memory. */
-Token *isKeyword(LexemeList *lexemes, /**< [in] A pointer to a LexemeList structure to search for keywords in. */
-                 unsigned int *start) /**< [in,out] A pointer to the position within \a lexemes to start checking at. */
+/**
+ * Checks if the next lexemes in a list comprise a keyword and, if so, generates
+ * a new token representing that keyword.  Specifically, \a lexemes is searched,
+ * starting at \a start for keywords.  If one is found, an appropriate token is
+ * created and returned and \a start is incremented by the number of lexemes
+ * matched minus one.
+ *
+ * \param lexemes [in] A list of lexemes to search for keywords in.
+ *
+ * \param start [in,out] The position within \a lexemes to begin searching for
+ * keywords.
+ *
+ * \post If a keyword is not found, \a start will not be modified.  Otherwise,
+ * \a start will be incremented by the number of lexemes matched minus one.
+ *
+ * \return A pointer to the token containing the matched keyword.
+ *
+ * \retval NULL No keywords were found or there was an error allocating memory.
+ */
+Token *isKeyword(LexemeList *lexemes,
+                 unsigned int *start)
 {
 	Token *token = NULL;
 	TokenType type;
 	const char *fname = lexemes->lexemes[*start]->fname;
 	unsigned int line = lexemes->lexemes[*start]->line;
+	/* For each keyword, */
 	for (type = 0; type != TT_ENDOFTOKENS; type++) {
-		unsigned int num = acceptLexemes(lexemes, *start, keywords[type]);
+		/* Check if the start of lexemes match */
+		unsigned int num = acceptLexemes(lexemes,
+				*start, keywords[type]);
 		if (!num) continue;
+		/* If so, create a new token for the keyword */
 		token = createToken(type, keywords[type], fname, line);
+		/* And advance the start */
 		*start += (num - 1);
 		break;
 	}
 	return token;
 }
 
-/** Converts a list of lexemes into tokens.  Additionally parses the literal
-  * values of integers, floating point decimals, and strings.
-  *
-  * \pre \a list was created by scanBuffer(const char *, unsigned int, const char *).
-  *
-  * \return A pointer to an array of Token structures representing the tokenized
-  *         form of the input lexeme stream.
-  *
-  * \retval NULL An unrecognized token was encountered or memory allocation
-  *         failed. */
-Token **tokenizeLexemes(LexemeList *list) /**< [in] A pointer to a LexemeList structure to tokenize. */
+/**
+ * Converts a list of lexemes into tokens.  Also parses integers, floats, and
+ * strings into tokens with semantic meaning.
+ *
+ * \param list [in] A list of lexemes to tokenize.
+ *
+ * \return A list of tokens generated from \a list.
+ *
+ * \retval NULL An unrecognized token was encounteres or memory allocation
+ * failed.
+ */
+Token **tokenizeLexemes(LexemeList *list)
 {
 	void *mem = NULL;
 	Token **ret = NULL;
@@ -368,8 +404,8 @@ Token **tokenizeLexemes(LexemeList *list) /**< [in] A pointer to a LexemeList st
 			continue;
 		}
 		/* Newline */
-		/* Note that the spec is unclear as to whether a command *must* follow
-		 * a comma.  For now, we let commas end a line. */
+		/* Note that the spec is unclear as to whether a command *must*
+		 * follow a comma.  For now, we let commas end a line. */
 		else if (!strcmp(image, "\n")) {
 			/* Note that we ignore any initial newlines */
 			if (retsize < 1) {
@@ -392,8 +428,8 @@ Token **tokenizeLexemes(LexemeList *list) /**< [in] A pointer to a LexemeList st
 		else if ((token = isKeyword(list, &n))) {
 		}
 		/* Identifier */
-		/* This must be placed after keyword parsing because most
-		 * keywords look like identifiers. */
+		/* This must be placed after keyword parsing or else most
+		 * keywords would be tokenized as identifiers. */
 		else if (isIdentifier(image)) {
 			token = createToken(TT_IDENTIFIER, image, fname, line);
 		}
