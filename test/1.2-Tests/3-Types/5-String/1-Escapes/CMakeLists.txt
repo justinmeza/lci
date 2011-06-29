@@ -1,0 +1,5 @@
+add_subdirectory(1-Newline)
+add_subdirectory(2-Tab)
+add_subdirectory(3-Bell)
+add_subdirectory(4-DoubleQuote)
+add_subdirectory(5-Colon)
