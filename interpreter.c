@@ -2619,7 +2619,7 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,     /**< [in] A pointer to 
 	void *mem = NULL;
 	InputStmtNode *stmt = (InputStmtNode *)node->stmt;
 	ValueObject *val = NULL;
-	while ((c = getchar())) {
+	while ((c = getchar()) && !feof(stdin)) {
 		/** \note The specification is unclear as to the exact semantics
 		  *       of input.  Here, we read up until the first newline or
 		  *       EOF but do not store it. */
