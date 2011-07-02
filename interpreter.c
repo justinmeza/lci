@@ -702,8 +702,7 @@ ValueObject *getScopeValueLocal(ScopeObject *src,
 		ValueObject *val = getScopeValueArray(src, dest, target);
 		if (!val) goto getScopeValueLocalAbort;
 		if (val->type != VT_ARRAY) {
-			printInterpreterError("variable is not an array",
-target, src);
+			printInterpreterError("variable is not an array", target, src);
 			goto getScopeValueLocalAbort;
 		}
 		dest = getArray(val);
@@ -758,8 +757,7 @@ ScopeObject *getScopeObject(ScopeObject *src,
 		ValueObject *val = getScopeValueArray(src, dest, target);
 		if (!val) goto getScopeObjectAbort;
 		if (val->type != VT_ARRAY) {
-			printInterpreterError("variable is not an array",
-target, src);
+			printInterpreterError("variable is not an array", target, src);
 			goto getScopeObjectAbort;
 		}
 		dest = getArray(val);
@@ -772,10 +770,15 @@ target, src);
 
 	status = strcmp(name, "I");
 	free(name);
+	name = NULL;
 	if (!status) return src;
 
 	val = getScopeValue(src, dest, target);
 	if (!val) goto getScopeObjectAbort;
+	if (val->type != VT_ARRAY) {
+		printInterpreterError("variable is not an array", target, src);
+		goto getScopeObjectAbort;
+	}
 
 	return getArray(val);
 
@@ -3480,8 +3483,9 @@ ReturnObject *interpretFuncDefStmtNode(StmtNode *node,
 	FuncDefStmtNode *stmt = (FuncDefStmtNode *)node->stmt;
 	ValueObject *init = NULL;
 	ScopeObject *dest = NULL;
+
 	dest = getScopeObject(scope, scope, stmt->scope);
-	/** \todo Figure out if this makes sense: we want to check if the local scope contains the function name, but if the name of the function contains a SRS expression, we want to evaluate that using the local scope */
+	if (!dest) return NULL;
 	if (getScopeValueLocal(scope, dest, stmt->name)) {
 		IdentifierNode *id = (IdentifierNode *)(stmt->name);
 		char *name = resolveIdentifierName(id, scope);
