@@ -3109,7 +3109,6 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,
 	else
 		init = createNilValueObject();
 	if (!init) return NULL;
-	/** \todo Okay, here is the problem, we can store to a different scope than where we evaluate the target from.  So, stmt->target needs to be evaluated under ``scope'' but created in ``dest'' */
 	if (!createScopeValue(scope, dest, stmt->target)) {
 		deleteValueObject(init);
 		return NULL;
