@@ -2226,9 +2226,6 @@ ExprNode *parseExprNode(Token ***tokenp)
 		IdentifierNode *id = NULL;
 
 		/* Remove the identifier from the token stream */
-		/** \todo This works, but it also prints out the debug
-		  *       information as if it was parsed which can be confusing
-		  *       to see.  Fix it to not print this out. */
 		id = parseIdentifierNode(&tokens);
 		if (!id) return NULL;
 
@@ -3364,7 +3361,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 			guard = parseExprNode(&tokens);
 			if (!guard) goto parseLoopStmtNodeAbort;
 		}
-		/* Check for a until token */
+		/* Check for an until token */
 		else if (acceptToken(&tokens, TT_TIL)) {
 #ifdef DEBUG
 			shiftout();
@@ -3456,7 +3453,6 @@ parseLoopStmtNodeAbort: /* Exception handling */
 	if (ret) deleteStmtNode(ret);
 	else if (stmt) deleteLoopStmtNode(stmt);
 	else {
-		/** \todo Need to adjust this to properly clean up nested objects. */
 		if (name2) deleteIdentifierNode(name2);
 		if (def) deleteFuncDefStmtNode(def);
 		if (body) deleteBlockNode(body);
@@ -3711,9 +3707,6 @@ StmtNode *parseStmtNode(Token ***tokenp)
 		IdentifierNode *id = NULL;
 
 		/* Remove the identifier from the token stream */
-		/** \todo This works, but it also prints out the debug
-		  *       information as if it was parsed which can be confusing
-		  *       to see.  Fix it to not print this out. */
 		id = parseIdentifierNode(&tokens);
 		if (!id) return NULL;
 

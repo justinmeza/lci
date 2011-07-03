@@ -977,8 +977,6 @@ int resolveTerminalSlot(ScopeObject *src,
 	return 1;
 }
 
-/** \todo Investigate segfault within a loop: array HAS A SRS I IZ slot YR 1 (NO_MKAY) */
-
 /**
  * Casts the contents of a value to boolean type in an implicit way.  Casting is
  * not done directly to \a node, instead, it is performed on a copy which is

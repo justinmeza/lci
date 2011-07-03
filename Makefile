@@ -16,13 +16,13 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC) $(CPPFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
 
-pedantic: $(OBJS) $(LIBS)
+pedantic: $(OBJS)
 	$(CC) -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wundef -Wall -ansi -pedantic -o $(TARGET) $(SRCS) $(HDRS) $(LIBS)
 
 lint: all
 	$(LINT) $(SRCS)
 
-debug: $(OBJS) $(LIBS)
+debug: $(OBJS)
 	$(CC) -g -o $(TARGET) $(SRCS) $(LIBS)
 
 check: all
