@@ -667,6 +667,8 @@ ValueObject *getScopeValueArray(ScopeObject *src,
 		}
 	} while ((current = current->parent));
 
+	printInterpreterError("variable does not exist", target, src);
+
 getScopeValueArrayAbort: /* In case something goes wrong... */
 
 	/* Clean up any allocated structures */
