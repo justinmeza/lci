@@ -111,6 +111,7 @@ typedef struct {
  */
 typedef struct scopeobject {
 	struct scopeobject *parent; /**< The parent scope. */
+	struct scopeobject *caller; /**< The caller scope (if in a function). */
 	ValueObject *impvar;        /**< The \ref impvar "implicit variable". */
 	unsigned int numvals;       /**< The number of values in the scope. */
 	char **names;               /**< The names of the values. */
@@ -154,13 +155,14 @@ void deleteValueObject(ValueObject *);
  */
 /**@{*/
 ScopeObject *createScopeObject(ScopeObject *);
+ScopeObject *createScopeObjectCaller(ScopeObject *, ScopeObject *);
 void deleteScopeObject(ScopeObject *);
 ValueObject *createScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *);
 ValueObject *updateScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *, ValueObject *);
 ValueObject *getScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *);
-ValueObject *getScopeValueArray(ScopeObject *, ScopeObject *, IdentifierNode *);
 ValueObject *getScopeValueLocal(ScopeObject *, ScopeObject *, IdentifierNode *);
 ScopeObject *getScopeObject(ScopeObject *, ScopeObject *, IdentifierNode *);
+ScopeObject *getScopeObjectLocal(ScopeObject *, ScopeObject *, IdentifierNode *);
 void deleteScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *);
 /**@}*/
 

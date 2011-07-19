@@ -420,6 +420,28 @@ ScopeObject *createScopeObject(ScopeObject *parent)
 	p->names = NULL;
 	p->values = NULL;
 	p->parent = parent;
+	if (parent) p->caller = parent->caller;
+	else p->caller = NULL;
+	return p;
+}
+
+/**
+ * Creates a scope with a specific caller.
+ *
+ * \param [in] parent The optional parent scope to use.
+ *
+ * \param [in] caller The caller scope to use.
+ *
+ * \return An empty scope with parent \a parent and caller \a caller.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+ScopeObject *createScopeObjectCaller(ScopeObject *parent,
+                                     ScopeObject *caller)
+{
+	ScopeObject *p = createScopeObject(parent);
+	if (!p) return NULL;
+	if (caller) p->caller = caller;
 	return p;
 }
 
@@ -630,30 +652,41 @@ getScopeValueAbort: /* In case something goes wrong... */
 }
 
 /**
- * Gets a value from a scope without accessing any arrays.
+ * Gets a scope without accessing any arrays.
  *
  * \param [in] src The scope to evaluate \a target under.
  *
  * \param [in,out] dest The scope to update the value in.
  *
- * \param [in] target The name of the value to get.
+ * \param [in] target The name of the value containing the scope to get.
  *
- * \return The value in \a dest, named by evaluating \a target under \a src,
- * without accessing any arrays.
+ * \return The scope contained in the value in \a dest, named by evaluating \a
+ * target under \a src, without accessing any arrays.
  *
  * \retval NULL Either \a target could not be evaluated in \a src or \a target
  * could not be found in \a dest.
  */
-ValueObject *getScopeValueArray(ScopeObject *src,
-                                ScopeObject *dest,
-                                IdentifierNode *target)
+/** \todo Add this definition to interpreter.h */
+ScopeObject *getScopeObjectLocal(ScopeObject *src,
+                                 ScopeObject *dest,
+                                 IdentifierNode *target)
 {
 	ScopeObject *current = dest;
 	char *name = NULL;
 
 	/* Look up the identifier name */
 	name = resolveIdentifierName(target, src);
-	if (!name) goto getScopeValueArrayAbort;
+	if (!name) goto getScopeObjectLocalAbort;
+
+	/* Check for calling object reference variable */
+	if (!strcmp(name, "ME")) {
+		/* Traverse upwards through callers */
+		for (current = dest;
+				current->caller;
+				current = current->caller);
+		free(name);
+		return current;
+	}
 
 	/* Traverse upwards through scopes */
 	do {
@@ -662,14 +695,14 @@ ValueObject *getScopeValueArray(ScopeObject *src,
 		for (n = 0; n < current->numvals; n++) {
 			if (!strcmp(current->names[n], name)) {
 				free(name);
-				return current->values[n];
+				return getArray(current->values[n]);
 			}
 		}
 	} while ((current = current->parent));
 
 	printInterpreterError("variable does not exist", target, src);
 
-getScopeValueArrayAbort: /* In case something goes wrong... */
+getScopeObjectLocalAbort: /* In case something goes wrong... */
 
 	/* Clean up any allocated structures */
 	if (name) free(name);
@@ -701,13 +734,14 @@ ValueObject *getScopeValueLocal(ScopeObject *src,
 
 	/* Access any slots */
 	while (target->slot) {
-		ValueObject *val = getScopeValueArray(src, dest, target);
-		if (!val) goto getScopeValueLocalAbort;
-		if (val->type != VT_ARRAY) {
-			printInterpreterError("variable is not an array", target, src);
-			goto getScopeValueLocalAbort;
-		}
-		dest = getArray(val);
+		/*
+		 * Look up the target in the dest scope, using the src scope
+		 * for resolving variables in indirect identifiers
+		 */
+		ScopeObject *scope = getScopeObjectLocal(src, dest, target);
+		if (!scope) return 0;
+		dest = scope;
+
 		target = target->slot;
 	}
 
@@ -753,16 +787,18 @@ ScopeObject *getScopeObject(ScopeObject *src,
 	ValueObject *val = NULL;
 	char *name = NULL;
 	int status;
+	int isI;
 	
 	/* Access any slots */
 	while (target->slot) {
-		ValueObject *val = getScopeValueArray(src, dest, target);
-		if (!val) goto getScopeObjectAbort;
-		if (val->type != VT_ARRAY) {
-			printInterpreterError("variable is not an array", target, src);
-			goto getScopeObjectAbort;
-		}
-		dest = getArray(val);
+		/*
+		 * Look up the target in the dest scope, using the src scope
+		 * for resolving variables in indirect identifiers
+		 */
+		ScopeObject *scope = getScopeObjectLocal(src, dest, target);
+		if (!scope) return 0;
+		dest = scope;
+
 		target = target->slot;
 	}
 
@@ -770,10 +806,10 @@ ScopeObject *getScopeObject(ScopeObject *src,
 	name = resolveIdentifierName(target, src);
 	if (!name) goto getScopeObjectAbort;
 
-	status = strcmp(name, "I");
+	isI = strcmp(name, "I");
 	free(name);
 	name = NULL;
-	if (!status) return src;
+	if (!isI) return src;
 
 	val = getScopeValue(src, dest, target);
 	if (!val) goto getScopeObjectAbort;
@@ -812,14 +848,13 @@ void deleteScopeValue(ScopeObject *src,
 
 	/* Access any slots */
 	while (target->slot) {
-		ValueObject *val = getScopeValueArray(src, dest, target);
-		if (!val) goto deleteScopeValue;
-		if (val->type != VT_ARRAY) {
-			printInterpreterError("value is not an array", target,
-src);
-			goto deleteScopeValue;
-		}
-		dest = getArray(val);
+		/*
+		 * Look up the target in the dest scope, using the src scope
+		 * for resolving variables in indirect identifiers
+		 */
+		ScopeObject *scope = getScopeObjectLocal(src, dest, target);
+		if (!scope) return;
+		dest = scope;
 		target = target->slot;
 	}
 	current = dest;
@@ -954,19 +989,18 @@ int resolveTerminalSlot(ScopeObject *src,
 
 	/* Access any slots */
 	while (target->slot) {
-		/* Look up the target in the dest scope, using the src scope
-		 * for resolving variables in indirect identifiers */
-		ValueObject *val = getScopeValueArray(src, dest, target);
-		if (!val) return 0;
-
-		/* Make sure the target contains an array */
-		if (val->type != VT_ARRAY) {
-			printInterpreterError("value is not an array", target, dest);
-			return 0;
-		}
+		/*
+		 * Look up the target in the dest scope, using the src scope
+		 * for resolving variables in indirect identifiers
+		 */
+		ScopeObject *scope = getScopeObjectLocal(src, dest, target);
+		if (!scope) return 0;
+		dest = scope;
 
 		/* Change the dest scope to the target */
+		/*
 		dest = getArray(val);
+		*/
 
 		/* Change the target to the old target's slot */
 		target = target->slot;
@@ -1618,14 +1652,23 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,
 {
 	FuncCallExprNode *expr = (FuncCallExprNode *)node->expr;
 	unsigned int n;
-	ScopeObject *outer = createScopeObject(scope);
+	ScopeObject *outer = NULL;
 	ValueObject *def = NULL;
 	ReturnObject *retval = NULL;
 	ValueObject *ret = NULL;
 	ScopeObject *dest = NULL;
-	dest = getScopeObject(scope, scope, expr->scope);
+	ScopeObject *target = NULL;
+
+	target = getScopeObjectLocal(scope, scope, expr->name);
+	if (!target) return NULL;
+
+	outer = createScopeObjectCaller(scope, target);
 	if (!outer) return NULL;
+
+	dest = getScopeObject(scope, scope, expr->scope);
+
 	def = getScopeValue(scope, dest, expr->name);
+
 	if (!def || def->type != VT_FUNC) {
 		IdentifierNode *id = (IdentifierNode *)(expr->name);
 		char *name = resolveIdentifierName(id, scope);
