@@ -731,6 +731,7 @@ ValueObject *getScopeValueLocal(ScopeObject *src,
 {
 	unsigned int n;
 	char *name = NULL;
+	ScopeObject *scope = NULL;
 
 	/* Access any slots */
 	while (target->slot) {
@@ -738,7 +739,7 @@ ValueObject *getScopeValueLocal(ScopeObject *src,
 		 * Look up the target in the dest scope, using the src scope
 		 * for resolving variables in indirect identifiers
 		 */
-		ScopeObject *scope = getScopeObjectLocal(src, dest, target);
+		scope = getScopeObjectLocal(src, dest, target);
 		if (!scope) return 0;
 		dest = scope;
 
@@ -761,6 +762,7 @@ getScopeValueLocalAbort: /* In case something goes wrong... */
 
 	/* Clean up any allocated structures */
 	if (name) free(name);
+	if (scope) deleteScopeObject(scope);
 
 	return NULL;
 }
@@ -788,28 +790,42 @@ ScopeObject *getScopeObject(ScopeObject *src,
 	char *name = NULL;
 	int status;
 	int isI;
+	int isME;
+	ScopeObject *scope;
 	
+	/* Look up the identifier name */
+	name = resolveIdentifierName(target, src);
+	if (!name) goto getScopeObjectAbort;
+
+	/* Check for targets with special meanings */
+	isI = strcmp(name, "I");
+	isME = strcmp(name, "ME");
+	free(name);
+	name = NULL;
+
+	if (!isI) {
+		/* The function scope variable */
+		return src;
+	}
+	else if (!isME) {
+		/* The calling object scope variable */
+		scope = getScopeObjectLocal(src, dest, target);
+		if (!scope) goto getScopeObjectAbort;
+		return scope;
+	}
+
 	/* Access any slots */
 	while (target->slot) {
 		/*
 		 * Look up the target in the dest scope, using the src scope
 		 * for resolving variables in indirect identifiers
 		 */
-		ScopeObject *scope = getScopeObjectLocal(src, dest, target);
-		if (!scope) return 0;
+		scope = getScopeObjectLocal(src, dest, target);
+		if (!scope) goto getScopeObjectAbort;
 		dest = scope;
 
 		target = target->slot;
 	}
-
-	/* Look up the identifier name */
-	name = resolveIdentifierName(target, src);
-	if (!name) goto getScopeObjectAbort;
-
-	isI = strcmp(name, "I");
-	free(name);
-	name = NULL;
-	if (!isI) return src;
 
 	val = getScopeValue(src, dest, target);
 	if (!val) goto getScopeObjectAbort;
@@ -824,6 +840,7 @@ getScopeObjectAbort: /* In case something goes wrong... */
 
 	/* Clean up any allocated structures */
 	if (name) free(name);
+	if (scope) free(scope);
 
 	return NULL;
 }
@@ -845,6 +862,7 @@ void deleteScopeValue(ScopeObject *src,
 	char *name = NULL;
 	void *mem1 = NULL;
 	void *mem2 = NULL;
+	ScopeObject *scope = NULL;
 
 	/* Access any slots */
 	while (target->slot) {
@@ -852,8 +870,8 @@ void deleteScopeValue(ScopeObject *src,
 		 * Look up the target in the dest scope, using the src scope
 		 * for resolving variables in indirect identifiers
 		 */
-		ScopeObject *scope = getScopeObjectLocal(src, dest, target);
-		if (!scope) return;
+		scope = getScopeObjectLocal(src, dest, target);
+		if (!scope) goto deleteScopeValueAbort;
 		dest = scope;
 		target = target->slot;
 	}
@@ -861,7 +879,7 @@ void deleteScopeValue(ScopeObject *src,
 
 	/* Look up the identifier name */
 	name = resolveIdentifierName(target, src);
-	if (!name) goto deleteScopeValue;
+	if (!name) goto deleteScopeValueAbort;
 
 	/* Traverse upwards through scopes */
 	do {
@@ -884,12 +902,12 @@ void deleteScopeValue(ScopeObject *src,
 				mem1 = realloc(dest->names, sizeof(IdentifierNode *) * newnumvals);
 				if (!mem1) {
 					perror("realloc");
-					goto deleteScopeValue;
+					goto deleteScopeValueAbort;
 				}
 				mem2 = realloc(dest->values, sizeof(ValueObject *) * newnumvals);
 				if (!mem2) {
 					perror("realloc");
-					goto deleteScopeValue;
+					goto deleteScopeValueAbort;
 				}
 				dest->names = mem1;
 				dest->values = mem2;
@@ -903,12 +921,13 @@ void deleteScopeValue(ScopeObject *src,
 
 	return;
 
-deleteScopeValue: /* In case something goes wrong... */
+deleteScopeValueAbort: /* In case something goes wrong... */
 
 	/* Clean up any allocated structures */
 	if (name) free(name);
 	if (mem1) free(mem1);
 	if (mem2) free(mem2);
+	if (scope) free(scope);
 
 	return;
 }
@@ -983,6 +1002,8 @@ int resolveTerminalSlot(ScopeObject *src,
                         ScopeObject **parent,
                         IdentifierNode **child)
 {
+	ScopeObject *scope = NULL;
+
 	/* Start with default values */
 	*parent = dest;
 	*child = target;
@@ -993,14 +1014,9 @@ int resolveTerminalSlot(ScopeObject *src,
 		 * Look up the target in the dest scope, using the src scope
 		 * for resolving variables in indirect identifiers
 		 */
-		ScopeObject *scope = getScopeObjectLocal(src, dest, target);
-		if (!scope) return 0;
+		scope = getScopeObjectLocal(src, dest, target);
+		if (!scope) goto resolveTerminalSlotAbort;
 		dest = scope;
-
-		/* Change the dest scope to the target */
-		/*
-		dest = getArray(val);
-		*/
 
 		/* Change the target to the old target's slot */
 		target = target->slot;
@@ -1011,6 +1027,13 @@ int resolveTerminalSlot(ScopeObject *src,
 	*child = target;
 
 	return 1;
+
+resolveTerminalSlotAbort: /* In case something goes wrong... */
+
+	/* Clean up any allocated structures */
+	if (scope) deleteScopeObject(scope);
+
+	return 0;
 }
 
 /**
