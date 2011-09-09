@@ -662,11 +662,13 @@ void deletePrintStmtNode(PrintStmtNode *node)
  *
  * \param [in] target The variable to store input in.
  *
+ * \param [in] type The type of input to store (line, word or letter).
+ *
  * \return A pointer to an input statement with the desired properties.
  *
  * \retval NULL Memory allocation failed.
  */
-InputStmtNode *createInputStmtNode(IdentifierNode *target)
+InputStmtNode *createInputStmtNode(IdentifierNode *target, InputType type)
 {
 	InputStmtNode *p = malloc(sizeof(InputStmtNode));
 	if (!p) {
@@ -674,6 +676,7 @@ InputStmtNode *createInputStmtNode(IdentifierNode *target)
 		return NULL;
 	}
 	p->target = target;
+	p->type = type;
 	return p;
 }
 
@@ -2488,6 +2491,15 @@ StmtNode *parseInputStmtNode(Token ***tokenp)
 		goto parseInputStmtNodeAbort;
 	}
 
+	InputType type = INPUT_LINE;
+	if (acceptToken(&tokens, TT_WORD)) {
+		type = INPUT_WORD;
+	} else if (acceptToken(&tokens, TT_LETTAR)) {
+		type = INPUT_LETTER;
+	} else if (acceptToken(&tokens, TT_LINE)) {
+		/* Nothing, it's the default */
+	}
+
 	/* Parse the identifier to store the input into */
 	target = parseIdentifierNode(&tokens);
 	if (!target) goto parseInputStmtNodeAbort;
@@ -2500,7 +2512,7 @@ StmtNode *parseInputStmtNode(Token ***tokenp)
 	}
 
 	/* Create the new InputStmtNode structure */
-	stmt = createInputStmtNode(target);
+	stmt = createInputStmtNode(target, type);
 	if (!stmt) goto parseInputStmtNodeAbort;
 
 	/* Create the new StmtNode structure */
