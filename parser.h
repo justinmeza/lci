@@ -63,7 +63,7 @@
  * StmtNode ::= CastStmtNode | PrintStmtNode | InputStmtNode |
  * AssignmentStmtNode | DeclarationStmtNode | IfThenElseStmtNode |
  * SwitchStmtNode | BreakStmt | ReturnStmtNode | LoopStmtNode |
- * DeallocationStmtNode | FuncDefStmtNode | ExprStmt
+ * DeallocationStmtNode | FuncDefStmtNode | ExprStmt | AltArrayDefStmtNode
  *
  * \par
  * CastStmtNode ::= IdentifierNode \c TT_ISNOWA TypeNode \c TT_NEWLINE
@@ -142,6 +142,9 @@
  * \par
  * ExprStmt ::= ExprNode \c TT_NEWLINE
  *
+ * \par
+ * AltArrayDefStmtNode ::= \c TT_OHAIIM BlockNode \c TT_KTHX \c TT_NEWLINE
+ *
  * \section exprebnf Expressions
  *
  * These production rules specify the types of expressions formed.
@@ -219,7 +222,8 @@ typedef enum {
 	ST_LOOP,         /**< Loop statement. */
 	ST_DEALLOCATION, /**< Deallocation statement. */
 	ST_FUNCDEF,      /**< Function definition statement. */
-	ST_EXPR          /**< Expression statement. */
+	ST_EXPR,         /**< Expression statement. */
+	ST_ALTARRAYDEF,  /**< Function definition statement. */
 } StmtType;
 
 /**
@@ -346,6 +350,14 @@ typedef struct {
 	IdentifierNodeList *args; /**< The names of the function arguments. */
 	BlockNode *body;          /**< The body of the function. */
 } FuncDefStmtNode;
+
+/**
+ * Stores an alternate array definition statement.
+ */
+typedef struct {
+	IdentifierNode *name; /**< The name of the array. */
+	BlockNode *body;      /**< The body of the array definition. */
+} AltArrayDefStmtNode;
 
 /**
  * Stores the main code block of a program.
@@ -689,6 +701,16 @@ void deleteFuncDefStmtNode(FuncDefStmtNode *);
 /**@}*/
 
 /**
+ * \name AltArrayDefStmtNode modifiers
+ *
+ * Functions for creating and deleting AltArrayDefStmtNodes.
+ */
+/**@{*/
+AltArrayDefStmtNode *createAltArrayDefStmtNode(IdentifierNode *, BlockNode *);
+void deleteAltArrayDefStmtNode(AltArrayDefStmtNode *);
+/**@}*/
+
+/**
  * \name ExprNode modifiers
  *
  * Functions for creating and deleting single or multiple ExprNodes.
@@ -773,6 +795,7 @@ StmtNode *parseReturnStmtNode(Token ***);
 StmtNode *parseLoopStmtNode(Token ***);
 StmtNode *parseDeallocationStmtNode(Token ***);
 StmtNode *parseFuncDefStmtNode(Token ***);
+StmtNode *parseAltArrayDefStmtNode(Token ***);
 /**@}*/
 
 /**

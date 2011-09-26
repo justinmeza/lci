@@ -69,7 +69,8 @@ static const char *keywords[] = {
 	"FOUND YR",    /* TT_FOUNDYR */
 	"SRS",         /* TT_SRS */
 	"'Z",          /* TT_APOSTROPHEZ */
-	"BUKKIT",      /* TT_BUKKIT */
+	"O HAI IM",    /* TT_OHAIIM */
+	"KTHX",        /* TT_KTHX */
 	""             /* TT_ENDOFTOKENS */
 };
 

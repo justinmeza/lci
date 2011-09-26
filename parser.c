@@ -499,14 +499,19 @@ void deleteStmtNode(StmtNode *node)
 			deleteDeallocationStmtNode(stmt);
 			break;
 		}
+		case ST_FUNCDEF: {
+			FuncDefStmtNode *stmt = (FuncDefStmtNode *)node->stmt;
+			deleteFuncDefStmtNode(stmt);
+			break;
+		}
 		case ST_EXPR: {
 			ExprNode *expr = (ExprNode *)node->stmt;
 			deleteExprNode(expr);
 			break;
 		}
-		case ST_FUNCDEF: {
-			FuncDefStmtNode *stmt = (FuncDefStmtNode *)node->stmt;
-			deleteFuncDefStmtNode(stmt);
+		case ST_ALTARRAYDEF: {
+			AltArrayDefStmtNode *stmt = (AltArrayDefStmtNode *)node->stmt;
+			deleteAltArrayDefStmtNode(stmt);
 			break;
 		}
 		default:
@@ -1047,6 +1052,46 @@ void deleteFuncDefStmtNode(FuncDefStmtNode *node)
 	deleteIdentifierNode(node->scope);
 	deleteIdentifierNode(node->name);
 	deleteIdentifierNodeList(node->args);
+	deleteBlockNode(node->body);
+	free(node);
+}
+
+/**
+ * Creates an alternate array definition statement.
+ *
+ * \param [in] name The name of the array to define.
+ *
+ * \param [in] body The body of the array to define.
+ *
+ * \return A pointer to an array definition statement with the desired
+ * properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+AltArrayDefStmtNode *createAltArrayDefStmtNode(IdentifierNode *name,
+                                               BlockNode *body)
+{
+	AltArrayDefStmtNode *p = malloc(sizeof(AltArrayDefStmtNode));
+	if (!p) {
+		perror("malloc");
+		return NULL;
+	}
+	p->name = name;
+	p->body = body;
+	return p;
+}
+
+/**
+ * Deletes an alternate array definition statement.
+ *
+ * \param [in,out] node The alternate array definition statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteAltArrayDefStmtNode(AltArrayDefStmtNode *node)
+{
+	if (!node) return;
+	deleteIdentifierNode(node->name);
 	deleteBlockNode(node->body);
 	free(node);
 }
@@ -3679,6 +3724,97 @@ parseFuncDefStmtNodeAbort: /* Exception handling */
 }
 
 /**
+ * Parses tokens into an alternate array definition statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to an alternate array definition statement.
+ *
+ * \retval NULL Unable to parse.
+ */
+StmtNode *parseAltArrayDefStmtNode(Token ***tokenp)
+{
+	IdentifierNode *name = NULL;
+	BlockNode *body = NULL;
+	AltArrayDefStmtNode *stmt = NULL;
+	StmtNode *ret = NULL;
+	int status;
+
+	/* Work from a copy of the token stream in case something goes wrong */
+	Token **tokens = *tokenp;
+
+#ifdef DEBUG
+	debug("ST_ALTARRAYDEF");
+#endif
+
+	/* Parse the alternate array definition token */
+	status = acceptToken(&tokens, TT_OHAIIM);
+	if (!status) {
+		error("expected O HAI IM", tokens);
+		goto parseAltArrayDefStmtNodeAbort;
+	}
+
+	/* Parse the array name */
+	name = parseIdentifierNode(&tokens);
+	if (!name) goto parseAltArrayDefStmtNodeAbort;
+
+	/* The alternate array definition token and name should appear on their
+	 * own line */
+	status = acceptToken(&tokens, TT_NEWLINE);
+	if (!status) {
+		error("expected end of statement", tokens);
+		goto parseAltArrayDefStmtNodeAbort;
+	}
+
+	/* Parse the array definition body */
+	body = parseBlockNode(&tokens);
+	if (!body) goto parseAltArrayDefStmtNodeAbort;
+
+	/* The end-alternate array definition token should appear on its own
+	 * line */
+	status = acceptToken(&tokens, TT_KTHX);
+	if (!status) {
+		error("expected KTHX", tokens);
+		goto parseAltArrayDefStmtNodeAbort;
+	}
+
+	/* The end-function token should appear on its own line */
+	status = acceptToken(&tokens, TT_NEWLINE);
+	if (!status) {
+		error("expected end of statement", tokens);
+		goto parseAltArrayDefStmtNodeAbort;
+	}
+
+	/* Create the new AltArrayDefStmtNode structure */
+	stmt = createAltArrayDefStmtNode(name, body);
+	if (!stmt) goto parseAltArrayDefStmtNodeAbort;
+
+	/* Create the new StmtNode structure */
+	ret = createStmtNode(ST_ALTARRAYDEF, stmt);
+	if (!ret) goto parseAltArrayDefStmtNodeAbort;
+
+	/* Since we're successful, update the token stream */
+	*tokenp = tokens;
+
+	return ret;
+
+parseAltArrayDefStmtNodeAbort: /* Exception handling */
+
+	/* Clean up any allocated structures */
+	if (ret) deleteStmtNode(ret);
+	else if (stmt) deleteAltArrayDefStmtNode(stmt);
+	else {
+		if (name) deleteIdentifierNode(name);
+		if (body) deleteBlockNode(body);
+	}
+
+	return NULL;
+}
+
+
+/**
  * Parses tokens into a statement.
  *
  * \param [in] tokenp The position in a token list to start parsing at.
@@ -3792,6 +3928,10 @@ StmtNode *parseStmtNode(Token ***tokenp)
 	else if (peekToken(&tokens, TT_HOWIZ)) {
 		ret = parseFuncDefStmtNode(tokenp);
 	}
+	/* Alternate array declaration */
+	else if (peekToken(&tokens, TT_OHAIIM)) {
+		ret = parseAltArrayDefStmtNode(tokenp);
+	}
 	/* Bare expression */
 	else if ((expr = parseExprNode(&tokens))) {
 		int status;
@@ -3858,6 +3998,7 @@ BlockNode *parseBlockNode(Token ***tokenp)
 	/* Create a list of statements */
 	stmts = createStmtNodeList();
 	if (!stmts) goto parseBlockNodeAbort;
+	/* Parse block until certain tokens are found */
 	while (!peekToken(&tokens, TT_EOF)
 			&& !peekToken(&tokens, TT_KTHXBYE)
 			&& !peekToken(&tokens, TT_OIC)
@@ -3867,7 +4008,8 @@ BlockNode *parseBlockNode(Token ***tokenp)
 			&& !peekToken(&tokens, TT_OMG)
 			&& !peekToken(&tokens, TT_OMGWTF)
 			&& !peekToken(&tokens, TT_IMOUTTAYR)
-			&& !peekToken(&tokens, TT_IFUSAYSO)) {
+			&& !peekToken(&tokens, TT_IFUSAYSO)
+			&& !peekToken(&tokens, TT_KTHX)) {
 		/* Parse the next statement */
 		stmt = parseStmtNode(&tokens);
 		if (!stmt) goto parseBlockNodeAbort;

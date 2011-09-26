@@ -3600,11 +3600,54 @@ ReturnObject *interpretExprStmtNode(StmtNode *node,
 	return createReturnObject(RT_DEFAULT, NULL);
 }
 
+/**
+ * Interprets an alternate array definition statement.
+ *
+ * \param [in] node The statement to interpret.
+ *
+ * \param [in] scope The scope to evaluate \a node under.
+ *
+ * \pre \a node contains a statement created by createAltArrayDefNode().
+ *
+ * \return A pointer to a default return value.
+ *
+ * \retval NULL An error occurred during interpretation.
+ */
+ReturnObject *interpretAltArrayDefStmtNode(StmtNode *node,
+                                           ScopeObject *scope)
+{
+	AltArrayDefStmtNode *stmt = (AltArrayDefStmtNode *)node->stmt;
+	ValueObject *init = NULL;
+	ScopeObject *dest = scope;
+	if (getScopeValueLocal(scope, dest, stmt->name)) {
+		IdentifierNode *id = (IdentifierNode *)(stmt->name);
+		char *name = resolveIdentifierName(id, scope);
+		if (name) {
+			fprintf(stderr, "%s:%u: redefinition of existing variable at: %s\n", id->fname, id->line, name);
+			free(name);
+		}
+		return NULL;
+	}
+	init = createArrayValueObject(scope);
+	if (!init) return NULL;
+	/* Populate the array body */
+	interpretStmtNodeList(stmt->body->stmts, getArray(init));
+	if (!createScopeValue(scope, dest, stmt->name)) {
+		deleteValueObject(init);
+		return NULL;
+	}
+	if (!updateScopeValue(scope, dest, stmt->name, init)) {
+		deleteValueObject(init);
+		return NULL;
+	}
+	return createReturnObject(RT_DEFAULT, NULL);
+}
+
 /*
  * A jump table for statements.  The index of a function in the table is given
  * by its its index in the enumerated StmtType type.
  */
-static ReturnObject *(*StmtJumpTable[13])(StmtNode *, ScopeObject *) = {
+static ReturnObject *(*StmtJumpTable[14])(StmtNode *, ScopeObject *) = {
 	interpretCastStmtNode,
 	interpretPrintStmtNode,
 	interpretInputStmtNode,
@@ -3617,7 +3660,8 @@ static ReturnObject *(*StmtJumpTable[13])(StmtNode *, ScopeObject *) = {
 	interpretLoopStmtNode,
 	interpretDeallocationStmtNode,
 	interpretFuncDefStmtNode,
-	interpretExprStmtNode };
+	interpretExprStmtNode,
+	interpretAltArrayDefStmtNode };
 
 /**
  * Interprets a statement.

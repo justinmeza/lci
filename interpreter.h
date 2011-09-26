@@ -251,6 +251,7 @@ ReturnObject *interpretLoopStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretDeallocationStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretFuncDefStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretExprStmtNode(StmtNode *, ScopeObject *);
+ReturnObject *interpretAltArrayDefStmtNode(StmtNode *, ScopeObject *);
 /**@}*/
 
 /**
