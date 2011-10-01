@@ -3619,6 +3619,7 @@ ReturnObject *interpretAltArrayDefStmtNode(StmtNode *node,
 	AltArrayDefStmtNode *stmt = (AltArrayDefStmtNode *)node->stmt;
 	ValueObject *init = NULL;
 	ScopeObject *dest = scope;
+	ReturnObject *ret = NULL;
 	if (getScopeValueLocal(scope, dest, stmt->name)) {
 		IdentifierNode *id = (IdentifierNode *)(stmt->name);
 		char *name = resolveIdentifierName(id, scope);
@@ -3631,7 +3632,12 @@ ReturnObject *interpretAltArrayDefStmtNode(StmtNode *node,
 	init = createArrayValueObject(scope);
 	if (!init) return NULL;
 	/* Populate the array body */
-	interpretStmtNodeList(stmt->body->stmts, getArray(init));
+	ret = interpretStmtNodeList(stmt->body->stmts, getArray(init));
+	if (!ret) {
+		deleteValueObject(init);
+		return NULL;
+	}
+	deleteReturnObject(ret);
 	if (!createScopeValue(scope, dest, stmt->name)) {
 		deleteValueObject(init);
 		return NULL;
