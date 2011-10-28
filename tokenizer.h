@@ -38,6 +38,7 @@ typedef enum {
 	TT_IDENTIFIER,  /**< Identifier literal. */
 	TT_BOOLEAN,     /**< Boolean literal. */
 	TT_IT,          /**< \ref impvar "Implicit variable". */
+	TT_ITZLIEKA,    /**< Inherited object declaration. */
 	TT_NOOB,        /**< Nil keyword. */
 	TT_NUMBR,       /**< Integer keyword. */
 	TT_NUMBAR,      /**< Decimal keyword. */

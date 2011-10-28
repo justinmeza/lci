@@ -753,7 +753,8 @@ void deleteAssignmentStmtNode(AssignmentStmtNode *node)
 DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *scope,
                                                IdentifierNode *target,
                                                ExprNode *expr,
-                                               TypeNode *type)
+                                               TypeNode *type,
+                                               IdentifierNode *parent)
 {
 	DeclarationStmtNode *p = malloc(sizeof(DeclarationStmtNode));
 	if (!p) {
@@ -764,6 +765,7 @@ DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *scope,
 	p->target = target;
 	p->expr = expr;
 	p->type = type;
+	p->parent = parent;
 	return p;
 }
 
@@ -2659,6 +2661,7 @@ StmtNode *parseDeclarationStmtNode(Token ***tokenp)
 	IdentifierNode *target = NULL;
 	ExprNode *expr = NULL;
 	TypeNode *type = NULL;
+	IdentifierNode *parent = NULL;
 	DeclarationStmtNode *stmt = NULL;
 	StmtNode *ret = NULL;
 	int status;
@@ -2696,6 +2699,12 @@ StmtNode *parseDeclarationStmtNode(Token ***tokenp)
 		type = parseTypeNode(&tokens);
 		if (!type) goto parseDeclarationStmtNodeAbort;
 	}
+	/* Check for an optional array inheritance */
+	else if (acceptToken(&tokens, TT_ITZLIEKA)) {
+		/* Parse the parent to inherit from */
+		parent = parseIdentifierNode(&tokens);
+		if (!parent) goto parseDeclarationStmtNodeAbort;
+	}
 
 	/* Make sure the statement ends with a newline */
 	status = acceptToken(&tokens, TT_NEWLINE);
@@ -2705,7 +2714,7 @@ StmtNode *parseDeclarationStmtNode(Token ***tokenp)
 	}
 
 	/* Create the new DeclarationStmtNode structure */
-	stmt = createDeclarationStmtNode(scope, target, expr, type);
+	stmt = createDeclarationStmtNode(scope, target, expr, type, parent);
 	if (!stmt) goto parseDeclarationStmtNodeAbort;
 
 	/* Create the new StmtNode structure */
@@ -3813,7 +3822,6 @@ parseAltArrayDefStmtNodeAbort: /* Exception handling */
 	return NULL;
 }
 
-
 /**
  * Parses tokens into a statement.
  *
@@ -3928,7 +3936,7 @@ StmtNode *parseStmtNode(Token ***tokenp)
 	else if (peekToken(&tokens, TT_HOWIZ)) {
 		ret = parseFuncDefStmtNode(tokenp);
 	}
-	/* Alternate array declaration */
+	/* Alternate array definition */
 	else if (peekToken(&tokens, TT_OHAIIM)) {
 		ret = parseAltArrayDefStmtNode(tokenp);
 	}

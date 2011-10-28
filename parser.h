@@ -82,7 +82,7 @@
  * Initialization ? \c TT_NEWLINE
  *
  * \par
- * Initialization ::= \c TT_ITZ ExprNode | \c TT_ITZA TypeNode
+ * Initialization ::= \c TT_ITZ ExprNode | \c TT_ITZA TypeNode | \c TT_ITZLIEKA IdentifierNode
  *
  * \par
  * IfThenElseStmtNode ::= \c TT_ORLY \c TT_NEWLINE \c TT_YARLY \c TT_NEWLINE
@@ -210,20 +210,20 @@
  * Represents a statement type.
  */
 typedef enum {
-	ST_CAST,         /**< Cast statement. */
-	ST_PRINT,        /**< Print statement. */
-	ST_INPUT,        /**< Input statement. */
-	ST_ASSIGNMENT,   /**< Assignment statement. */
-	ST_DECLARATION,  /**< Declaration statement. */
-	ST_IFTHENELSE,   /**< If/then/else statement. */
-	ST_SWITCH,       /**< Switch statement. */
-	ST_BREAK,        /**< Break statement. */
-	ST_RETURN,       /**< Return statement. */
-	ST_LOOP,         /**< Loop statement. */
-	ST_DEALLOCATION, /**< Deallocation statement. */
-	ST_FUNCDEF,      /**< Function definition statement. */
-	ST_EXPR,         /**< Expression statement. */
-	ST_ALTARRAYDEF,  /**< Function definition statement. */
+	ST_CAST,            /**< Cast statement. */
+	ST_PRINT,           /**< Print statement. */
+	ST_INPUT,           /**< Input statement. */
+	ST_ASSIGNMENT,      /**< Assignment statement. */
+	ST_DECLARATION,     /**< Declaration statement. */
+	ST_IFTHENELSE,      /**< If/then/else statement. */
+	ST_SWITCH,          /**< Switch statement. */
+	ST_BREAK,           /**< Break statement. */
+	ST_RETURN,          /**< Return statement. */
+	ST_LOOP,            /**< Loop statement. */
+	ST_DEALLOCATION,    /**< Deallocation statement. */
+	ST_FUNCDEF,         /**< Function definition statement. */
+	ST_EXPR,            /**< Expression statement. */
+	ST_ALTARRAYDEF,     /**< Function definition statement. */
 } StmtType;
 
 /**
@@ -422,6 +422,7 @@ typedef struct {
 	IdentifierNode *target; /**< The name of the variable to create. */
 	ExprNode *expr;         /**< An optional initialization expression. */
 	TypeNode *type;         /**< An optional initialization type. */
+	IdentifierNode *parent; /**< An optional inherited array. */
 } DeclarationStmtNode;
 
 /**
@@ -636,7 +637,7 @@ void deleteAssignmentStmtNode(AssignmentStmtNode *);
  * Functions for creating and deleting DeclarationStmtNodes.
  */
 /**@{*/
-DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, TypeNode *);
+DeclarationStmtNode *createDeclarationStmtNode(IdentifierNode *, IdentifierNode *, ExprNode *, TypeNode *, IdentifierNode *);
 void deleteDeclarationStmtNode(DeclarationStmtNode *);
 /**@}*/
 

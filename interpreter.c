@@ -3172,6 +3172,12 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,
 				return NULL;
 		}
 	}
+	else if (stmt->parent)
+	{
+		ScopeObject *parent = getScopeObject(scope, scope, stmt->parent);
+		if (!parent) return NULL;
+		init = createArrayValueObject(parent);
+	}
 	else
 		init = createNilValueObject();
 	if (!init) return NULL;

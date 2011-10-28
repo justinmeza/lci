@@ -7,6 +7,7 @@ static const char *keywords[] = {
 	"",            /* TT_IDENTIFIER */
 	"",            /* TT_BOOLEAN */
 	"IT",          /* TT_IT */
+	"ITZ LIEK A",  /* TT_ITZLIEKA */
 	"NOOB",        /* TT_NOOB */
 	"NUMBR",       /* TT_NUMBR */
 	"NUMBAR",      /* TT_NUMBAR */
