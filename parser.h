@@ -23,8 +23,6 @@
 /**
  * \page lolebnf The LOLCODE EBNF
  *
- * \todo Update the EBNF with the alternate array declaration syntax.
- *
  * Presented below is the EBNF (see
  * http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) for the
  * LOLCODE language that \c lci parses.  Note that by this stage, the scanner
@@ -71,10 +69,10 @@
  * CastStmtNode ::= IdentifierNode \c TT_ISNOWA TypeNode \c TT_NEWLINE
  *
  * \par
- * PrintStmtNode ::= \c TT_VISIBLE ExprNodeList \c TT_BANG ? TT_NEWLINE
+ * PrintStmtNode ::= \c TT_VISIBLE ExprNodeList \c TT_BANG ? \c TT_NEWLINE
  *
  * \par
- * InputStmtNode ::= \c TT_GIMMEH IdentifierNode TT_NEWLINE
+ * InputStmtNode ::= \c TT_GIMMEH IdentifierNode \c TT_NEWLINE
  *
  * \par
  * AssignmentStmtNode ::= IdentifierNode \c TT_R ExprNode \c TT_NEWLINE
@@ -145,7 +143,11 @@
  * ExprStmt ::= ExprNode \c TT_NEWLINE
  *
  * \par
- * AltArrayDefStmtNode ::= \c TT_OHAIIM BlockNode \c TT_KTHX \c TT_NEWLINE
+ * AltArrayDefStmtNode ::= \c TT_OHAIIM IdentifierNode AltArrayInheritance ? \c
+ * TT_NEWLINE BlockNode \c TT_KTHX \c TT_NEWLINE
+ *
+ * \par
+ * AltArrayInheritance ::= \c TT_IMLIEK IdentifierNode
  *
  * \section exprebnf Expressions
  *
