@@ -746,6 +746,8 @@ void deleteAssignmentStmtNode(AssignmentStmtNode *node)
  *
  * \param [in] type An optional type to initialize \a target to.
  *
+ * \param [in] parent The optional parent to inherit from.
+ *
  * \return A pointer to a declaration statement with the desired properties.
  *
  * \retval NULL Memory allocation failed.
@@ -1065,13 +1067,16 @@ void deleteFuncDefStmtNode(FuncDefStmtNode *node)
  *
  * \param [in] body The body of the array to define.
  *
+ * \param [in] parent The optional parent to inherit from.
+ *
  * \return A pointer to an array definition statement with the desired
  * properties.
  *
  * \retval NULL Memory allocation failed.
  */
 AltArrayDefStmtNode *createAltArrayDefStmtNode(IdentifierNode *name,
-                                               BlockNode *body)
+                                               BlockNode *body,
+                                               IdentifierNode *parent)
 {
 	AltArrayDefStmtNode *p = malloc(sizeof(AltArrayDefStmtNode));
 	if (!p) {
@@ -1080,6 +1085,7 @@ AltArrayDefStmtNode *createAltArrayDefStmtNode(IdentifierNode *name,
 	}
 	p->name = name;
 	p->body = body;
+	p->parent = parent;
 	return p;
 }
 
@@ -3747,6 +3753,7 @@ StmtNode *parseAltArrayDefStmtNode(Token ***tokenp)
 {
 	IdentifierNode *name = NULL;
 	BlockNode *body = NULL;
+	IdentifierNode *parent = NULL;
 	AltArrayDefStmtNode *stmt = NULL;
 	StmtNode *ret = NULL;
 	int status;
@@ -3768,6 +3775,13 @@ StmtNode *parseAltArrayDefStmtNode(Token ***tokenp)
 	/* Parse the array name */
 	name = parseIdentifierNode(&tokens);
 	if (!name) goto parseAltArrayDefStmtNodeAbort;
+
+	/* Check for an optional array inheritance */
+	if (acceptToken(&tokens, TT_IMLIEK)) {
+		/* Parse the parent to inherit from */
+		parent = parseIdentifierNode(&tokens);
+		if (!parent) goto parseAltArrayDefStmtNodeAbort;
+	}
 
 	/* The alternate array definition token and name should appear on their
 	 * own line */
@@ -3797,7 +3811,7 @@ StmtNode *parseAltArrayDefStmtNode(Token ***tokenp)
 	}
 
 	/* Create the new AltArrayDefStmtNode structure */
-	stmt = createAltArrayDefStmtNode(name, body);
+	stmt = createAltArrayDefStmtNode(name, body, parent);
 	if (!stmt) goto parseAltArrayDefStmtNodeAbort;
 
 	/* Create the new StmtNode structure */

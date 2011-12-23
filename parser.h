@@ -23,6 +23,8 @@
 /**
  * \page lolebnf The LOLCODE EBNF
  *
+ * \todo Update the EBNF with the alternate array declaration syntax.
+ *
  * Presented below is the EBNF (see
  * http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) for the
  * LOLCODE language that \c lci parses.  Note that by this stage, the scanner
@@ -355,8 +357,9 @@ typedef struct {
  * Stores an alternate array definition statement.
  */
 typedef struct {
-	IdentifierNode *name; /**< The name of the array. */
-	BlockNode *body;      /**< The body of the array definition. */
+	IdentifierNode *name;   /**< The name of the array. */
+	BlockNode *body;        /**< The body of the array definition. */
+	IdentifierNode *parent; /**< An optional inherited array. */
 } AltArrayDefStmtNode;
 
 /**
@@ -707,7 +710,7 @@ void deleteFuncDefStmtNode(FuncDefStmtNode *);
  * Functions for creating and deleting AltArrayDefStmtNodes.
  */
 /**@{*/
-AltArrayDefStmtNode *createAltArrayDefStmtNode(IdentifierNode *, BlockNode *);
+AltArrayDefStmtNode *createAltArrayDefStmtNode(IdentifierNode *, BlockNode *, IdentifierNode *);
 void deleteAltArrayDefStmtNode(AltArrayDefStmtNode *);
 /**@}*/
 

@@ -102,6 +102,7 @@ typedef enum {
 	TT_SRS,         /**< Indirect variable access. */
 	TT_APOSTROPHEZ, /**< Array slot access ('Z). */
 	TT_OHAIIM,      /**< Alternate array declaration. */
+	TT_IMLIEK,      /**< Alternate inherited object declaration. */
 	TT_KTHX,        /**< End of alternate array declaration. */
 	TT_ENDOFTOKENS  /**< The end of this enum -- don't move it! */
 } TokenType;

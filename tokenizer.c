@@ -71,6 +71,7 @@ static const char *keywords[] = {
 	"SRS",         /* TT_SRS */
 	"'Z",          /* TT_APOSTROPHEZ */
 	"O HAI IM",    /* TT_OHAIIM */
+	"IM LIEK",     /* TT_IMLIEK */
 	"KTHX",        /* TT_KTHX */
 	""             /* TT_ENDOFTOKENS */
 };

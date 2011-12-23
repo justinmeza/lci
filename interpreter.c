@@ -762,7 +762,6 @@ getScopeValueLocalAbort: /* In case something goes wrong... */
 
 	/* Clean up any allocated structures */
 	if (name) free(name);
-	if (scope) deleteScopeObject(scope);
 
 	return NULL;
 }
@@ -840,7 +839,6 @@ getScopeObjectAbort: /* In case something goes wrong... */
 
 	/* Clean up any allocated structures */
 	if (name) free(name);
-	if (scope) free(scope);
 
 	return NULL;
 }
@@ -3136,6 +3134,7 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,
 	ValueObject *init = NULL;
 	ScopeObject *dest = NULL;
 	dest = getScopeObject(scope, scope, stmt->scope);
+	if (!dest) return NULL;
 	if (getScopeValueLocal(scope, dest, stmt->target)) {
 		IdentifierNode *id = (IdentifierNode *)(stmt->target);
 		char *name = resolveIdentifierName(id, scope);
@@ -3172,8 +3171,7 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,
 				return NULL;
 		}
 	}
-	else if (stmt->parent)
-	{
+	else if (stmt->parent) {
 		ScopeObject *parent = getScopeObject(scope, scope, stmt->parent);
 		if (!parent) return NULL;
 		init = createArrayValueObject(parent);
@@ -3635,8 +3633,16 @@ ReturnObject *interpretAltArrayDefStmtNode(StmtNode *node,
 		}
 		return NULL;
 	}
-	init = createArrayValueObject(scope);
+	if (stmt->parent) {
+		ScopeObject *parent = getScopeObject(scope, scope, stmt->parent);
+		if (!parent) return NULL;
+		init = createArrayValueObject(parent);
+	}
+	else {
+		init = createArrayValueObject(scope);
+	}
 	if (!init) return NULL;
+
 	/* Populate the array body */
 	ret = interpretStmtNodeList(stmt->body->stmts, getArray(init));
 	if (!ret) {
