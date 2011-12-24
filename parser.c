@@ -785,6 +785,7 @@ void deleteDeclarationStmtNode(DeclarationStmtNode *node)
 	deleteIdentifierNode(node->target);
 	deleteExprNode(node->expr);
 	deleteTypeNode(node->type);
+	deleteIdentifierNode(node->parent);
 	free(node);
 }
 
