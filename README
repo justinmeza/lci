@@ -90,7 +90,7 @@ INSTALLATION: THE MORE INVOLVED WAY ON LINUX OR MAC OSX
 
 5. (Optional) Run tests:
 
-    $ ctest
+  $ ctest
 
 INSTALLATION ON WINDOWS
 
