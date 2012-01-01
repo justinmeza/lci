@@ -1,3 +1,4 @@
+add_subdirectory(0-Benchmarks)
 add_subdirectory(1-Structure)
 add_subdirectory(10-Loops)
 add_subdirectory(11-Unicode)
