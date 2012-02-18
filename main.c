@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 	FILE *file = NULL;
 	int ch;
 
-	char *revision = "v0.9.1";
+	char *revision = "v0.9.3";
 	program_name = argv[0];
 
 	while ((ch = getopt_long(argc, argv, shortopt, longopt, NULL)) != -1) {
