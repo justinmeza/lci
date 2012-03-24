@@ -20,6 +20,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "error.h"
+
 #undef DEBUG
 
 /**

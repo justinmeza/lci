@@ -236,7 +236,7 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 			/* Make sure next line is not empty */
 			while (*test && isspace(*test)) {
 				if (*test == '\r' || *test == '\n') {
-					fprintf(stderr, "%s:%d: a line with continuation may not be followed by an empty line\n", fname, line);
+					error2(LX_LINE_CONTINUATION, fname, line);
 					deleteLexemeList(list);
 					return NULL;
 				}
@@ -263,7 +263,7 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 				start++;
 			if (start == buffer || *start == ',' || *start == '\r' || *start == '\n')
 				continue;
-			fprintf(stderr, "%s:%d: multiple line comment may not appear on the same line as code\n", fname, line);
+			error2(LX_MULTIPLE_LINE_COMMENT, fname, line);
 			deleteLexemeList(list);
 			return NULL;
 		}
@@ -295,7 +295,7 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 					&& strncmp(start + len, "'Z", 2)
 					&& strncmp(start + len, "...", 3)
 					&& strncmp(start + len, "\xE2\x80\xA6", 3)) {
-				fprintf(stderr, "%s:%d: expected token delimiter after string literal\n", fname, line);
+				error2(LX_EXPECTED_TOKEN_DELIMITER, fname, line);
 				deleteLexemeList(list);
 				return NULL;
 			}

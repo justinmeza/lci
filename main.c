@@ -114,6 +114,7 @@
 #include "tokenizer.h"
 #include "parser.h"
 #include "interpreter.h"
+#include "error.h"
 
 #define READSIZE 512
 
@@ -156,7 +157,6 @@ int main(int argc, char **argv)
 	while ((ch = getopt_long(argc, argv, shortopt, longopt, NULL)) != -1) {
 		switch (ch) {
 			default:
-				fprintf (stderr, "Incorrect option '%c'\n", ch);
 				help();
 				exit(EXIT_FAILURE);
 			case 'h':
@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 		node = NULL;
 		file = NULL;
 
-		if (!strncmp (argv[optind],"-\0",2)) {
+		if (!strncmp(argv[optind],"-\0",2)) {
 			file = stdin;
 			fname = "stdin";
 		}
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 		}
 
 		if (!file) {
-			fprintf(stderr, "File does not exist.\n");
+			error2(MN_ERROR_OPENING_FILE, argv[optind]);
 			return 1;
 		}
 
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 		}
 
 		if (fclose(file) != 0) {
-			fprintf(stderr, "Error closing file.\n");
+			error2(MN_ERROR_CLOSING_FILE, argv[optind]);
 			if (buffer) free(buffer);
 			return 1;
 		}

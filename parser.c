@@ -306,7 +306,7 @@ void deleteIdentifierNode(IdentifierNode *node)
 			break;
 		}
 		default:
-			fprintf(stderr, "Unable to delete unknown identifier type\n");
+			error2(PR_UNKNOWN_IDENTIFIER_TYPE, node->fname, node->line);
 			break;
 	}
 	if (node->slot) deleteIdentifierNode(node->slot);
@@ -515,7 +515,7 @@ void deleteStmtNode(StmtNode *node)
 			break;
 		}
 		default:
-			fprintf(stderr, "Unable to delete unknown statement type\n");
+			error2(PR_UNKNOWN_STATEMENT_TYPE);
 			break;
 	}
 	free(node);
@@ -1158,7 +1158,7 @@ void deleteExprNode(ExprNode *node)
 		case ET_IMPVAR:
 			break; /* This expression type does not have any content */
 		default:
-			fprintf(stderr, "Unable to delete unknown expression type\n");
+			error2(PR_UNKNOWN_EXPRESSION_TYPE);
 			break;
 	}
 	free(node);
@@ -1417,21 +1417,56 @@ int nextToken(Token ***tokenp,
 }
 
 /**
- * Prints an error message of the form "FILE:LINE: INFO before: NEXT.\n", where
- * LINE is the line the head of \a tokens appears on, INFO is \a info, and NEXT
- * is the image of the head of \a tokens.
+ * A simple wrapper around the global error printing function tailored to
+ * general parser errors.
  *
- * \param [in] info The information to print.
+ * \param [in] type The type of error.
  *
  * \param [in] tokens The tokens being parsed when the error occurred.
  */
-void error(const char *info,
-           Token **tokens)
+void parser_error(ErrorType type,
+                  Token **tokens)
 {
-	fprintf(stderr, "%s:%u: %s at: %s\n",
+	error2(type, (*tokens)->fname, (*tokens)->line, (*tokens)->image);
+}
+
+/**
+ * A simple wrapper around the global error printing function tailored to
+ * expected token parser errors.
+ *
+ * \param [in] token The expected token's image.
+ *
+ * \param [in] tokens The tokens being parsed when the error occurred.
+ */
+void parser_error_expected_token(TokenType token,
+                                 Token **tokens)
+{
+	error2(PR_EXPECTED_TOKEN,
 			(*tokens)->fname,
 			(*tokens)->line,
-			info,
+			keywords[token],
+			(*tokens)->image);
+}
+
+/**
+ * A simple wrapper around the global error printing function tailored to
+ * expected two token parser errors.
+ *
+ * \param [in] token1 The first expected token's image.
+ *
+ * \param [in] token2 The second expected token's image.
+ *
+ * \param [in] tokens The tokens being parsed when the error occurred.
+ */
+void parser_error_expected_either_token(TokenType token1,
+                                        TokenType token2,
+                                        Token **tokens)
+{
+	error2(PR_EXPECTED_TOKEN,
+			(*tokens)->fname,
+			(*tokens)->line,
+			keywords[token1],
+			keywords[token2],
 			(*tokens)->image);
 }
 
@@ -1471,7 +1506,7 @@ ConstantNode *parseConstantNode(Token ***tokenp)
 		/* This should succeed; it was checked for above */
 		status = acceptToken(&tokens, TT_BOOLEAN);
 		if (!status) {
-			error("expected boolean", tokens);
+			parser_error(PR_EXPECTED_BOOLEAN, tokens);
 			goto parseConstantNodeAbort;
 		}
 	}
@@ -1487,7 +1522,7 @@ ConstantNode *parseConstantNode(Token ***tokenp)
 		/* This should succeed; it was checked for above */
 		status = acceptToken(&tokens, TT_INTEGER);
 		if (!status) {
-			error("expected integer", tokens);
+			parser_error(PR_EXPECTED_INTEGER, tokens);
 			goto parseConstantNodeAbort;
 		}
 	}
@@ -1503,7 +1538,7 @@ ConstantNode *parseConstantNode(Token ***tokenp)
 		/* This should succeed; it was checked for above */
 		status = acceptToken(&tokens, TT_FLOAT);
 		if (!status) {
-			error("expected float", tokens);
+			parser_error(PR_EXPECTED_FLOAT, tokens);
 			goto parseConstantNodeAbort;
 		}
 	}
@@ -1528,12 +1563,12 @@ ConstantNode *parseConstantNode(Token ***tokenp)
 		/* This should succeed; it was checked for above */
 		status = acceptToken(&tokens, TT_STRING);
 		if (!status) {
-			error("expected string", tokens);
+			parser_error(PR_EXPECTED_STRING, tokens);
 			goto parseConstantNodeAbort;
 		}
 	}
 	else {
-		error("expected constant value", tokens);
+		parser_error(PR_EXPECTED_CONSTANT, tokens);
 	}
 
 #ifdef DEBUG
@@ -1625,7 +1660,7 @@ TypeNode *parseTypeNode(Token ***tokenp)
 		if (!ret) goto parseTypeNodeAbort;
 	}
 	else {
-		error("expected type", tokens);
+		parser_error(PR_EXPECTED_TYPE, tokens);
 	}
 
 #ifdef DEBUG
@@ -1698,7 +1733,7 @@ IdentifierNode *parseIdentifierNode(Token ***tokenp)
 		/* This should succeed; it was checked for above */
 		status = acceptToken(&tokens, TT_IDENTIFIER);
 		if (!status) {
-			error("expected identifier", tokens);
+			parser_error(PR_EXPECTED_IDENTIFIER, tokens);
 			goto parseIdentifierNodeAbort;
 		}
 	}
@@ -1713,7 +1748,7 @@ IdentifierNode *parseIdentifierNode(Token ***tokenp)
 		data = expr;
 	}
 	else {
-		error("expected identifier", tokens);
+		parser_error(PR_EXPECTED_IDENTIFIER, tokens);
 	}
 
 	/* Check if there is a slot access */
@@ -1781,7 +1816,7 @@ ExprNode *parseCastExprNode(Token ***tokenp)
 	/* Parse the cast token */
 	status = acceptToken(&tokens, TT_MAEK);
 	if (!status) {
-		error("expected MAEK", tokens);
+		parser_error_expected_token(TT_MAEK, tokens);
 		goto parseCastExprNodeAbort;
 	}
 
@@ -1951,7 +1986,7 @@ ExprNode *parseFuncCallExprNode(Token ***tokenp)
 	/* Parse the function call token */
 	status = acceptToken(&tokens, TT_IZ);
 	if (!status) {
-		error("expected IZ", tokens);
+		parser_error_expected_token(TT_IZ, tokens);
 		goto parseFuncCallExprNodeAbort;
 	}
 
@@ -1990,7 +2025,7 @@ ExprNode *parseFuncCallExprNode(Token ***tokenp)
 	/* Parse the end-of-argument token */
 	status = acceptToken(&tokens, TT_MKAY);
 	if (!status) {
-		error("expected MKAY", tokens);
+		parser_error_expected_token(TT_MKAY, tokens);
 		goto parseFuncCallExprNodeAbort;
 	}
 
@@ -2167,7 +2202,7 @@ ExprNode *parseOpExprNode(Token ***tokenp)
 #endif
 	}
 	else {
-		error("invalid operator", tokens);
+		parser_error(PR_INVALID_OPERATOR, tokens);
 		return NULL;
 	}
 
@@ -2338,7 +2373,7 @@ ExprNode *parseExprNode(Token ***tokenp)
 		*tokenp = tokens;
 	}
 	else {
-		error("expected expression", tokens);
+		parser_error(PR_EXPECTED_EXPRESSION, tokens);
 	}
 
 #ifdef DEBUG
@@ -2381,7 +2416,7 @@ StmtNode *parseCastStmtNode(Token ***tokenp)
 	/* Remove the cast keywords from the token stream */
 	status = acceptToken(&tokens, TT_ISNOWA);
 	if (!status) {
-		error("expected IS NOW A", tokens);
+		parser_error_expected_token(TT_ISNOWA, tokens);
 		goto parseCastStmtNodeAbort;
 	}
 
@@ -2392,7 +2427,7 @@ StmtNode *parseCastStmtNode(Token ***tokenp)
 	/* Make sure the statement ends with a newline */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseCastStmtNodeAbort;
 	}
 
@@ -2452,7 +2487,7 @@ StmtNode *parsePrintStmtNode(Token ***tokenp)
 	/* Remove the print keyword from the token stream */
 	status = acceptToken(&tokens, TT_VISIBLE);
 	if (!status) {
-		error("expected VISIBLE", tokens);
+		parser_error_expected_token(TT_VISIBLE, tokens);
 		goto parsePrintStmtNodeAbort;
 	}
 
@@ -2480,7 +2515,7 @@ StmtNode *parsePrintStmtNode(Token ***tokenp)
 	/* Make sure the statement ends with a newline */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parsePrintStmtNodeAbort;
 	}
 
@@ -2538,7 +2573,7 @@ StmtNode *parseInputStmtNode(Token ***tokenp)
 	/* Remove the input keyword from the token stream */
 	status = acceptToken(&tokens, TT_GIMMEH);
 	if (!status) {
-		error("expected GIMMEH", tokens);
+		parser_error_expected_token(TT_GIMMEH, tokens);
 		goto parseInputStmtNodeAbort;
 	}
 
@@ -2549,7 +2584,7 @@ StmtNode *parseInputStmtNode(Token ***tokenp)
 	/* Make sure the statement ends with a newline */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseInputStmtNodeAbort;
 	}
 
@@ -2610,7 +2645,7 @@ StmtNode *parseAssignmentStmtNode(Token ***tokenp)
 
 	/* Remove the assignment keyword from the token stream */
 	if (!acceptToken(&tokens, TT_R)) {
-		error("expected R", tokens);
+		parser_error_expected_token(TT_R, tokens);
 		goto parseAssignmentStmtNodeAbort;
 	}
 
@@ -2621,7 +2656,7 @@ StmtNode *parseAssignmentStmtNode(Token ***tokenp)
 	/* Make sure the statement ends with a newline */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of statement", tokens);
+		parser_error(PR_EXPECTED_END_OF_STATEMENT, tokens);
 		goto parseAssignmentStmtNodeAbort;
 	}
 
@@ -2686,7 +2721,7 @@ StmtNode *parseDeclarationStmtNode(Token ***tokenp)
 
 	/* Remove the declaration keywords from the token stream */
 	if (!acceptToken(&tokens, TT_HASA)) {
-		error("expected HAS A", tokens);
+		parser_error_expected_token(TT_HASA, tokens);
 		goto parseDeclarationStmtNodeAbort;
 	}
 
@@ -2716,7 +2751,7 @@ StmtNode *parseDeclarationStmtNode(Token ***tokenp)
 	/* Make sure the statement ends with a newline */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of statement", tokens);
+		parser_error(PR_EXPECTED_END_OF_STATEMENT, tokens);
 		goto parseDeclarationStmtNodeAbort;
 	}
 
@@ -2781,27 +2816,27 @@ StmtNode *parseIfThenElseStmtNode(Token ***tokenp)
 	/* Remove the if keyword from the token stream */
 	status = acceptToken(&tokens, TT_ORLY);
 	if (!status) {
-		error("expected O RLY?", tokens);
+		parser_error_expected_token(TT_ORLY, tokens);
 		goto parseIfThenElseStmtNodeAbort;
 	}
 
 	/* The if keyword must appear on its own line */
 	if (!acceptToken(&tokens, TT_NEWLINE)) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseIfThenElseStmtNodeAbort;
 	}
 
 	/* Parse the true branch keyword */
 	status = acceptToken(&tokens, TT_YARLY);
 	if (!status) {
-		error("expected YA RLY", tokens);
+		parser_error_expected_token(TT_YARLY, tokens);
 		goto parseIfThenElseStmtNodeAbort;
 	}
 
 	/* The true branch keyword must appear on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseIfThenElseStmtNodeAbort;
 	}
 
@@ -2829,7 +2864,7 @@ StmtNode *parseIfThenElseStmtNode(Token ***tokenp)
 		/* The else-if keyword and guard must be on their own line */
 		status = acceptToken(&tokens, TT_NEWLINE);
 		if (!status) {
-			error("expected end of expression", tokens);
+			parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 			goto parseIfThenElseStmtNodeAbort;
 		}
 
@@ -2848,7 +2883,7 @@ StmtNode *parseIfThenElseStmtNode(Token ***tokenp)
 		/* The else keyword must appear on its own line */
 		status = acceptToken(&tokens, TT_NEWLINE);
 		if (!status) {
-			error("expected end of expression", tokens);
+			parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 			goto parseIfThenElseStmtNodeAbort;
 		}
 
@@ -2860,14 +2895,14 @@ StmtNode *parseIfThenElseStmtNode(Token ***tokenp)
 	/* Parse the end-if-block keyword */
 	status = acceptToken(&tokens, TT_OIC);
 	if (!status) {
-		error("expected OIC", tokens);
+		parser_error_expected_token(TT_OIC, tokens);
 		goto parseIfThenElseStmtNodeAbort;
 	}
 
 	/* The end-if-block keyword must appear on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseIfThenElseStmtNodeAbort;
 	}
 
@@ -2934,14 +2969,14 @@ StmtNode *parseSwitchStmtNode(Token ***tokenp)
 	/* Remove the switch keyword from the token stream */
 	status = acceptToken(&tokens, TT_WTF);
 	if (!status) {
-		error("expected WTF?", tokens);
+		parser_error_expected_token(TT_WTF, tokens);
 		goto parseSwitchStmtNodeAbort;
 	}
 
 	/* The switch keyword must appear on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseSwitchStmtNodeAbort;
 	}
 
@@ -2958,7 +2993,7 @@ StmtNode *parseSwitchStmtNode(Token ***tokenp)
 		/* Parse the case keyword */
 		status = acceptToken(&tokens, TT_OMG);
 		if (!status) {
-			error("expected OMG", tokens);
+			parser_error_expected_token(TT_OMG, tokens);
 			goto parseSwitchStmtNodeAbort;
 		}
 
@@ -2971,7 +3006,7 @@ StmtNode *parseSwitchStmtNode(Token ***tokenp)
 
 		/* String interpolation is not allowed */
 		if (c->type == CT_STRING && strstr(c->data.s, ":{")) {
-			error("cannot use an interpolated string as an OMG literal", tokens);
+			parser_error(PR_CANNOT_USE_STR_AS_LITERAL, tokens);
 			goto parseSwitchStmtNodeAbort;
 		}
 
@@ -2986,7 +3021,7 @@ StmtNode *parseSwitchStmtNode(Token ***tokenp)
 					&& fabs(c->data.f - test->data.f) < FLT_EPSILON)
 					|| (c->type == CT_STRING
 					&& !strcmp(c->data.s, test->data.s))) {
-				error("OMG literal must be unique", tokens);
+				parser_error(PR_LITERAL_MUST_BE_UNIQUE, tokens);
 				goto parseSwitchStmtNodeAbort;
 			}
 		}
@@ -3003,7 +3038,7 @@ StmtNode *parseSwitchStmtNode(Token ***tokenp)
 		/* Make sure the guard appears on its own line */
 		status = acceptToken(&tokens, TT_NEWLINE);
 		if (!status) {
-			error("expected end of expression", tokens);
+			parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 			goto parseSwitchStmtNodeAbort;
 		}
 
@@ -3022,7 +3057,7 @@ StmtNode *parseSwitchStmtNode(Token ***tokenp)
 		/* Make sure the default case keyword appears on its own line */
 		status = acceptToken(&tokens, TT_NEWLINE);
 		if (!status) {
-			error("expected end of expression", tokens);
+			parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 			goto parseSwitchStmtNodeAbort;
 		}
 
@@ -3034,14 +3069,14 @@ StmtNode *parseSwitchStmtNode(Token ***tokenp)
 	/* Parse the end-switch keyword */
 	status = acceptToken(&tokens, TT_OIC);
 	if (!status) {
-		error("expected OIC", tokens);
+		parser_error_expected_token(TT_OIC, tokens);
 		goto parseSwitchStmtNodeAbort;
 	}
 
 	/* Make sure the end-switch keyword appears on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseSwitchStmtNodeAbort;
 	}
 
@@ -3101,14 +3136,14 @@ StmtNode *parseBreakStmtNode(Token ***tokenp)
 	/* Remove the break keyword from the token stream */
 	status = acceptToken(&tokens, TT_GTFO);
 	if (!status) {
-		error("expected GTFO", tokens);
+		parser_error_expected_token(TT_GTFO, tokens);
 		goto parseBreakStmtNodeAbort;
 	}
 
 	/* The break keyword must appear on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseBreakStmtNodeAbort;
 	}
 
@@ -3156,7 +3191,7 @@ StmtNode *parseReturnStmtNode(Token ***tokenp)
 	/* Remove the return keyword from the token stream */
 	status = acceptToken(&tokens, TT_FOUNDYR);
 	if (!status) {
-		error("expected FOUND YR", tokens);
+		parser_error_expected_token(TT_FOUNDYR, tokens);
 		goto parseReturnStmtNodeAbort;
 	}
 
@@ -3167,7 +3202,7 @@ StmtNode *parseReturnStmtNode(Token ***tokenp)
 	/* The return statement must reside on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseReturnStmtNodeAbort;
 	}
 
@@ -3250,7 +3285,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 	/* Remove the loop-start keyword from the token stream */
 	status = acceptToken(&tokens, TT_IMINYR);
 	if (!status) {
-		error("expected IM IN YR", tokens);
+		parser_error_expected_token(TT_IMINYR, tokens);
 		goto parseLoopStmtNodeAbort;
 	}
 
@@ -3258,7 +3293,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 	name1 = parseIdentifierNode(&tokens);
 	if (!name1) goto parseLoopStmtNodeAbort;
 	else if (name1->type != IT_DIRECT) {
-		error("expected loop name", tokens);
+		parser_error(PR_EXPECTED_LOOP_NAME, tokens);
 		goto parseLoopStmtNodeAbort;
 	}
 
@@ -3282,13 +3317,13 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 #endif
 		}
 		else {
-			error("expected UPPIN or NERFIN", tokens);
+			parser_error_expected_either_token(TT_UPPIN, TT_NERFIN, tokens);
 			goto parseLoopStmtNodeAbort;
 		}
 
 		/* Parse the required syntax */
 		if (!acceptToken(&tokens, TT_YR)) {
-			error("expected YR", tokens);
+			parser_error_expected_token(TT_YR, tokens);
 			goto parseLoopStmtNodeAbort;
 		}
 
@@ -3354,7 +3389,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 		/* Parse the function indicator */
 		status = acceptToken(&tokens, TT_IZ);
 		if (!status) {
-			error("expected IZ", tokens);
+			parser_error_expected_token(TT_IZ, tokens);
 			goto parseLoopStmtNodeAbort;
 		}
 
@@ -3369,7 +3404,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 		/* Check for unary function */
 		status = acceptToken(&tokens, TT_YR);
 		if (!status) {
-			error("expected unary function", tokens);
+			parser_error(PR_EXPECTED_UNARY_FUNCTION, tokens);
 			goto parseLoopStmtNodeAbort;
 		}
 
@@ -3379,7 +3414,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 
 		/* Make sure the argument is an identifier */
 		if (arg->type != ET_IDENTIFIER) {
-			error("expected identifier", tokens);
+			parser_error(PR_EXPECTED_IDENTIFIER, tokens);
 			goto parseLoopStmtNodeAbort;
 		}
 
@@ -3401,7 +3436,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 		/* Check for unary function */
 		status = acceptToken(&tokens, TT_MKAY);
 		if (!status) {
-			error("expected MKAY", tokens);
+			parser_error_expected_token(TT_MKAY, tokens);
 			goto parseLoopStmtNodeAbort;
 		}
 
@@ -3456,7 +3491,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 	/* All of the above should be on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseLoopStmtNodeAbort;
 	}
 
@@ -3467,7 +3502,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 	/* Parse the end-loop keywords */
 	status = acceptToken(&tokens, TT_IMOUTTAYR);
 	if (!status) {
-		error("expected IM OUTTA YR", tokens);
+		parser_error_expected_token(TT_IMOUTTAYR, tokens);
 		goto parseLoopStmtNodeAbort;
 	}
 
@@ -3475,13 +3510,13 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 	name2 = parseIdentifierNode(&tokens);
 	if (!name2) goto parseLoopStmtNodeAbort;
 	else if (name2->type != IT_DIRECT) {
-		error("expected loop name", tokens);
+		parser_error(PR_EXPECTED_LOOP_NAME, tokens);
 		goto parseLoopStmtNodeAbort;
 	}
 
 	/* Make sure the beginning-of-loop and end-of-loop names match */
 	if (strcmp((char *)(name1->id), (char *)(name2->id))) {
-		error("expected matching loop name", tokens);
+		parser_error(PR_EXPECTED_MATCHING_LOOP_NAME, tokens);
 		goto parseLoopStmtNodeAbort;
 	}
 
@@ -3491,7 +3526,7 @@ StmtNode *parseLoopStmtNode(Token ***tokenp)
 	/* The end-of-loop structure should appear on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of expression", tokens);
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 		goto parseLoopStmtNodeAbort;
 	}
 
@@ -3577,14 +3612,14 @@ StmtNode *parseDeallocationStmtNode(Token ***tokenp)
 	/* Parse the deallocation token */
 	status = acceptToken(&tokens, TT_RNOOB);
 	if (!status) {
-		error("expected R NOOB", tokens);
+		parser_error_expected_token(TT_RNOOB, tokens);
 		goto parseDeallocationStmtNodeAbort;
 	}
 
 	/* The deallocation statement must reside on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of statement", tokens);
+		parser_error(PR_EXPECTED_END_OF_STATEMENT, tokens);
 		goto parseDeallocationStmtNodeAbort;
 	}
 
@@ -3645,7 +3680,7 @@ StmtNode *parseFuncDefStmtNode(Token ***tokenp)
 	/* Parse the function definition token */
 	status = acceptToken(&tokens, TT_HOWIZ);
 	if (!status) {
-		error("expected HOW IZ", tokens);
+		parser_error_expected_token(TT_HOWIZ, tokens);
 		goto parseFuncDefStmtNodeAbort;
 	}
 
@@ -3688,7 +3723,7 @@ StmtNode *parseFuncDefStmtNode(Token ***tokenp)
 	/* The function declaration should appear on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of statement", tokens);
+		parser_error(PR_EXPECTED_END_OF_STATEMENT, tokens);
 		goto parseFuncDefStmtNodeAbort;
 	}
 
@@ -3699,14 +3734,14 @@ StmtNode *parseFuncDefStmtNode(Token ***tokenp)
 	/* Parse the end-function token */
 	status = acceptToken(&tokens, TT_IFUSAYSO);
 	if (!status) {
-		error("expected IF YOU SAY SO", tokens);
+		parser_error_expected_token(TT_IFUSAYSO, tokens);
 		goto parseFuncDefStmtNodeAbort;
 	}
 
 	/* The end-function token should appear on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of statement", tokens);
+		parser_error(PR_EXPECTED_END_OF_STATEMENT, tokens);
 		goto parseFuncDefStmtNodeAbort;
 	}
 
@@ -3769,7 +3804,7 @@ StmtNode *parseAltArrayDefStmtNode(Token ***tokenp)
 	/* Parse the alternate array definition token */
 	status = acceptToken(&tokens, TT_OHAIIM);
 	if (!status) {
-		error("expected O HAI IM", tokens);
+		parser_error_expected_token(TT_OHAIIM, tokens);
 		goto parseAltArrayDefStmtNodeAbort;
 	}
 
@@ -3788,7 +3823,7 @@ StmtNode *parseAltArrayDefStmtNode(Token ***tokenp)
 	 * own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of statement", tokens);
+		parser_error(PR_EXPECTED_END_OF_STATEMENT, tokens);
 		goto parseAltArrayDefStmtNodeAbort;
 	}
 
@@ -3800,14 +3835,14 @@ StmtNode *parseAltArrayDefStmtNode(Token ***tokenp)
 	 * line */
 	status = acceptToken(&tokens, TT_KTHX);
 	if (!status) {
-		error("expected KTHX", tokens);
+		parser_error_expected_token(TT_KTHX, tokens);
 		goto parseAltArrayDefStmtNodeAbort;
 	}
 
 	/* The end-function token should appear on its own line */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of statement", tokens);
+		parser_error(PR_EXPECTED_END_OF_STATEMENT, tokens);
 		goto parseAltArrayDefStmtNodeAbort;
 	}
 
@@ -3903,7 +3938,7 @@ StmtNode *parseStmtNode(Token ***tokenp)
 
 			/* The expression should appear on its own line */
 			if (!acceptToken(&tokens, TT_NEWLINE)) {
-				error("expected end of expression", tokens);
+				parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 				deleteExprNode(expr);
 				return NULL;
 			}
@@ -3966,7 +4001,7 @@ StmtNode *parseStmtNode(Token ***tokenp)
 		/* The expression should appear on its own line */
 		status = acceptToken(&tokens, TT_NEWLINE);
 		if (!status) {
-			error("expected end of expression", tokens);
+			parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
 			deleteExprNode(expr);
 			return NULL;
 		}
@@ -3982,7 +4017,7 @@ StmtNode *parseStmtNode(Token ***tokenp)
 		*tokenp = tokens;
 	}
 	else {
-		error("expected statement", tokens);
+		parser_error(PR_EXPECTED_STATEMENT, tokens);
 	}
 
 #ifdef DEBUG
@@ -4088,7 +4123,7 @@ MainNode *parseMainNode(Token **tokens)
 	/* All programs must start with the HAI token */
 	status = acceptToken(&tokens, TT_HAI);
 	if (!status) {
-		error("expected HAI", tokens);
+		parser_error_expected_token(TT_HAI, tokens);
 		goto parseMainNodeAbort;
 	}
 
@@ -4102,7 +4137,7 @@ MainNode *parseMainNode(Token **tokens)
 	/* Make sure the header line ends with a newline */
 	status = acceptToken(&tokens, TT_NEWLINE);
 	if (!status) {
-		error("expected end of statement", tokens);
+		parser_error(PR_EXPECTED_END_OF_STATEMENT, tokens);
 		goto parseMainNodeAbort;
 	}
 
@@ -4113,7 +4148,7 @@ MainNode *parseMainNode(Token **tokens)
 	/* Make sure the program ends with KTHXBYE */
 	status = acceptToken(&tokens, TT_KTHXBYE);
 	if (!status) {
-		error("expected KTHXBYE", tokens);
+		parser_error_expected_token(TT_KTHXBYE, tokens);
 		goto parseMainNodeAbort;
 	}
 
