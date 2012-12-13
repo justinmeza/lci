@@ -4,7 +4,7 @@
  * \section license License
  *
  * lci - a LOLCODE interpreter written in C.
- * Copyright (C) 2010-2011 Justin J. Meza
+ * Copyright (C) 2010-2012 Justin J. Meza
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 	FILE *file = NULL;
 	int ch;
 
-	char *revision = "v0.10.2";
+	char *revision = "v0.10.3";
 	program_name = argv[0];
 
 	while ((ch = getopt_long(argc, argv, shortopt, longopt, NULL)) != -1) {

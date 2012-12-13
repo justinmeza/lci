@@ -9,7 +9,7 @@
  *
  * \author Justin J. Meza
  *
- * \date   2010-2011
+ * \date   2010-2012
  */
 
 #ifndef __LEXER_H__
