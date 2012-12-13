@@ -79,6 +79,9 @@ typedef enum {
 	TT_SMOOSH,      /**< String concatenation. */
 	TT_BANG,        /**< Exclamation point (!) */
 	TT_GIMMEH,      /**< Input. */
+	TT_LINE,        /**< Input line. */
+	TT_WORD,        /**< Input word. */
+	TT_LETTAR,      /**< Input letter. */
 	TT_ORLY,        /**< Conditional. */
 	TT_YARLY,       /**< True branch. */
 	TT_MEBBE,       /**< Else branch. */

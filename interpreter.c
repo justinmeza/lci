@@ -3054,12 +3054,16 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,
 	void *mem = NULL;
 	InputStmtNode *stmt = (InputStmtNode *)node->stmt;
 	ValueObject *val = NULL;
-	while ((c = getchar()) && !feof(stdin)) {
-		/**
-		 * \note The specification is unclear as to the exact semantics
-		 * of input.  Here, we read up until the first newline or EOF
-		 * but do not store it.
-		 */
+	/**
+	 * \note The specification is unclear as to the exact semantics of input.
+	 * If LETTAR was used, we read the first character. Otherwise we read up
+	 * until the first newline or EOF (or space if WORD was used) but do not
+	 * store it. See http://lolcode.com/keywords/gimmeh
+	 */
+	if (stmt->type == INPUT_LETTER) {
+		temp[cur++] = getchar();
+	} else while ((c = getchar()) && !feof(stdin)) {
+		if (stmt->type == INPUT_WORD && c == ' ') break;
 		if (c == EOF || c == (int)'\r' || c == (int)'\n') break;
 		if (cur > size - 1) {
 			/* Increasing buffer size. */

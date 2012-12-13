@@ -398,12 +398,19 @@ typedef struct {
 	int nonl;           /**< Whether to print an ending newline. */
 } PrintStmtNode;
 
+typedef enum {
+	INPUT_LINE,
+	INPUT_WORD,
+	INPUT_LETTER,
+} InputType;
+
 /**
  * Stores an input statement.  This statement accepts input from the user and
  * stores it in a variable.
  */
 typedef struct {
 	IdentifierNode *target; /**< The variable to store the input in. */
+	InputType type;
 } InputStmtNode;
 
 /**
@@ -622,7 +629,7 @@ void deletePrintStmtNode(PrintStmtNode *);
  * Functions for creating and deleting InputStmtNodes.
  */
 /**@{*/
-InputStmtNode *createInputStmtNode(IdentifierNode *);
+InputStmtNode *createInputStmtNode(IdentifierNode *, InputType);
 void deleteInputStmtNode(InputStmtNode *);
 /**@}*/
 
