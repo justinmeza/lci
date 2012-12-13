@@ -301,13 +301,13 @@ Token **tokenizeLexemes(LexemeList *list)
 		else if (isFloat(image)) {
 			token = createToken(TT_FLOAT, image, fname, line);
 			if (sscanf(lexeme->image, "%f", &(token->data.f)) != 1)
-				error2(TK_EXPECTED_FLOATING_POINT, fname, line);
+				error(TK_EXPECTED_FLOATING_POINT, fname, line);
 		}
 		/* Integer */
 		else if (isInteger(image)) {
 			token = createToken(TT_INTEGER, image, fname, line);
 			if (sscanf(lexeme->image, "%i", &(token->data.i)) != 1)
-				error2(TK_EXPECTED_INTEGER, fname, line);
+				error(TK_EXPECTED_INTEGER, fname, line);
 		}
 		/* FAIL */
 		else if (!strcmp(image, "FAIL")) {
@@ -363,7 +363,7 @@ Token **tokenizeLexemes(LexemeList *list)
 			token = createToken(TT_EOF, "end of file", fname, line);
 		}
 		else {
-			error2(TK_UNKNOWN_TOKEN, fname, line, image);
+			error(TK_UNKNOWN_TOKEN, fname, line, image);
 			/* Clean up */
 			deleteToken(ret[retsize - 1]);
 			ret[retsize - 1] = NULL;

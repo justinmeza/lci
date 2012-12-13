@@ -768,7 +768,6 @@ void deleteOpExprNode(OpExprNode *);
 int acceptToken(Token ***, TokenType);
 int peekToken(Token ***, TokenType);
 int nextToken(Token ***, TokenType);
-void error(const char *, Token **);
 /**@}*/
 
 /**

@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 		}
 
 		if (!file) {
-			error2(MN_ERROR_OPENING_FILE, argv[optind]);
+			error(MN_ERROR_OPENING_FILE, argv[optind]);
 			return 1;
 		}
 
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 		}
 
 		if (fclose(file) != 0) {
-			error2(MN_ERROR_CLOSING_FILE, argv[optind]);
+			error(MN_ERROR_CLOSING_FILE, argv[optind]);
 			if (buffer) free(buffer);
 			return 1;
 		}

@@ -1,44 +1,6 @@
 #include "interpreter.h"
 
 /**
- * Prints out an interpreter error message.
- *
- * The verbosity of the message depends on the number of arguments supplied.
- * - If all arguments are supplied, the error message will be of the form
- *   "FILE:LINE: INFO before: NEXT.\n", where FILE and LINE are the file and
- *   line that \a target appears on, INFO is the string \a info, and NEXT is the
- *   image of \a target, as evaluated in \a scope.
- * - If only \a info and \a target are supplied (and \a scope is NULL), then the
- *   error message will be of the form "FILE:LINE: INFO.\n".
- * - If only \a info is supplied (and \a target and \a scope are both NULL),
- *   then the error message will be of the form "INFO.\n".
- *
- * \param [in] info The error message to print.
- *
- * \param [in] target The optional identifier to reference in the error message.
- *
- * \param [in] scope The optional scope to evaluate \a target in.
- */
-void printInterpreterError(const char *info,
-                           IdentifierNode *target,
-                           ScopeObject *scope)
-{
-	if (!info) return;
-
-	if (target && scope) {
-		char *name = resolveIdentifierName(target, scope);
-		fprintf(stderr, "%s:%u: %s at: %s\n", target->fname, target->line, info, name);
-		free(name);
-	}
-	else if (target && !scope) {
-		fprintf(stderr, "%s:%u: %s.\n", target->fname, target->line, info);
-	}
-	else {
-		fprintf(stderr, "%s.\n", info);
-	}
-}
-
-/**
  * Creates a new string by copying the contents of another string.
  *
  * \param [in] data The string to copy.
@@ -168,7 +130,9 @@ char *resolveIdentifierName(IdentifierNode *id,
 		deleteValueObject(str);
 	}
 	else {
-		printInterpreterError("invalid identifier type", id, scope);
+		char *name = resolveIdentifierName(id, scope);
+		error(IN_INVALID_IDENTIFIER_TYPE, id->fname, id->line, name);
+		free(name);
 	}
 
 	return ret;
@@ -588,7 +552,11 @@ ValueObject *updateScopeValue(ScopeObject *src,
 		}
 	} while ((parent = parent->parent));
 
-	printInterpreterError("unable to store variable", target, src);
+	{
+		char *name = resolveIdentifierName(target, src);
+		error(IN_UNABLE_TO_STORE_VARIABLE, target->fname, target->line, name);
+		free(name);
+	}
 
 updateScopeValueAbort: /* In case something goes wrong... */
 
@@ -641,7 +609,11 @@ ValueObject *getScopeValue(ScopeObject *src,
 		}
 	} while ((parent = parent->parent));
 
-	printInterpreterError("variable does not exist", child, src);
+	{
+		char *name = resolveIdentifierName(child, src);
+		error(IN_VARIABLE_DOES_NOT_EXIST, child->fname, child->line, name);
+		free(name);
+	}
 
 getScopeValueAbort: /* In case something goes wrong... */
 
@@ -700,7 +672,11 @@ ScopeObject *getScopeObjectLocal(ScopeObject *src,
 		}
 	} while ((current = current->parent));
 
-	printInterpreterError("variable does not exist", target, src);
+	{
+		char *name = resolveIdentifierName(target, src);
+		error(IN_VARIABLE_DOES_NOT_EXIST, target->fname, target->line, name);
+		free(name);
+	}
 
 getScopeObjectLocalAbort: /* In case something goes wrong... */
 
@@ -829,7 +805,9 @@ ScopeObject *getScopeObject(ScopeObject *src,
 	val = getScopeValue(src, dest, target);
 	if (!val) goto getScopeObjectAbort;
 	if (val->type != VT_ARRAY) {
-		printInterpreterError("variable is not an array", target, src);
+		char *name = resolveIdentifierName(target, src);
+		error(IN_VARIABLE_NOT_AN_ARRAY, target->fname, target->line, name);
+		free(name);
 		goto getScopeObjectAbort;
 	}
 
@@ -1074,7 +1052,7 @@ ValueObject *castIntegerImplicit(ValueObject *node,
 {
 	if (!node) return NULL;
 	if (node->type == VT_NIL) {
-		fprintf(stderr, "Cannot implicitly cast nil\n");
+		error(IN_CANNOT_IMPLICITLY_CAST_NIL);
 		return NULL;
 	}
 	else return castIntegerExplicit(node, scope);
@@ -1099,7 +1077,7 @@ ValueObject *castFloatImplicit(ValueObject *node,
 {
 	if (!node) return NULL;
 	if (node->type == VT_NIL) {
-		fprintf(stderr, "Cannot implicitly cast nil\n");
+		error(IN_CANNOT_IMPLICITLY_CAST_NIL);
 		return NULL;
 	}
 	else return castFloatExplicit(node, scope);
@@ -1128,7 +1106,7 @@ ValueObject *castStringImplicit(ValueObject *node,
 {
 	if (!node) return NULL;
 	if (node->type == VT_NIL) {
-		fprintf(stderr, "Cannot implicitly cast nil\n");
+		error(IN_CANNOT_IMPLICITLY_CAST_NIL);
 		return NULL;
 	}
 	else return castStringExplicit(node, scope);
@@ -1174,13 +1152,13 @@ ValueObject *castBooleanExplicit(ValueObject *node,
 			else
 				return createBooleanValueObject(getString(node)[0] != '\0');
 		case VT_FUNC:
-			fprintf(stderr, "Cannot cast functions to booleans\n");
+			error(IN_CANNOT_CAST_FUNCTION_TO_BOOLEAN);
 			return NULL;
 		case VT_ARRAY:
-			fprintf(stderr, "Cannot cast arrays to booleans\n");
+			error(IN_CANNOT_CAST_ARRAY_TO_BOOLEAN);
 			return NULL;
 		default:
-			fprintf(stderr, "Unknown value type encountered during boolean cast\n");
+			error(IN_UNKNOWN_VALUE_DURING_BOOLEAN_CAST);
 			return NULL;
 	}
 }
@@ -1219,12 +1197,12 @@ ValueObject *castIntegerExplicit(ValueObject *node,
 				int value;
 				if (!interp) return NULL;
 				if (!isDecString(getString(interp))) {
-					fprintf(stderr, "Unable to cast value\n");
+					error(IN_UNABLE_TO_CAST_VALUE);
 					deleteValueObject(interp);
 					return NULL;
 				}
 				if (sscanf(getString(interp), "%i", &value) != 1) {
-					fprintf(stderr, "Expected integer value\n");
+					error(IN_EXPECTED_INTEGER_VALUE);
 					deleteValueObject(interp);
 					return NULL;
 				}
@@ -1235,23 +1213,23 @@ ValueObject *castIntegerExplicit(ValueObject *node,
 			else {
 				int value;
 				if (!isDecString(getString(node))) {
-					fprintf(stderr, "Unable to cast value\n");
+					error(IN_UNABLE_TO_CAST_VALUE);
 					return NULL;
 				}
 				if (sscanf(getString(node), "%i", &value) != 1) {
-					fprintf(stderr, "Expected integer value\n");
+					error(IN_EXPECTED_INTEGER_VALUE);
 					return NULL;
 				}
 				return createIntegerValueObject(value);
 			}
 		case VT_FUNC:
-			fprintf(stderr, "Cannot cast functions to integers\n");
+			error(IN_CANNOT_CAST_FUNCTION_TO_INTEGER);
 			return NULL;
 		case VT_ARRAY:
-			fprintf(stderr, "Cannot cast arrays to integers\n");
+			error(IN_CANNOT_CAST_ARRAY_TO_INTEGER);
 			return NULL;
 		default:
-			fprintf(stderr, "Unknown value type encountered during integer cast\n");
+			error(IN_UNKNOWN_VALUE_DURING_INTEGER_CAST);
 			return NULL;
 	}
 }
@@ -1290,12 +1268,12 @@ ValueObject *castFloatExplicit(ValueObject *node,
 				float value;
 				if (!interp) return NULL;
 				if (!isDecString(getString(interp))) {
-					fprintf(stderr, "Unable to cast value\n");
+					error(IN_UNABLE_TO_CAST_VALUE);
 					deleteValueObject(interp);
 					return NULL;
 				}
 				if (sscanf(getString(interp), "%f", &value) != 1) {
-					fprintf(stderr, "Expected floating point decimal value\n");
+					error(IN_EXPECTED_DECIMAL);
 					deleteValueObject(interp);
 					return NULL;
 				}
@@ -1306,23 +1284,23 @@ ValueObject *castFloatExplicit(ValueObject *node,
 			else {
 				float value;
 				if (!isDecString(getString(node))) {
-					fprintf(stderr, "Unable to cast value\n");
+					error(IN_UNABLE_TO_CAST_VALUE);
 					return NULL;
 				}
 				if (sscanf(getString(node), "%f", &value) != 1) {
-					fprintf(stderr, "Expected floating point decimal value\n");
+					error(IN_EXPECTED_DECIMAL);
 					return NULL;
 				}
 				return createFloatValueObject(value);
 			}
 		case VT_FUNC:
-			fprintf(stderr, "Cannot cast functions to floats\n");
+			error(IN_CANNOT_CAST_FUNCTION_TO_DECIMAL);
 			return NULL;
 		case VT_ARRAY:
-			fprintf(stderr, "Cannot cast arrays to floats\n");
+			error(IN_CANNOT_CAST_ARRAY_TO_DECIMAL);
 			return NULL;
 		default:
-			fprintf(stderr, "Unknown value type encountered during floating point decimal cast\n");
+			error(IN_UNKNOWN_VALUE_DURING_DECIMAL_CAST);
 			return NULL;
 	}
 }
@@ -1360,7 +1338,7 @@ ValueObject *castStringExplicit(ValueObject *node,
 			 * \note The spec does not define how TROOFs may be cast
 			 * to YARNs.
 			 */
-			fprintf(stderr, "Cannot cast TROOF to YARN\n");
+			error(IN_CANNOT_CAST_BOOLEAN_TO_STRING);
 			return NULL;
 		}
 		case VT_INTEGER: {
@@ -1430,7 +1408,7 @@ ValueObject *castStringExplicit(ValueObject *node,
 					size_t num;
 					void *mem = NULL;
 					if (end < start) {
-						fprintf(stderr, "Expected closing parenthesis after :(\n");
+						error(IN_EXPECTED_CLOSING_PAREN);
 						free(temp);
 						return NULL;
 					}
@@ -1439,7 +1417,7 @@ ValueObject *castStringExplicit(ValueObject *node,
 					strncpy(image, start, len);
 					image[len] = '\0';
 					if (!isHexString(image)) {
-						fprintf(stderr, "Please supply a valid hexadecimal number\n");
+						error(IN_INVALID_HEX_NUMBER);
 						free(temp);
 						free(image);
 						return NULL;
@@ -1447,7 +1425,7 @@ ValueObject *castStringExplicit(ValueObject *node,
 					codepoint = strtol(image, NULL, 16);
 					free(image);
 					if (codepoint < 0) {
-						fprintf(stderr, "Code point is supposed to be positive\n");
+						error(IN_CODE_POINT_MUST_BE_POSITIVE);
 						free(temp);
 						return NULL;
 					}
@@ -1477,7 +1455,7 @@ ValueObject *castStringExplicit(ValueObject *node,
 					size_t num;
 					void *mem = NULL;
 					if (end < start) {
-						fprintf(stderr, "Expected closing square bracket after :[\n");
+						error(IN_EXPECTED_CLOSING_SQUARE_BRACKET);
 						free(temp);
 						return NULL;
 					}
@@ -1489,7 +1467,7 @@ ValueObject *castStringExplicit(ValueObject *node,
 					codepoint = convertNormativeNameToCodePoint(image);
 					free(image);
 					if (codepoint < 0) {
-						fprintf(stderr, "Code point is supposed to be positive\n");
+						error(IN_CODE_POINT_MUST_BE_POSITIVE);
 						free(temp);
 						return NULL;
 					}
@@ -1515,7 +1493,7 @@ ValueObject *castStringExplicit(ValueObject *node,
 					char *image = NULL;
 					void *mem = NULL;
 					if (end < start) {
-						fprintf(stderr, "Expected closing curly brace after :{\n");
+						error(IN_EXPECTED_CLOSING_CURLY_BRACE);
 						free(temp);
 						return NULL;
 					}
@@ -1529,7 +1507,7 @@ ValueObject *castStringExplicit(ValueObject *node,
 					else {
 						/*
 						 * Create a new IdentifierNode
-						 * structure and lookup its
+						 * structure and look up its
 						 * value
 						 */
 						target = createIdentifierNode(IT_DIRECT, image, NULL, NULL, 0);
@@ -1539,7 +1517,7 @@ ValueObject *castStringExplicit(ValueObject *node,
 						}
 						val = getScopeValue(scope, scope, target);
 						if (!val) {
-							fprintf(stderr, "Variable does not exist at: %s\n", image);
+							error(IN_VARIABLE_DOES_NOT_EXIST, target->fname, target->line, image);
 							deleteIdentifierNode(target);
 							free(temp);
 							return NULL;
@@ -1576,14 +1554,14 @@ ValueObject *castStringExplicit(ValueObject *node,
 			return createStringValueObject(data);
 		}
 		case VT_FUNC: {
-			fprintf(stderr, "Cannot cast functions to strings\n");
+			error(IN_CANNOT_CAST_FUNCTION_TO_STRING);
 			return NULL;
 		}
 		case VT_ARRAY:
-			fprintf(stderr, "Cannot cast arrays to strings\n");
+			error(IN_CANNOT_CAST_ARRAY_TO_STRING);
 			return NULL;
 		default:
-			fprintf(stderr, "Unknown value type encountered during string cast\n");
+			error(IN_UNKNOWN_VALUE_DURING_STRING_CAST);
 			return NULL;
 	}
 }
@@ -1649,7 +1627,7 @@ ValueObject *interpretCastExprNode(ExprNode *node,
 			deleteValueObject(val);
 			return ret;
 		default:
-			fprintf(stderr, "Unknown cast type\n");
+			error(IN_UNKNOWN_CAST_TYPE);
 			deleteValueObject(val);
 			return NULL;
 	}
@@ -1694,7 +1672,7 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,
 		IdentifierNode *id = (IdentifierNode *)(expr->name);
 		char *name = resolveIdentifierName(id, scope);
 		if (name) {
-			fprintf(stderr, "%s:%u: undefined function at: %s\n", id->fname, id->line, name);
+			error(IN_UNDEFINED_FUNCTION, id->fname, id->line, name);
 			free(name);
 		}
 		deleteScopeObject(outer);
@@ -1705,7 +1683,7 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,
 		IdentifierNode *id = (IdentifierNode *)(expr->name);
 		char *name = resolveIdentifierName(id, scope);
 		if (name) {
-			fprintf(stderr, "%s:%u: incorrect number of arguments supplied to: %s\n", id->fname, id->line, name);
+			error(IN_INCORRECT_NUMBER_OF_ARGUMENTS, id->fname, id->line, name);
 			free(name);
 		}
 		deleteScopeObject(outer);
@@ -1751,7 +1729,7 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,
 			retval->value = NULL;
 			break;
 		default:
-			fprintf(stderr, "Invalid return type\n");
+			error(IN_INVALID_RETURN_TYPE);
 			break;
 	}
 	deleteReturnObject(retval);
@@ -1823,7 +1801,7 @@ ValueObject *interpretConstantExprNode(ExprNode *node,
 			return createStringValueObject(str);
 		}
 		default:
-			fprintf(stderr, "Unknown constant type\n");
+			error(IN_UNKNOWN_CONSTANT_TYPE);
 			return NULL;
 	}
 }
@@ -1924,7 +1902,7 @@ ValueObject *opDivIntegerInteger(ValueObject *a,
                                  ValueObject *b)
 {
 	if (getInteger(b) == 0) {
-		fprintf(stderr, "Division by zero undefined\n");
+		error(IN_DIVISION_BY_ZERO);
 		return NULL;
 	}
 	return createIntegerValueObject(getInteger(a) / getInteger(b));
@@ -1973,7 +1951,7 @@ ValueObject *opModIntegerInteger(ValueObject *a,
                                  ValueObject *b)
 {
 	if (getInteger(b) == 0) {
-		fprintf(stderr, "Division by zero undefined\n");
+		error(IN_DIVISION_BY_ZERO);
 		return NULL;
 	}
 	return createIntegerValueObject(getInteger(a) % getInteger(b));
@@ -2039,7 +2017,7 @@ ValueObject *opDivIntegerFloat(ValueObject *a,
                                ValueObject *b)
 {
 	if (fabs(getFloat(b) - 0.0) < FLT_EPSILON) {
-		fprintf(stderr, "Division by zero undefined\n");
+		error(IN_DIVISION_BY_ZERO);
 		return NULL;
 	}
 	return createFloatValueObject((float)(getInteger(a) / getFloat(b)));
@@ -2088,7 +2066,7 @@ ValueObject *opModIntegerFloat(ValueObject *a,
                                ValueObject *b)
 {
 	if (fabs(getFloat(b) - 0.0) < FLT_EPSILON) {
-		fprintf(stderr, "Division by zero undefined\n");
+		error(IN_DIVISION_BY_ZERO);
 		return NULL;
 	}
 	return createFloatValueObject((float)(fmod((double)(getInteger(a)), getFloat(b))));
@@ -2154,7 +2132,7 @@ ValueObject *opDivFloatInteger(ValueObject *a,
                                ValueObject *b)
 {
 	if (getInteger(b) == 0) {
-		fprintf(stderr, "Division by zero undefined\n");
+		error(IN_DIVISION_BY_ZERO);
 		return NULL;
 	}
 	return createFloatValueObject(getFloat(a) / getInteger(b));
@@ -2203,7 +2181,7 @@ ValueObject *opModFloatInteger(ValueObject *a,
                                ValueObject *b)
 {
 	if (getInteger(b) == 0) {
-		fprintf(stderr, "Division by zero undefined\n");
+		error(IN_DIVISION_BY_ZERO);
 		return NULL;
 	}
 	return createFloatValueObject((float)(fmod(getFloat(a), (double)(getInteger(b)))));
@@ -2269,7 +2247,7 @@ ValueObject *opDivFloatFloat(ValueObject *a,
                              ValueObject *b)
 {
 	if (fabs(getFloat(b) - 0.0) < FLT_EPSILON) {
-		fprintf(stderr, "Division by zero undefined\n");
+		error(IN_DIVISION_BY_ZERO);
 		return NULL;
 	}
 	return createFloatValueObject(getFloat(a) / getFloat(b));
@@ -2318,7 +2296,7 @@ ValueObject *opModFloatFloat(ValueObject *a,
                              ValueObject *b)
 {
 	if (fabs(getFloat(b) - 0.0) < FLT_EPSILON) {
-		fprintf(stderr, "Division by zero undefined\n");
+		error(IN_DIVISION_BY_ZERO);
 		return NULL;
 	}
 	return createFloatValueObject((float)(fmod(getFloat(a), getFloat(b))));
@@ -2405,7 +2383,7 @@ ValueObject *interpretArithOpExprNode(OpExprNode *expr,
 			break;
 		}
 		default:
-			fprintf(stderr, "Invalid operand type\n");
+			error(IN_INVALID_OPERAND_TYPE);
 	}
 	switch (val2->type) {
 		case VT_NIL:
@@ -2446,7 +2424,7 @@ ValueObject *interpretArithOpExprNode(OpExprNode *expr,
 			break;
 		}
 		default:
-			fprintf(stderr, "Invalid operand type\n");
+			error(IN_INVALID_OPERAND_TYPE);
 	}
 	/* Do math depending on value types */
 	ret = ArithOpJumpTable[expr->type][use1->type][use2->type](use1, use2);
@@ -2508,7 +2486,7 @@ ValueObject *interpretBoolOpExprNode(OpExprNode *expr,
 					acc ^= temp;
 					break;
 				default:
-					fprintf(stderr, "Invalid boolean operation type\n");
+					error(IN_INVALID_BOOLEAN_OPERATION_TYPE);
 					return NULL;
 			}
 		}
@@ -2798,7 +2776,7 @@ ValueObject *interpretEqualityOpExprNode(OpExprNode *expr,
 				ret = createBooleanValueObject(1);
 				break;
 			default:
-				fprintf(stderr, "Invalid equality operation type\n");
+				error(IN_INVALID_EQUALITY_OPERATION_TYPE);
 				deleteValueObject(val1);
 				deleteValueObject(val2);
 				return NULL;
@@ -2967,7 +2945,7 @@ ReturnObject *interpretCastStmtNode(StmtNode *node,
 		IdentifierNode *id = (IdentifierNode *)(stmt->target);
 		char *name = resolveIdentifierName(id, scope);
 		if (name) {
-			fprintf(stderr, "%s:%u: variable does not exist at: %s\n", id->fname, id->line, name);
+			error(IN_VARIABLE_DOES_NOT_EXIST, id->fname, id->line, name);
 			free(name);
 		}
 		return NULL;
@@ -3139,7 +3117,7 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,
 		IdentifierNode *id = (IdentifierNode *)(stmt->target);
 		char *name = resolveIdentifierName(id, scope);
 		if (name) {
-			fprintf(stderr, "%s:%u: redefinition of existing variable at: %s\n", id->fname, id->line, name);
+			error(IN_REDEFINITION_OF_VARIABLE, id->fname, id->line, name);
 			free(name);
 		}
 		return NULL;
@@ -3167,7 +3145,7 @@ ReturnObject *interpretDeclarationStmtNode(StmtNode *node,
 				init = createArrayValueObject(scope);
 				break;
 			default:
-				fprintf(stderr, "Unknown declaration type!\n");
+				error(IN_INVALID_DECLARATION_TYPE);
 				return NULL;
 		}
 	}
@@ -3318,7 +3296,7 @@ ReturnObject *interpretSwitchStmtNode(StmtNode *node,
 						done = 1;
 					break;
 				default:
-					fprintf(stderr, "Invalid type\n");
+					error(IN_INVALID_TYPE);
 					deleteValueObject(use2);
 					return NULL;
 			}
@@ -3559,7 +3537,7 @@ ReturnObject *interpretFuncDefStmtNode(StmtNode *node,
 		IdentifierNode *id = (IdentifierNode *)(stmt->name);
 		char *name = resolveIdentifierName(id, scope);
 		if (name) {
-			fprintf(stderr, "%s:%u: function name already used by existing variable at: %s\n", id->fname, id->line, name);
+			error(IN_FUNCTION_NAME_USED_BY_VARIABLE, id->fname, id->line, name);
 			free(name);
 		}
 		return NULL;

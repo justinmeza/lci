@@ -306,7 +306,7 @@ void deleteIdentifierNode(IdentifierNode *node)
 			break;
 		}
 		default:
-			error2(PR_UNKNOWN_IDENTIFIER_TYPE, node->fname, node->line);
+			error(PR_UNKNOWN_IDENTIFIER_TYPE, node->fname, node->line);
 			break;
 	}
 	if (node->slot) deleteIdentifierNode(node->slot);
@@ -515,7 +515,7 @@ void deleteStmtNode(StmtNode *node)
 			break;
 		}
 		default:
-			error2(PR_UNKNOWN_STATEMENT_TYPE);
+			error(PR_UNKNOWN_STATEMENT_TYPE);
 			break;
 	}
 	free(node);
@@ -1158,7 +1158,7 @@ void deleteExprNode(ExprNode *node)
 		case ET_IMPVAR:
 			break; /* This expression type does not have any content */
 		default:
-			error2(PR_UNKNOWN_EXPRESSION_TYPE);
+			error(PR_UNKNOWN_EXPRESSION_TYPE);
 			break;
 	}
 	free(node);
@@ -1427,7 +1427,7 @@ int nextToken(Token ***tokenp,
 void parser_error(ErrorType type,
                   Token **tokens)
 {
-	error2(type, (*tokens)->fname, (*tokens)->line, (*tokens)->image);
+	error(type, (*tokens)->fname, (*tokens)->line, (*tokens)->image);
 }
 
 /**
@@ -1441,7 +1441,7 @@ void parser_error(ErrorType type,
 void parser_error_expected_token(TokenType token,
                                  Token **tokens)
 {
-	error2(PR_EXPECTED_TOKEN,
+	error(PR_EXPECTED_TOKEN,
 			(*tokens)->fname,
 			(*tokens)->line,
 			keywords[token],
@@ -1462,7 +1462,7 @@ void parser_error_expected_either_token(TokenType token1,
                                         TokenType token2,
                                         Token **tokens)
 {
-	error2(PR_EXPECTED_TOKEN,
+	error(PR_EXPECTED_TOKEN,
 			(*tokens)->fname,
 			(*tokens)->line,
 			keywords[token1],

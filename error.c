@@ -64,6 +64,85 @@ static const char *err_msgs[] = {
 	"%s:%u: expected matching loop name at: %s\n",
 	/* PR_EXPECTED_STATEMENT */
 	"%s:%u: expected statement at: %s\n",
+
+	/* IN_INVALID_IDENTIFIER_TYPE */
+	"%s:%u invalid identifier type at: %s\n",
+	/* IN_UNABLE_TO_STORE_VARIABLE */
+	"%s:%u unable to store variable: %s\n",
+	/* IN_VARIABLE_DOES_NOT_EXIST */
+	"%s:%u variable does not exist: %s\n",
+	/* IN_CANNOT_IMPLICITLY_CAST_NIL */
+	"Cannot implicitly cast nil\n",
+	/* IN_CANNOT_CAST_FUNCTION_TO_BOOLEAN */
+	"Cannot cast function to boolean value\n",
+	/* IN_CANNOT_CAST_ARRAY_TO_BOOLEAN */
+	"Cannot cast array to boolean value\n",
+	/* IN_UNKNOWN_VALUE_DURING_BOOLEAN_CAST */
+	"Unknown value type encountered during boolean cast\n",
+	/* IN_UNABLE_TO_CAST_VALUE */
+	"Unable to cast value\n",
+	/* IN_EXPECTED_INTEGER_VALUE */
+	"Expected integer value\n",
+	/* IN_CANNOT_CAST_FUNCTION_TO_INTEGER */
+	"Cannot cast function to integer value\n",
+	/* IN_CANNOT_CAST_ARRAY_TO_INTEGER */
+	"Cannot cast array to integer value\n",
+	/* IN_UNKNOWN_VALUE_DURING_INTEGER_CAST */
+	"Unknown value type encountered during integer cast\n",
+	/* IN_EXPECTED_DECIMAL */
+	"Expected floating point decimal value\n",
+	/* IN_CANNOT_CAST_FUNCTION_TO_DECIMAL */
+	"Cannot cast function to floating point decimal value\n",
+	/* IN_CANNOT_CAST_ARRAY_TO_DECIMAL */
+	"Cannot cast array to floating point decimal value\n",
+	/* IN_UNKNOWN_VALUE_DURING_DECIMAL_CAST */
+	"Unknown value type encountered during floating point decimal cast\n",
+	/* IN_CANNOT_CAST_BOOLEAN_TO_STRING */
+	"Cannot cast boolean to string value\n",
+	/* IN_EXPECTED_CLOSING_PAREN */
+	"Expected closing parenthesis after :(\n",
+	/* IN_INVALID_HEX_NUMBER */
+	"Please supply a valid hexadecimal number\n",
+	/* IN_CODE_POINT_MUST_BE_POSITIVE */
+	"Code point is supposed to be positive\n",
+	/* IN_EXPECTED_CLOSING_SQUARE_BRACKET */
+	"Expected closing square bracket after :[\n",
+	/* IN_EXPECTED_CLOSING_CURLY_BRACE */
+	"Expected closing curly brace after :{\n",
+	/* IN_VARIABLE_NOT_AN_ARRAY */
+	"%s:%u variable is not an array: %s\n",
+	/* IN_CANNOT_CAST_FUNCTION_TO_STRING */
+	"Cannot cast function to string value\n",
+	/* IN_CANNOT_CAST_ARRAY_TO_STRING */
+	"Cannot cast array to string value\n",
+	/* IN_UNKNOWN_VALUE_DURING_STRING_CAST */
+	"Unknown value type encountered during string cast\n",
+	/* IN_UNKNOWN_CAST_TYPE */
+	"Unknown cast type\n",
+	/* IN_UNDEFINED_FUNCTION */
+	"%s:%u: undefined function at: %s\n",
+	/* IN_INCORRECT_NUMBER_OF_ARGUMENTS */
+	"%s:%u: incorrect number of arguments supplied to: %s\n",
+	/* IN_INVALID_RETURN_TYPE */
+	"Invalid return type\n",
+	/* IN_UNKNOWN_CONSTANT_TYPE */
+	"Unknown constant type\n",
+	/* IN_DIVISION_BY_ZERO */
+	"Division by zero undefined\n",
+	/* IN_INVALID_OPERAND_TYPE */
+	"Invalid operand type\n",
+	/* IN_INVALID_BOOLEAN_OPERATION_TYPE */
+	"Invalid boolean operation type\n",
+	/* IN_INVALID_EQUALITY_OPERATION_TYPE */
+	"Invalid equality operation type\n",
+	/* IN_REDEFINITION_OF_VARIABLE */
+	"%s:%u: redefinition of existing variable at: %s\n",
+	/* IN_INVALID_DECLARATION_TYPE */
+	"Unknown declaration type\n",
+	/* IN_INVALID_TYPE */
+	"Invalid type\n",
+	/* IN_FUNCTION_NAME_USED_BY_VARIABLE */
+	"%s:%u: function name already used by existing variable at: %s\n",
 };
 
 static const int err_codes[] = {
@@ -106,9 +185,48 @@ static const int err_codes[] = {
 	421, /* PR_EXPECTED_STATEMENT */
 
 	/* The 500 block is for the interpreter */
+	500, /* IN_INVALID_IDENTIFIER_TYPE */
+	501, /* IN_UNABLE_TO_STORE_VARIABLE */
+	502, /* IN_VARIABLE_DOES_NOT_EXIST */
+	503, /* IN_CANNOT_IMPLICITLY_CAST_NIL */
+	504, /* IN_CANNOT_CAST_FUNCTION_TO_BOOLEAN */
+	505, /* IN_CANNOT_CAST_ARRAY_TO_BOOLEAN */
+	506, /* IN_UNKNOWN_VALUE_DURING_BOOLEAN_CAST */
+	507, /* IN_UNABLE_TO_CAST_VALUE */
+	508, /* IN_EXPECTED_INTEGER_VALUE */
+	509, /* IN_CANNOT_CAST_FUNCTION_TO_INTEGER */
+	510, /* IN_CANNOT_CAST_ARRAY_TO_INTEGER */
+	511, /* IN_UNKNOWN_VALUE_DURING_INTEGER_CAST */
+	512, /* IN_EXPECTED_DECIMAL */
+	513, /* IN_CANNOT_CAST_FUNCTION_TO_DECIMAL */
+	514, /* IN_CANNOT_CAST_ARRAY_TO_DECIMAL */
+	515, /* IN_UNKNOWN_VALUE_DURING_DECIMAL_CAST */
+	516, /* IN_CANNOT_CAST_BOOLEAN_TO_STRING */
+	517, /* IN_EXPECTED_CLOSING_PAREN */
+	518, /* IN_INVALID_HEX_NUMBER */
+	519, /* IN_CODE_POINT_MUST_BE_POSITIVE */
+	520, /* IN_EXPECTED_CLOSING_SQUARE_BRACKET */
+	521, /* IN_EXPECTED_CLOSING_CURLY_BRACE */
+	522, /* IN_VARIABLE_NOT_AN_ARRAY */
+	523, /* IN_CANNOT_CAST_FUNCTION_TO_STRING */
+	524, /* IN_CANNOT_CAST_ARRAY_TO_STRING */
+	525, /* IN_UNKNOWN_VALUE_DURING_STRING_CAST */
+	526, /* IN_UNKNOWN_CAST_TYPE */
+	527, /* IN_UNDEFINED_FUNCTION */
+	528, /* IN_INCORRECT_NUMBER_OF_ARGUMENTS */
+	529, /* IN_INVALID_RETURN_TYPE */
+	530, /* IN_UNKNOWN_CONSTANT_TYPE */
+	531, /* IN_DIVISION_BY_ZERO */
+	532, /* IN_INVALID_OPERAND_TYPE */
+	533, /* IN_INVALID_BOOLEAN_OPERATION_TYPE */
+	534, /* IN_INVALID_EQUALITY_OPERATION_TYPE */
+	535, /* IN_REDEFINITION_OF_VARIABLE */
+	536, /* IN_INVALID_DECLARATION_TYPE */
+	537, /* IN_INVALID_TYPE */
+	538, /* IN_FUNCTION_NAME_USED_BY_VARIABLE */
 };
 
-void error2(ErrorType e, ...)
+void error(ErrorType e, ...)
 {
 	va_list args;
 	va_start(args, e);

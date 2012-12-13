@@ -236,7 +236,7 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 			/* Make sure next line is not empty */
 			while (*test && isspace(*test)) {
 				if (*test == '\r' || *test == '\n') {
-					error2(LX_LINE_CONTINUATION, fname, line);
+					error(LX_LINE_CONTINUATION, fname, line);
 					deleteLexemeList(list);
 					return NULL;
 				}
@@ -263,7 +263,7 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 				start++;
 			if (start == buffer || *start == ',' || *start == '\r' || *start == '\n')
 				continue;
-			error2(LX_MULTIPLE_LINE_COMMENT, fname, line);
+			error(LX_MULTIPLE_LINE_COMMENT, fname, line);
 			deleteLexemeList(list);
 			return NULL;
 		}
@@ -295,7 +295,7 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 					&& strncmp(start + len, "'Z", 2)
 					&& strncmp(start + len, "...", 3)
 					&& strncmp(start + len, "\xE2\x80\xA6", 3)) {
-				error2(LX_EXPECTED_TOKEN_DELIMITER, fname, line);
+				error(LX_EXPECTED_TOKEN_DELIMITER, fname, line);
 				deleteLexemeList(list);
 				return NULL;
 			}
