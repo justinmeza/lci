@@ -1,7 +1,0 @@
-add_subdirectory(1-Simple)
-add_subdirectory(2-Breaks)
-add_subdirectory(3-Default)
-add_subdirectory(4-MixedTypes)
-add_subdirectory(5-LiteralsMustBeUnique)
-add_subdirectory(6-MustNotBeExpressions)
-add_subdirectory(7-MustNotBeVariables)

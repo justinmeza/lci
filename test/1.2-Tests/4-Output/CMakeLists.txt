@@ -1,7 +1,0 @@
-add_subdirectory(1-MustHaveAnArg)
-add_subdirectory(2-Booleans)
-add_subdirectory(3-Integers)
-add_subdirectory(4-Floats)
-add_subdirectory(5-BasicStrings)
-add_subdirectory(6-MixedTypes)
-add_subdirectory(7-NoNewline)

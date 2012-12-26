@@ -1,5 +1,0 @@
-add_subdirectory(1-FromNil)
-add_subdirectory(2-FromBoolean)
-add_subdirectory(3-FromInteger)
-add_subdirectory(4-FromFloat)
-add_subdirectory(5-FromString)

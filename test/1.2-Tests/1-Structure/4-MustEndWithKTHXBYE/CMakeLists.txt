@@ -1,2 +1,0 @@
-INCLUDE(AddLolTest)
-Add_LOL_TEST(4-MustEndWithKTHXBYE ERROR)
