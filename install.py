@@ -25,7 +25,14 @@ def runSubProc(command, description, errorMsg, output):
   print(msg + "\n")
 
   outputFile = open(output, "w")
+<<<<<<< HEAD
   proc = subprocess.Popen(command, stdout=outputFile, stderr=subprocess.STDOUT)
+=======
+  if os.name == "nt":
+    proc = subprocess.Popen(command, stdout=outputFile, stderr=subprocess.STDOUT, shell=True)
+  else:
+    proc = subprocess.Popen(command, stdout=outputFile, stderr=subprocess.STDOUT)
+>>>>>>> future
   proc.wait()
   if proc.returncode != 0:
     print("Error installing: " + errorMsg)
@@ -46,20 +53,45 @@ args = parser.parse_args()
 j = str(args.j)
 
 cmakeCommand = ["cmake"]
+<<<<<<< HEAD
 if args.prefix != None:
   cmakeCommand.append("-DCMAKE_INSTALL_PREFIX:STRING="+args.prefix)
+=======
+makeCommand = "make"
+
+# Support for Windows
+if os.name == "nt":
+  cmakeCommand.append("-G \"MinGW Makefiles\"")
+  makeCommand = "mingw32-make"
+
+if args.prefix != None:
+  cmakeCommand.append("-DCMAKE_INSTALL_PREFIX:STRING=\""+args.prefix+"\"")
+>>>>>>> future
 if args.enableMemCheck:
   cmakeCommand.append("-DPERFORM_MEM_TESTS:BOOL=ON")
 cmakeCommand.append(".")
 
+<<<<<<< HEAD
 runSubProc(
   cmakeCommand, 
   "Running cmake with command: \n\"" + " ".join(cmakeCommand)+"\"\n",
+=======
+# Windows does weird things if this is not joined...
+cmakeCommand = " ".join(cmakeCommand)
+
+runSubProc(
+  cmakeCommand,
+  "Running cmake with command: \n\"" + cmakeCommand + "\"\n",
+>>>>>>> future
   "There was a CMake error",
   "configure.out")
 
 runSubProc(
+<<<<<<< HEAD
   ["make", "-j"+j], 
+=======
+  [makeCommand, "-j"+j], 
+>>>>>>> future
   "Running make ",
   "There was a make error",
   "make.out")
@@ -67,13 +99,21 @@ runSubProc(
 
 if args.buildDocs:
   runSubProc(
+<<<<<<< HEAD
     ["make", "-j"+j, "docs"], 
+=======
+    [makeCommand, "-j"+j, "docs"], 
+>>>>>>> future
     "Building documentation ",
     "There was a documentation building error",
     "docs.out")
   
 runSubProc(
+<<<<<<< HEAD
   ["make", "install"], 
+=======
+  [makeCommand, "install"], 
+>>>>>>> future
   "Installing ",
   "There was an installation error",
   "install.out")

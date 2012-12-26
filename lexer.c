@@ -1,15 +1,19 @@
 #include "lexer.h"
 
-/** Creates a Lexeme structure.
-  *
-  * \return A pointer to a Lexeme structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteLexeme(Lexeme *) */
-Lexeme *createLexeme(char *image,       /**< [in] An array of characters that describe the lexeme. */
-                     const char *fname, /**< [in] A pointer to the name of the file containing the lexeme. */
-                     unsigned int line) /**< [in] The line number from the source file that the lexeme occurred on. */
+/**
+ * Creates a lexeme.
+ *
+ * \param [in] image The string that identifies the lexeme.
+ *
+ * \param [in] fname The name of the file containing the lexeme.
+ *
+ * \param [in] line  The line number the lexeme occurred on.
+ *
+ * \return A new lexeme with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+Lexeme *createLexeme(char *image, const char *fname, unsigned int line)
 {
 	Lexeme *ret = malloc(sizeof(Lexeme));
 	if (!ret) {
@@ -23,8 +27,11 @@ Lexeme *createLexeme(char *image,       /**< [in] An array of characters that de
 		return NULL;
 	}
 	strcpy(ret->image, image);
-	/** \note fname is not copied because it would only one copy is stored
-	  *       for all Lexeme structures that share it. */
+	/**
+	 * \note \a fname is not copied because it only one copy is stored for
+	 * all lexemes from the same file.  This is simply to avoid large
+	 * numbers of lexemes storing duplicate file name strings.
+	 */
 	ret->fname = fname;
 	ret->line = line;
 #ifdef DEBUG
@@ -33,29 +40,29 @@ Lexeme *createLexeme(char *image,       /**< [in] An array of characters that de
 	return ret;
 }
 
-/** Deletes a Lexeme structure.
-  *
-  * \pre \a lexeme points to a Lexeme structure created by createLexeme(char *, const char *, unsigned int).
-  *
-  * \post The memory at \a lexeme and all of its elements will be freed.
-  *
-  * \see createLexeme(char *, const char *, unsigned int) */
+/**
+ * Deletes a lexeme.
+ *
+ * \param [in,out] lexeme The lexeme to delete.
+ */
 void deleteLexeme(Lexeme *lexeme)
 {
 	if (!lexeme) return;
 	free(lexeme->image);
-	/** \note We do not free (*lex)->fname because it is shared between many
-	  *       Lexeme structures and is free'd by whoever created them. */
+	/**
+	 * \note We do not free the file name because it is shared between many
+	 * lexemes and is freed by whomever created the file name string.
+	 */
 	free(lexeme);
 }
 
-/** Creates a LexemeList structure.
-  *
-  * \return A pointer to a LexemeList structure with the desired properties.
-  *
-  * \retval NULL malloc was unable to allocate memory.
-  *
-  * \see deleteLexemeList(LexemeList *) */
+/**
+ * Creates a list of lexemes.
+ *
+ * \return An empty lexeme list.
+ *
+ * \retval NULL Memory allocation failed.
+ */
 LexemeList *createLexemeList(void)
 {
 	LexemeList *p = malloc(sizeof(LexemeList));
@@ -68,20 +75,21 @@ LexemeList *createLexemeList(void)
 	return p;
 }
 
-/** Adds a Lexeme structure to a LexemeList structure.
-  *
-  * \pre \a list was created by createLexemeList(void).
-  * \pre \a lexeme was created by createLexeme(char *, const char *, unsigned int).
-  *
-  * \post \a lexeme will be added on to the end of \a list and the size of
-  *       \a list will be updated accordingly.
-  *
-  * \return A pointer to the added Lexeme structure (will be the same as
-  *         \a lexeme).
-  *
-  * \retval NULL realloc was unable to allocate memory. */
-Lexeme *addLexeme(LexemeList *list, /**< [in,out] A pointer to the LexemeList structure to add \a lex to. */
-                  Lexeme *lexeme)   /**< [in] A pointer to the Lexeme structure to add to \a list. */
+/**
+ * Adds a lexeme to a list of lexemes.
+ *
+ * \param [in,out] list The list of lexemes to add \a lexeme to.
+ *
+ * \param [in] lexeme The lexeme to add to \a list.
+ *
+ * \post \a lexeme will be added to the end of \a list and the size of \a list
+ * will be updated.
+ *
+ * \return A pointer to the added lexeme (will be the same as \a lexeme).
+ *
+ * \retval NULL Memory allocation failed.
+ */
+Lexeme *addLexeme(LexemeList *list, Lexeme *lexeme)
 {
 	unsigned int newsize;
 	void *mem = NULL;
@@ -98,16 +106,14 @@ Lexeme *addLexeme(LexemeList *list, /**< [in,out] A pointer to the LexemeList st
 	return lexeme;
 }
 
-/** Deletes a LexemeList structure.
-  *
-  * \pre \a list was created by createLexemeList(void) and contains
-  *      items added by addLexeme(LexemeList *, Lexeme *).
-  *
-  * \post The memory at \a list and any of its associated members will be
-  *       freed.
-  *
-  * \see createLexemeList(void) */
-void deleteLexemeList(LexemeList *list) /**< [in,out] A pointer to the LexemeList structure to delete. */
+/**
+ * Deletes a list of lexemes.
+ *
+ * \param [in,out] list The lexeme list to delete.
+ *
+ * \post The memory at \a list and all of its members will be freed.
+ */
+void deleteLexemeList(LexemeList *list)
 {
 	unsigned int n;
 	if (!list) return;
@@ -117,24 +123,27 @@ void deleteLexemeList(LexemeList *list) /**< [in,out] A pointer to the LexemeLis
 	free(list);
 }
 
-/** Scans through a character buffer, removing unecessary characters and
-  * generating lexemes.  Lexemes are separated by whitespace (but newline
-  * characters are kept as their own lexeme).  String literals are handled a
-  * bit differently: starting at the first quotation character, characters are
-  * collected until either an unescaped quotation character is read (that is, a
-  * quotation character not preceeded by a colon which itself is not proceeded
-  * by a colon) or a newline or carriage return character is read, whichever
-  * comes first.  This handles the odd case of strings such as "::" which print
-  * out a single colon.  Also handled are the effects of commas, ellipses, and
-  * bangs (!).
-  *
-  * \pre \a size is the number of characters starting at the memory location
-  *      pointed to by \a buffer.
-  *
-  * \return A pointer to a LexemeList structure. */
-LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to tokenize. */
-                       unsigned int size,  /**< [in] The number of characters in \a buffer. */
-                       const char *fname)  /**< [in] An array of characters representing the name of the file used to read \a buffer. */
+/**
+ * Scans a buffer, removing unnecessary characters and grouping characters into
+ * lexemes.  Lexemes are strings of characters separated by whitespace (although
+ * newline characters are considered separate lexemes).  String literals are
+ * handled a bit differently:  Starting at the first quotation character,
+ * characters are collected until either a non-escaped quotation character is
+ * read (i.e., a quotation character not preceded by a colon which itself is not
+ * preceded by a colon) or a newline or carriage return character is read,
+ * whichever comes first.  This handles the odd (but possible) case of strings
+ * such as "::" which print out a single colon.  Also handled are the effects of
+ * commas, ellipses, bangs (!), and array accesses ('Z).
+ *
+ * \param [in] buffer The characters to turn into lexemes.
+ *
+ * \param [in] size The number of characters in \a buffer.
+ *
+ * \param [in] fname The name of the file \a buffer was read from.
+ *
+ * \return A list of lexemes created from the contents of \a buffer.
+ */
+LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 {
 	const char *start = buffer;
 	LexemeList *list = NULL;
@@ -172,6 +181,21 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 				return NULL;
 			}
 			start++;
+			continue;
+		}
+		/* Apostrophe Z ('Z) is its own lexeme */
+		if (!strncmp(start, "'Z", 2)) {
+			Lexeme *lex = createLexeme("'Z", fname, line);
+			if (!lex) {
+				deleteLexemeList(list);
+				return NULL;
+			}
+			if (!addLexeme(list, lex)) {
+				deleteLexeme(lex);
+				deleteLexemeList(list);
+				return NULL;
+			}
+			start += 2;
 			continue;
 		}
 		/* Skip over leading whitespace */
@@ -212,7 +236,7 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 			/* Make sure next line is not empty */
 			while (*test && isspace(*test)) {
 				if (*test == '\r' || *test == '\n') {
-					fprintf(stderr, "%s:%d: a line with continuation may not be followed by an empty line\n", fname, line);
+					error(LX_LINE_CONTINUATION, fname, line);
 					deleteLexemeList(list);
 					return NULL;
 				}
@@ -239,7 +263,7 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 				start++;
 			if (start == buffer || *start == ',' || *start == '\r' || *start == '\n')
 				continue;
-			fprintf(stderr, "%s:%d: multiple line comment may not appear on the same line as code\n", fname, line);
+			error(LX_MULTIPLE_LINE_COMMENT, fname, line);
 			deleteLexemeList(list);
 			return NULL;
 		}
@@ -268,9 +292,10 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 			if (start[len] && !isspace(start[len])
 					&& *(start + len) != ','
 					&& *(start + len) != '!'
+					&& strncmp(start + len, "'Z", 2)
 					&& strncmp(start + len, "...", 3)
 					&& strncmp(start + len, "\xE2\x80\xA6", 3)) {
-				fprintf(stderr, "%s:%d: expected token delimiter after string literal\n", fname, line);
+				error(LX_EXPECTED_TOKEN_DELIMITER, fname, line);
 				deleteLexemeList(list);
 				return NULL;
 			}
@@ -280,6 +305,7 @@ LexemeList *scanBuffer(const char *buffer, /**< [in] An array of characters to t
 			while (start[len] && !isspace(start[len])
 					&& *(start + len) != ','
 					&& *(start + len) != '!'
+					&& strncmp(start + len, "'Z", 2)
 					&& strncmp(start + len, "...", 3)
 					&& strncmp(start + len, "\xE2\x80\xA6", 3))
 				len++;

@@ -43490,17 +43490,24 @@ static const long codepoints[] = {
 
 #define NUM_UNICODE 21741
 
-/** Performs a binary search on an array of strings.
-  *
-  * \return The index of the matching entry, if found.
-  *
-  * \retval -1 The entry does not exist in the array. */
-int binarySearch(const char **strings, /**< [in] A pointer to an array of character strings to search through. */
-                 int start,            /**< [in] The start of the range to search through. */
-                 int end,              /**< [in] The end of the range to search through. */
-                 const char *find)     /**< [in] The entry to search for. */
+/**
+ * Performs a binary search on an array of strings.
+ *
+ * \param [in] strings The array of string to search.
+ * \param [in] start The index to start searching at.
+ * \param [in] end The index to end searching at.
+ * \param [in] find The string to search for.
+ *
+ * \return The index of the matching string, if found.
+ *
+ * \retval -1 The string was not found in the array.
+ */
+int binarySearch(const char **strings,
+                 int start,
+                 int end,
+                 const char *find)
 {
-	unsigned int midpoint;
+	int midpoint;
 	int cmp;
 	if (end < start) return -1;
 	midpoint = ((end - start) / 2) + start;
@@ -43514,12 +43521,16 @@ int binarySearch(const char **strings, /**< [in] A pointer to an array of charac
 	return -1;
 }
 
-/** Converts a Unicode normative name to a Unicode code point.
-  *
-  * \return The Unicode code point corresponding to the given Unicode name.
-  *
-  * \retval -1 An invalid Unicode normative name was supplied. */
-long convertNormativeNameToCodePoint(const char *name) /**< [in] A pointer to a string of characters representing the Unicode normative name desired. */
+/**
+ * Converts a Unicode normative name to a Unicode code point.
+ *
+ * \param [in] name The Unicode normative name to convert.
+ *
+ * \return The Unicode code point corresponding to \a name.
+ *
+ * \retval -1 An invalid Unicode normative name was supplied.
+ */
+long convertNormativeNameToCodePoint(const char *name)
 {
 	int index = binarySearch(names, 0, NUM_UNICODE - 1, name);
 	if (index < 0) {
@@ -43530,14 +43541,18 @@ long convertNormativeNameToCodePoint(const char *name) /**< [in] A pointer to a 
 		return codepoints[index];
 }
 
-/** Converts the bits in a long integer representing a Unicode code point to a
-  * series of one or more bytes representing a UTF-8 character.
-  *
-  * \return The number of characters in the converted multi-byte character.
-  *
-  * \retval 0 An invalid Unicode code point was supplied. */
-unsigned int convertCodePointToUTF8(long codepoint, /**< [in] The Unicode code point to convert to UTF-8. */
-                                    char *out)      /**< [out] A pointer to the location to store the resulting UTF-8 bytes. */
+/**
+ * Converts a Unicode code point to a UTF-8 character.
+ *
+ * \param [in] codepoint The Unicode code point to convert to UTF-8.
+ * \param [out] out A pointer to the location to store the UTF-8 character.
+ *
+ * \return The length of the converted multi-byte UTF-8 character.
+ *
+ * \retval 0 An invalid Unicode code point was supplied.
+ */
+size_t convertCodePointToUTF8(unsigned long codepoint,
+                              char *out)
 {
 	/* Out of range */
 	if (codepoint > 0x10FFFF) {
@@ -43546,36 +43561,36 @@ unsigned int convertCodePointToUTF8(long codepoint, /**< [in] The Unicode code p
 	}
 	/* U+010000 to U+10FFFF  */
 	else if (codepoint >= 0x010000) {
-		char x1 = codepoint & 0x003F;
-		char x2 = (codepoint & 0x00C0) >> 6;
-		char y1 = (codepoint & 0x0F00) >> 8;
-		char y2 = (codepoint & 0xF000) >> 12;
-		char z1 = (codepoint & 0x30000) >> 16;
-		char z2 = (codepoint & 0x1C0000) >> 18;
-		out[0] = 0xF0 | z2;
-		out[1] = 0x80 | (z1 << 4) | y2;
-		out[2] = 0x80 | (y1 << 2) | x2;
-		out[3] = 0x80 | x1;
+		char x1 = (char)(codepoint & 0x003F);
+		char x2 = (char)((codepoint & 0x00C0) >> 6);
+		char y1 = (char)((codepoint & 0x0F00) >> 8);
+		char y2 = (char)((codepoint & 0xF000) >> 12);
+		char z1 = (char)((codepoint & 0x30000) >> 16);
+		char z2 = (char)((codepoint & 0x1C0000) >> 18);
+		out[0] = (char)(0xF0 | z2);
+		out[1] = (char)(0x80 | (z1 << 4) | y2);
+		out[2] = (char)(0x80 | (y1 << 2) | x2);
+		out[3] = (char)(0x80 | x1);
 		return 4;
 	}
 	/* U+0800 to U+FFFF  */
 	else if (codepoint >= 0x0800) {
-		char x1 = codepoint & 0x003F;
-		char x2 = (codepoint & 0x00C0) >> 6;
-		char y1 = (codepoint & 0x0F00) >> 8;
-		char y2 = (codepoint & 0xF000) >> 12;
-		out[0] = 0xE0 | y2;
-		out[1] = 0x80 | (y1 << 2) | x2;
-		out[2] = 0x80 | x1;
+		char x1 = (char)(codepoint & 0x003F);
+		char x2 = (char)((codepoint & 0x00C0) >> 6);
+		char y1 = (char)((codepoint & 0x0F00) >> 8);
+		char y2 = (char)((codepoint & 0xF000) >> 12);
+		out[0] = (char)(0xE0 | y2);
+		out[1] = (char)(0x80 | (y1 << 2) | x2);
+		out[2] = (char)(0x80 | x1);
 		return 3;
 	}
 	/* U+0080 to U+07FF  */
 	else if (codepoint & 0x0080) {
-		char x1 = codepoint & 0x3F;
-		char x2 = (codepoint & 0x00C0) >> 6;
-		char y = (codepoint & 0x0700) >> 8;
-		out[0] = 0xC0 | (y << 2) | x2;
-		out[1] =  0x80 | x1;
+		char x1 = (char)(codepoint & 0x3F);
+		char x2 = (char)((codepoint & 0x00C0) >> 6);
+		char y = (char)((codepoint & 0x0700) >> 8);
+		out[0] = (char)(0xC0 | (y << 2) | x2);
+		out[1] =  (char)(0x80 | x1);
 		return 2;
 	}
 	/* U+0080 to U+07FF  */

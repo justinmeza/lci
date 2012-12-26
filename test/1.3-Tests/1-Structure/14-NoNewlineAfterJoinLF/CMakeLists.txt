@@ -1,0 +1,2 @@
+INCLUDE(AddLolTest)
+ADD_LOL_TEST(14-NoNewlineAfterJoinLF ERROR)

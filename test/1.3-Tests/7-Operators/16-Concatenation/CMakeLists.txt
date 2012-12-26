@@ -1,0 +1,8 @@
+add_subdirectory(1-Nil)
+add_subdirectory(2-Boolean)
+add_subdirectory(3-Integers)
+add_subdirectory(4-Floats)
+add_subdirectory(5-Strings)
+add_subdirectory(6-Nested)
+add_subdirectory(7-ManyArguments)
+add_subdirectory(8-OptionalAN)

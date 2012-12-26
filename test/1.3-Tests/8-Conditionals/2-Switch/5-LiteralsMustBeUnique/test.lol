@@ -1,0 +1,11 @@
+HAI 1.3
+	1
+	WTF?
+		OMG 0
+			VISIBLE "a"
+		OMG 0
+			VISIBLE "b"
+		OMG 1
+			VISIBLE "c"
+	OIC
+KTHXBYE

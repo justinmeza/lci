@@ -1,5 +1,0 @@
-HAI 1.2
-	I HAS A var
-	GIMMEH var
-	VISIBLE var
-KTHXBYE

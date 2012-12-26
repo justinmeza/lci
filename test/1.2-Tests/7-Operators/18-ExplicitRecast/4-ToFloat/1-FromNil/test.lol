@@ -1,5 +1,0 @@
-HAI 1.2
-	I HAS A var
-	var IS NOW A NUMBAR
-	VISIBLE var
-KTHXBYE

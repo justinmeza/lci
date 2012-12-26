@@ -1,0 +1,2 @@
+This test is designed to check that array slots can be assigned values after
+being declared.

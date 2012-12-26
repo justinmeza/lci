@@ -1,0 +1,5 @@
+HAI 1.3
+	I HAS A var
+	var IS NOW A TROOF
+	VISIBLE SUM OF 0 AN var
+KTHXBYE

@@ -85,4 +85,3 @@ if args.outputFile:
 
 if args.inputFile !=None:
   args.inputFile
-

@@ -1,3 +1,0 @@
-HAI 1.2
-	MAEK "abc" A NUMBAR
-KTHXBYE

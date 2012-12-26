@@ -1,3 +1,0 @@
-HAI 1.2
-	I HAS A var ITZ - 123
-KTHXBYE

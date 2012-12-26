@@ -1,0 +1,7 @@
+add_subdirectory(1-EndOfLine)
+add_subdirectory(2-SeparateLine)
+add_subdirectory(3-AfterCommaSeparator)
+add_subdirectory(4-BeforeHAI)
+add_subdirectory(5-AfterKTHXBYE)
+add_subdirectory(6-IgnoreContinuation)
+add_subdirectory(7-IgnoreJoin)

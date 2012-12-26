@@ -2,7 +2,7 @@
 
 LICENSE
 
-    Copyright (C) 2010 Justin J. Meza
+    Copyright (C) 2010-2012 Justin J. Meza
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,15 +22,15 @@ ABOUT
 lci is a LOLCODE interpreter written in C and is designed to be correct,
 portable, fast, and precisely documented.
 
-    * correct: Every effort has been made to test lci's conformance to the
+    - correct: Every effort has been made to test lci's conformance to the
           LOLCODE language specification. Unit tests come packaged with the lci
           source code.
-    * portable: lci follows the widely ported ANSI C specification allowing it
+    - portable: lci follows the widely ported ANSI C specification allowing it
           to compile on a broad range of systems.
-    * fast: Much effort has gone into producing simple and efficient code
+    - fast: Much effort has gone into producing simple and efficient code
           whenever possible to the extent that the above points are not
           compromized.
-    * precisely documented: lci uses Doxygen to generate literate code
+    - precisely documented: lci uses Doxygen to generate literate code
           documentation, browsable here.
 
 This project's homepage is at http://icanhaslolcode.org.  For help, visit
@@ -92,7 +92,37 @@ INSTALLATION: THE MORE INVOLVED WAY ON LINUX OR MAC OSX
 
   $ ctest
 
-INSTALTION ON WINDOWS
+INSTALLATION ON WINDOWS
 
-1. TODO Could some one please provide an example of using CMake to generate
-a visual studio project and build the project?
+(Note that the instructions were written from the point of view of Windows 7,
+but in practice, any modern version will work.)
+
+1. Add MinGW and Python to your PATH.
+
+  - Start > right-click Computer > Properties > Advanced system settings
+    > Environment Variables....
+    
+  - Select the "PATH" variable and click "Edit...".
+  
+  - Add ";C:\MinGW\bin;C:\Python32" to the end.
+  
+3. Open an Administrator shell
+
+  - Start > All Programs > Accessories > right-click Command Prompt
+    > Run as administrator.
+ 
+4. Navigate to the project directory using the "cd" command, for example,
+
+  > cd C:\Users\%user%\Documents\lci
+ 
+5. run the script install.py. Note that
+
+  > install.py -h
+
+  will display a list of relavent install options. For
+  example, if I wanted to install lci to the directory
+  "C:\Program Files\lci" I would run:
+
+  > install.py --prefix="C:/Program Files/lci"
+  
+  (notice that forward slashes are used to separate directories.)

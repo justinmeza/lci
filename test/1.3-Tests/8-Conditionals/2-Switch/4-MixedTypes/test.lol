@@ -1,0 +1,38 @@
+HAI 1.3
+	1
+	WTF?
+		OMG WIN
+			VISIBLE "1a"
+		OMG 1.0
+			VISIBLE "1b"
+		OMG "1"
+			VISIBLE "1c"
+		OMG 1
+			VISIBLE "1d"
+	OIC
+	0.0
+	WTF?
+		OMG FAIL
+			VISIBLE "2a"
+		OMG 0
+			VISIBLE "2b"
+		OMG "0"
+			VISIBLE "2c"
+		OMG 0.0
+			VISIBLE "2d"
+	OIC
+	"0"
+	WTF?
+		OMG FAIL
+			VISIBLE "3a"
+			GTFO
+		OMG 0
+			VISIBLE "3b"
+			GTFO
+		OMG 0.0
+			VISIBLE "3c"
+			GTFO
+		OMGWTF
+			VISIBLE "3d"
+	OIC
+KTHXBYE

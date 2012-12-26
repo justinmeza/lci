@@ -1,0 +1,4 @@
+HAI 1.3
+	I HAS A var ITZ FAIL
+	var IS NOW A YARN
+KTHXBYE

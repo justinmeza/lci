@@ -1,3 +1,0 @@
-HAI 1.2
-	var R 1
-KTHXBYE
