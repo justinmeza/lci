@@ -4,7 +4,7 @@
  * \section license License
  *
  * lci - a LOLCODE interpreter written in C.
- * Copyright (C) 2010-2012 Justin J. Meza
+ * Copyright (C) 2010-2013 Justin J. Meza
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
