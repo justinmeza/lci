@@ -228,6 +228,7 @@ typedef enum {
 	ST_FUNCDEF,         /**< Function definition statement. */
 	ST_EXPR,            /**< Expression statement. */
 	ST_ALTARRAYDEF,     /**< Function definition statement. */
+	ST_BINDING,         /**< Binding to external library. */
 } StmtType;
 
 /**
@@ -363,6 +364,15 @@ typedef struct {
 	BlockNode *body;        /**< The body of the array definition. */
 	IdentifierNode *parent; /**< An optional inherited array. */
 } AltArrayDefStmtNode;
+
+/**
+ * Stores a binding to a native function.
+ */
+struct ReturnObject;
+struct ScopeObject;
+typedef struct {
+    struct ReturnObject *(*binding)(struct ScopeObject *); /**< The function that implements the binding. */
+} BindingStmtNode;
 
 /**
  * Stores the main code block of a program.
@@ -714,6 +724,18 @@ void deleteFuncDefStmtNode(FuncDefStmtNode *);
 /**@{*/
 AltArrayDefStmtNode *createAltArrayDefStmtNode(IdentifierNode *, BlockNode *, IdentifierNode *);
 void deleteAltArrayDefStmtNode(AltArrayDefStmtNode *);
+/**@}*/
+
+/**
+ * \name BindingStmtNode modifiers
+ *
+ * Functions for creating and deleting BindingStmtNodes.
+ */
+/**@{*/
+struct returnobject;
+struct scopeobject;
+BindingStmtNode *createBindingStmtNode(struct returnobject *(*binding)(struct scopeobject *));
+void deleteBindingStmtNode(BindingStmtNode *);
 /**@}*/
 
 /**

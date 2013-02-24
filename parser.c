@@ -1106,6 +1106,39 @@ void deleteAltArrayDefStmtNode(AltArrayDefStmtNode *node)
 }
 
 /**
+ * Creates a binding statement.
+ *
+ * \param [in] binding A pointer to the function that defines the binding.
+ *
+ * \return A pointer to a binding statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+BindingStmtNode *createBindingStmtNode(struct returnobject *(*binding)(struct scopeobject *))
+{
+	BindingStmtNode *p = malloc(sizeof(BindingStmtNode));
+	if (!p) {
+		perror("malloc");
+		return NULL;
+	}
+	p->binding = binding;
+	return p;
+}
+
+/**
+ * Deletes a binding statement.
+ *
+ * \param [in,out] node The binding statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteBindingStmtNode(BindingStmtNode *node)
+{
+	if (!node) return;
+	free(node);
+}
+
+/**
  * Creates an expression.
  *
  * \param [in] type The type of expression.

@@ -3589,7 +3589,7 @@ ReturnObject *interpretExprStmtNode(StmtNode *node,
  *
  * \param [in] scope The scope to evaluate \a node under.
  *
- * \pre \a node contains a statement created by createAltArrayDefNode().
+ * \pre \a node contains a statement created by createAltArrayDefStmtNode().
  *
  * \return A pointer to a default return value.
  *
@@ -3639,11 +3639,31 @@ ReturnObject *interpretAltArrayDefStmtNode(StmtNode *node,
 	return createReturnObject(RT_DEFAULT, NULL);
 }
 
+/**
+ * Interprets a binding statement.
+ *
+ * \param [in] node The statement to interpret.
+ *
+ * \param [in] scope The scope to evaluate \a node under.
+ *
+ * \pre \a node contains a statement created by createBindingStmtNode().
+ *
+ * \return A pointer to a default return value.
+ *
+ * \retval NULL An error occurred during interpretation.
+ */
+ReturnObject *interpretBindingStmtNode(StmtNode *node,
+                                       ScopeObject *scope)
+{
+	BindingStmtNode *stmt = (BindingStmtNode *)node->stmt;
+    return (stmt->binding)(scope);
+}
+
 /*
  * A jump table for statements.  The index of a function in the table is given
  * by its its index in the enumerated StmtType type.
  */
-static ReturnObject *(*StmtJumpTable[14])(StmtNode *, ScopeObject *) = {
+static ReturnObject *(*StmtJumpTable[15])(StmtNode *, ScopeObject *) = {
 	interpretCastStmtNode,
 	interpretPrintStmtNode,
 	interpretInputStmtNode,
@@ -3657,7 +3677,8 @@ static ReturnObject *(*StmtJumpTable[14])(StmtNode *, ScopeObject *) = {
 	interpretDeallocationStmtNode,
 	interpretFuncDefStmtNode,
 	interpretExprStmtNode,
-	interpretAltArrayDefStmtNode };
+	interpretAltArrayDefStmtNode,
+	interpretBindingStmtNode };
 
 /**
  * Interprets a statement.
@@ -3753,7 +3774,10 @@ int interpretMainNode(MainNode *main)
 {
 	ReturnObject *ret = NULL;
 	if (!main) return 1;
-	ret = interpretBlockNode(main->block, NULL);
+	ScopeObject *libs = createScopeObject(NULL);
+	if (!libs) return 1;
+    loadBinding(libs);
+	ret = interpretBlockNode(main->block, libs);
        	if (!ret) return 1;
 	deleteReturnObject(ret);
 	return 0;

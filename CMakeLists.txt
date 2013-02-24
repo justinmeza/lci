@@ -28,6 +28,7 @@ SET(HDRS
   tokenizer.h
   unicode.h
   error.h
+  binding.h
 )
 
 SET(SRCS
@@ -38,6 +39,7 @@ SET(SRCS
   tokenizer.c
   unicode.c
   error.c
+  binding.c
 )
   
 add_executable(lci ${SRCS} ${HDRS})

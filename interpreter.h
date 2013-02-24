@@ -101,7 +101,7 @@ typedef enum {
 /**
  * Stores return state.
  */
-typedef struct {
+typedef struct returnobject {
 	ReturnType type;    /**< The type of return encountered. */
 	ValueObject *value; /**< The optional return value. */
 } ReturnObject;
