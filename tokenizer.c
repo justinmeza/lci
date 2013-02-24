@@ -319,15 +319,6 @@ Token **tokenizeLexemes(LexemeList *list)
 			token = createToken(TT_BOOLEAN, "WIN", fname, line);
 			token->data.i = 1;
 		}
-		/* CAN HAS STDIO? */
-		else if (n < list->num - 2
-				&& !strcmp(lexeme->image, "CAN")
-				&& !strcmp(list->lexemes[n + 1]->image, "HAS")
-				&& !strcmp(list->lexemes[n + 2]->image, "STDIO?")) {
-			n += 2;
-			/* Just for fun; not actually in spec */
-			continue;
-		}
 		/* Newline */
 		/* Note that the spec is unclear as to whether a command *must*
 		 * follow a comma.  For now, we let commas end a line. */

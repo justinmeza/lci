@@ -3683,11 +3683,32 @@ ReturnObject *interpretBindingStmtNode(StmtNode *node,
 	return (stmt->binding)(scope);
 }
 
+/**
+ * Interprets a library import statement.
+ *
+ * \param [in] node The statement to interpret.
+ *
+ * \param [in] scope The scope to evaluate \a node under.
+ *
+ * \pre \a node contains a statement created by createImportStmtNode().
+ *
+ * \return A pointer to a default return value.
+ *
+ * \retval NULL An error occurred during interpretation.
+ */
+ReturnObject *interpretImportStmtNode(StmtNode *node,
+                                      ScopeObject *scope)
+{
+	ImportStmtNode *stmt = (ImportStmtNode *)node->stmt;
+	loadLibrary(scope, stmt->name);
+	return createReturnObject(RT_DEFAULT, NULL);
+}
+
 /*
  * A jump table for statements.  The index of a function in the table is given
  * by its its index in the enumerated StmtType type.
  */
-static ReturnObject *(*StmtJumpTable[15])(StmtNode *, ScopeObject *) = {
+static ReturnObject *(*StmtJumpTable[16])(StmtNode *, ScopeObject *) = {
 	interpretCastStmtNode,
 	interpretPrintStmtNode,
 	interpretInputStmtNode,
@@ -3702,7 +3723,8 @@ static ReturnObject *(*StmtJumpTable[15])(StmtNode *, ScopeObject *) = {
 	interpretFuncDefStmtNode,
 	interpretExprStmtNode,
 	interpretAltArrayDefStmtNode,
-	interpretBindingStmtNode };
+	interpretBindingStmtNode,
+	interpretImportStmtNode };
 
 /**
  * Interprets a statement.
@@ -3798,10 +3820,7 @@ int interpretMainNode(MainNode *main)
 {
 	ReturnObject *ret = NULL;
 	if (!main) return 1;
-	ScopeObject *libs = createScopeObject(NULL);
-	if (!libs) return 1;
-	loadBinding(libs);
-	ret = interpretBlockNode(main->block, libs);
+	ret = interpretBlockNode(main->block, NULL);
        	if (!ret) return 1;
 	deleteReturnObject(ret);
 	return 0;

@@ -198,6 +198,21 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 			start += 2;
 			continue;
 		}
+		/* Question mark (?) is its own lexeme */
+		if (*start == '?') {
+			Lexeme *lex = createLexeme("?", fname, line);
+			if (!lex) {
+				deleteLexemeList(list);
+				return NULL;
+			}
+			if (!addLexeme(list, lex)) {
+				deleteLexeme(lex);
+				deleteLexemeList(list);
+				return NULL;
+			}
+			start++;
+			continue;
+		}
 		/* Skip over leading whitespace */
 		while (isspace(*start)) {
 			unsigned int newline = 0;
@@ -292,6 +307,7 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 			if (start[len] && !isspace(start[len])
 					&& *(start + len) != ','
 					&& *(start + len) != '!'
+					&& *(start + len) != '?'
 					&& strncmp(start + len, "'Z", 2)
 					&& strncmp(start + len, "...", 3)
 					&& strncmp(start + len, "\xE2\x80\xA6", 3)) {
@@ -305,6 +321,7 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 			while (start[len] && !isspace(start[len])
 					&& *(start + len) != ','
 					&& *(start + len) != '!'
+					&& *(start + len) != '?'
 					&& strncmp(start + len, "'Z", 2)
 					&& strncmp(start + len, "...", 3)
 					&& strncmp(start + len, "\xE2\x80\xA6", 3))
