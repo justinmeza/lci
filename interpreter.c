@@ -307,6 +307,30 @@ ValueObject *createArrayValueObject(ScopeObject *parent)
 }
 
 /**
+ * Creates a blob-type value.
+ *
+ * \param [in] data The binary blob data to store.
+ *
+ * \note \a data is stored as-is; no copy of it is made.
+ *
+ * \return A string-type value equalling \a data.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+ValueObject *createBlobValueObject(void *data)
+{
+	ValueObject *p = malloc(sizeof(ValueObject));
+	if (!p) {
+		perror("malloc");
+		return NULL;
+	}
+	p->type = VT_BLOB;
+	p->data.b = data;
+	p->semaphore = 1;
+	return p;
+}
+
+/**
  * Copies a value.
  *
  * Instead of actually performing a copy of memory, this function increments a
@@ -3656,7 +3680,7 @@ ReturnObject *interpretBindingStmtNode(StmtNode *node,
                                        ScopeObject *scope)
 {
 	BindingStmtNode *stmt = (BindingStmtNode *)node->stmt;
-    return (stmt->binding)(scope);
+	return (stmt->binding)(scope);
 }
 
 /*
@@ -3776,7 +3800,7 @@ int interpretMainNode(MainNode *main)
 	if (!main) return 1;
 	ScopeObject *libs = createScopeObject(NULL);
 	if (!libs) return 1;
-    loadBinding(libs);
+	loadBinding(libs);
 	ret = interpretBlockNode(main->block, libs);
        	if (!ret) return 1;
 	deleteReturnObject(ret);

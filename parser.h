@@ -368,10 +368,10 @@ typedef struct {
 /**
  * Stores a binding to a native function.
  */
-struct ReturnObject;
-struct ScopeObject;
+struct returnobject;
+struct scopeobject;
 typedef struct {
-    struct ReturnObject *(*binding)(struct ScopeObject *); /**< The function that implements the binding. */
+    struct returnobject *(*binding)(struct scopeobject *); /**< The function that implements the binding. */
 } BindingStmtNode;
 
 /**

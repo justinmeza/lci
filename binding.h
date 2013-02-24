@@ -19,8 +19,8 @@
  * Stores a binding to an external library call to export.
  */
 typedef struct {
-    IdentifierNode *library;    /**< The library this binding belongs to. */
-    FuncDefStmtNode *interface; /**< The interface that exports the binding. */
+	IdentifierNode *library;    /**< The library this binding belongs to. */
+	FuncDefStmtNode *interface; /**< The interface that exports the binding. */
 } Binding;
 
 void loadBinding(ScopeObject *); /* TODO: make this take an IdentifierNode library to load */
@@ -37,12 +37,12 @@ void loadBinding(ScopeObject *); /* TODO: make this take an IdentifierNode libra
  *   the scope.
  *   - Binding creation/deletion helper functions.
 
-IdentifierNode *scope = ??? what goes here again?;
-IdentifierNode *name = createIdentifierNode("FileOpen");
-IdentifierNodeList *args = ... add these ...
-BlockNode *block = ... block with appropriate BindingStmtNode ...
-FuncDefStmtNode *def = createFuncDefStmtNode();
-Binding *binding = createBinding("STDIO", def);
+ IdentifierNode *scope = ??? what goes here again?;
+ IdentifierNode *name = createIdentifierNode("FileOpen");
+ IdentifierNodeList *args = ... add these ...
+ BlockNode *block = ... block with appropriate BindingStmtNode ...
+ FuncDefStmtNode *def = createFuncDefStmtNode();
+ Binding *binding = createBinding("STDIO", def);
 
 */
 
