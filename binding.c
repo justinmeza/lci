@@ -39,6 +39,18 @@ struct returnobject *freadWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_RETURN, ret);
 }
 
+struct returnobject *fwriteWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "file");
+	ValueObject *arg2 = getArg(scope, "data");
+	FILE *file = (FILE *)getBlob(arg1);
+	char *data = getString(arg2);
+
+	fwrite(data, 1, strlen(data), file);
+
+	return createReturnObject(RT_DEFAULT, NULL);
+}
+
 struct returnobject *fcloseWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "file");
@@ -62,6 +74,7 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *name)
 	updateScopeValue(scope, scope, id, val);
 	loadBinding(lib, "FOPENIN", "filename mode", &fopenWrapper);
 	loadBinding(lib, "FREADIN", "file length", &freadWrapper);
+	loadBinding(lib, "FWRITIN", "file data", &fwriteWrapper);
 	loadBinding(lib, "FCLOSIN", "file", &fcloseWrapper);
 }
 
@@ -97,65 +110,6 @@ void loadBinding(ScopeObject *scope, char *name, const char *args, struct return
 	ValueObject *val = createFunctionValueObject(interface);
 	createScopeValue(scope, scope, id);
 	updateScopeValue(scope, scope, id, val);
-	return;
-
-	/* fopen */
-	/*
-	{
-		IdentifierNode* name = createIdentifierNode(IT_DIRECT, (void *)copyString("FOPENIN"), NULL, NULL, 0);
-		StmtNodeList *stmts = createStmtNodeList();
-		BindingStmtNode *binding = createBindingStmtNode(&fopenWrapper);
-		StmtNode *wrapper = createStmtNode(ST_BINDING, binding);
-		addStmtNode(stmts, wrapper);
-		BlockNode *body = createBlockNode(stmts);
-
-		FuncDefStmtNode *interface = createFuncDefStmtNode(NULL, name, args, body);
-		ValueObject *val = createFunctionValueObject(interface);
-		createScopeValue(stdio, stdio, name);
-		updateScopeValue(stdio, stdio, name, val);
-	}
-	*/
-
-	/* fread */
-	/*
-	{
-		IdentifierNode* name = createIdentifierNode(IT_DIRECT, (void *)copyString("FREADIN"), NULL, NULL, 0);
-		IdentifierNodeList *args = createIdentifierNodeList();
-		IdentifierNode *filename = createIdentifierNode(IT_DIRECT, (void *)copyString("file"), NULL, NULL, 0);
-		IdentifierNode *mode = createIdentifierNode(IT_DIRECT, (void *)copyString("length"), NULL, NULL, 0);
-		addIdentifierNode(args, filename);
-		addIdentifierNode(args, mode);
-		StmtNodeList *stmts = createStmtNodeList();
-		BindingStmtNode *binding = createBindingStmtNode(&freadWrapper);
-		StmtNode *wrapper = createStmtNode(ST_BINDING, binding);
-		addStmtNode(stmts, wrapper);
-		BlockNode *body = createBlockNode(stmts);
-		FuncDefStmtNode *interface = createFuncDefStmtNode(NULL, name, args, body);
-		ValueObject *val = createFunctionValueObject(interface);
-		createScopeValue(stdio, stdio, name);
-		updateScopeValue(stdio, stdio, name, val);
-	}
-	*/
-
-	/* fclose */
-	/*
-	{
-		IdentifierNode* name = createIdentifierNode(IT_DIRECT, (void *)copyString("FCLOSIN"), NULL, NULL, 0);
-		IdentifierNodeList *args = createIdentifierNodeList();
-		IdentifierNode *filename = createIdentifierNode(IT_DIRECT, (void *)copyString("file"), NULL, NULL, 0);
-		addIdentifierNode(args, filename);
-		StmtNodeList *stmts = createStmtNodeList();
-		BindingStmtNode *binding = createBindingStmtNode(&fcloseWrapper);
-		StmtNode *wrapper = createStmtNode(ST_BINDING, binding);
-		addStmtNode(stmts, wrapper);
-		BlockNode *body = createBlockNode(stmts);
-		FuncDefStmtNode *interface = createFuncDefStmtNode(NULL, name, args, body);
-		ValueObject *val = createFunctionValueObject(interface);
-		createScopeValue(stdio, stdio, name);
-		updateScopeValue(stdio, stdio, name, val);
-	}
-	*/
-
 	return;
 
 loadBindingAbort: /* Exception handling */
