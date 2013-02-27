@@ -158,12 +158,12 @@ static const char *keywords[] = {
 	"SMOOSH",      /* TT_SMOOSH */
 	"!",           /* TT_BANG */
 	"GIMMEH",      /* TT_GIMMEH */
-	"O RLY?",      /* TT_ORLY */
+	"O RLY",       /* TT_ORLY */
 	"YA RLY",      /* TT_YARLY */
 	"MEBBE",       /* TT_MEBBE */
 	"NO WAI",      /* TT_NOWAI */
 	"OIC",         /* TT_OIC */
-	"WTF?",        /* TT_WTF */
+	"WTF",         /* TT_WTF */
 	"OMG",         /* TT_OMG */
 	"OMGWTF",      /* TT_OMGWTF */
 	"GTFO",        /* TT_GTFO */

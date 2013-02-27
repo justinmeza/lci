@@ -2897,6 +2897,13 @@ StmtNode *parseIfThenElseStmtNode(Token ***tokenp)
 		goto parseIfThenElseStmtNodeAbort;
 	}
 
+	/* Remove the question mark from the token stream */
+	status = acceptToken(&tokens, TT_QUESTION);
+	if (!status) {
+		parser_error_expected_token(TT_QUESTION, tokens);
+		goto parseIfThenElseStmtNodeAbort;
+	}
+
 	/* The if keyword must appear on its own line */
 	if (!acceptToken(&tokens, TT_NEWLINE)) {
 		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
@@ -3047,6 +3054,13 @@ StmtNode *parseSwitchStmtNode(Token ***tokenp)
 	status = acceptToken(&tokens, TT_WTF);
 	if (!status) {
 		parser_error_expected_token(TT_WTF, tokens);
+		goto parseSwitchStmtNodeAbort;
+	}
+
+	/* Remove the question mark from the token stream */
+	status = acceptToken(&tokens, TT_QUESTION);
+	if (!status) {
+		parser_error_expected_token(TT_QUESTION, tokens);
 		goto parseSwitchStmtNodeAbort;
 	}
 
