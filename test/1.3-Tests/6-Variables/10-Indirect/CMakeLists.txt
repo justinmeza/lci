@@ -1,0 +1,6 @@
+add_subdirectory(1-Output)
+add_subdirectory(2-Initialization)
+add_subdirectory(3-Assignment)
+add_subdirectory(4-TypeInitialization)
+add_subdirectory(5-Deallocation)
+add_subdirectory(6-Functions)
