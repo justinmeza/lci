@@ -62,57 +62,134 @@ struct returnobject *fcloseWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_DEFAULT, NULL);
 }
 
-void loadLibrary(ScopeObject *scope, IdentifierNode *name)
+void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 {
-	/* TODO: make this select which library to load */
+	char *name = NULL;
+	int status;
+	ScopeObject *lib = NULL;
+	IdentifierNode *id = NULL;
+	ValueObject *val = NULL;
+	if (target == NULL) return;
 
-	/* stdio */
-	ScopeObject *lib = createScopeObject(scope);
-	IdentifierNode* id = createIdentifierNode(IT_DIRECT, (void *)copyString("STDIO"), NULL, NULL, 0);
-	createScopeValue(scope, scope, id);
-	ValueObject *val = createArrayValueObject(lib);
-	updateScopeValue(scope, scope, id, val);
-	loadBinding(lib, "FOPENIN", "filename mode", &fopenWrapper);
-	loadBinding(lib, "FREADIN", "file length", &freadWrapper);
-	loadBinding(lib, "FWRITIN", "file data", &fwriteWrapper);
-	loadBinding(lib, "FCLOSIN", "file", &fcloseWrapper);
+	name = resolveIdentifierName(target, scope);
+	if (!name) goto loadLibraryAbort;
+
+	if (!strcmp(name, "STDIO")) {
+		lib = createScopeObject(scope);
+		if (!lib) goto loadLibraryAbort;
+
+		loadBinding(lib, "FOPENIN", "filename mode", &fopenWrapper);
+		loadBinding(lib, "FREADIN", "file length", &freadWrapper);
+		loadBinding(lib, "FWRITIN", "file data", &fwriteWrapper);
+		loadBinding(lib, "FCLOSIN", "file", &fcloseWrapper);
+
+		id = createIdentifierNode(IT_DIRECT, (void *)copyString("STDIO"), NULL, NULL, 0);
+		if (!id) goto loadLibraryAbort;
+
+		if (!createScopeValue(scope, scope, id)) goto loadLibraryAbort;
+
+		val = createArrayValueObject(lib);
+		if (!val) goto loadLibraryAbort;
+		lib = NULL;
+
+		if (!updateScopeValue(scope, scope, id, val)) goto loadLibraryAbort;
+	}
+
+	if (name) free(name);
+	return;
+
+loadLibraryAbort: /* In case something goes wrong... */
+
+	/* Clean up any allocated structures */
+	if (name) free(name);
+	if (lib) deleteScopeObject(lib);
+	if (id) deleteIdentifierNode(id);
+	if (val) deleteValueObject(val);
+	return;
 }
 
 void loadBinding(ScopeObject *scope, char *name, const char *args, struct returnobject *(*binding)(struct scopeobject *))
 {
-	/* TODO: add error checking and handling */
+	IdentifierNode *id = NULL;
+	StmtNodeList *stmts = NULL;
+	BindingStmtNode *stmt = NULL;
+	StmtNode *wrapper = NULL;
+	int status;
+	BlockNode *body = NULL;
+	IdentifierNodeList *ids = NULL;
+	IdentifierNode *arg = NULL;
+	if (name == NULL || binding == NULL) return;
 
-	IdentifierNode* id = createIdentifierNode(IT_DIRECT, (void *)copyString(name), NULL, NULL, 0);
-	StmtNodeList *stmts = createStmtNodeList();
-	BindingStmtNode *stmt = createBindingStmtNode(binding);
-	StmtNode *wrapper = createStmtNode(ST_BINDING, stmt);
-	addStmtNode(stmts, wrapper);
-	BlockNode *body = createBlockNode(stmts);
+	id = createIdentifierNode(IT_DIRECT, (void *)copyString(name), NULL, NULL, 0);
+	if (!id) goto loadBindingAbort;
 
-	IdentifierNodeList *ids = createIdentifierNodeList();
+	stmts = createStmtNodeList();
+	if (!stmts) goto loadBindingAbort;
+
+	stmt = createBindingStmtNode(binding);
+	if (!stmt) goto loadBindingAbort;
+
+	wrapper = createStmtNode(ST_BINDING, stmt);
+	if (!wrapper) goto loadBindingAbort;
+	stmt = NULL;
+
+	status = addStmtNode(stmts, wrapper);
+	if (!status) goto loadBindingAbort;
+	wrapper = NULL;
+
+	body = createBlockNode(stmts);
+	if (!body) goto loadBindingAbort;
+	stmts = NULL;
+
+	ids = createIdentifierNodeList();
+	if (!ids) goto loadBindingAbort;
+
 	const char *start = args;
 	while (start != NULL) {
 		char *end = strchr(start, ' ');
 		char *temp = NULL;
 		unsigned int len = 0;
+
 		if (end != NULL) len = (end - start);
 		else len = strlen(start);
+
 		temp = malloc(sizeof(char) * (len + 1));
 		strncpy(temp, start, len);
 		temp[len] = '\0';
+
 		if (end != NULL) start = (end + 1);
 		else start = NULL;
-		IdentifierNode *arg = createIdentifierNode(IT_DIRECT, (void *)temp, NULL, NULL, 0);
-		addIdentifierNode(ids, arg);
+
+		arg = createIdentifierNode(IT_DIRECT, (void *)temp, NULL, NULL, 0);
+		if (!arg) goto loadBindingAbort;
+
+		status = addIdentifierNode(ids, arg);
+		if (!status) goto loadBindingAbort;
 	}
 
 	FuncDefStmtNode *interface = createFuncDefStmtNode(NULL, id, ids, body);
+	if (!interface) goto loadBindingAbort;
+
 	ValueObject *val = createFunctionValueObject(interface);
+	if (!val) goto loadBindingAbort;
+
 	createScopeValue(scope, scope, id);
 	updateScopeValue(scope, scope, id, val);
+
 	return;
 
-loadBindingAbort: /* Exception handling */
+loadBindingAbort: /* In case something goes wrong... */
 
+	if (id) deleteIdentifierNode(id);
+	if (val) deleteValueObject(val);
+	else if (interface) deleteFuncDefStmtNode(interface);
+	else {
+		if (arg) deleteIdentifierNode(arg);
+		if (ids) deleteIdentifierNodeList(ids);
+		if (body) deleteBlockNode(body);
+		if (stmts) deleteStmtNodeList(stmts);
+		if (wrapper) deleteStmtNode(wrapper);
+		if (stmt) deleteBindingStmtNode(stmt);
+	}
 	return;
 }
