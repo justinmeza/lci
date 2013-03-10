@@ -41,9 +41,9 @@ SET(SRCS
   error.c
   binding.c
 )
-  
+
 add_executable(lci ${SRCS} ${HDRS})
-target_link_libraries(lci m)
+target_link_libraries(lci m ncurses readline)
 add_subdirectory(test)
 install(
   TARGETS lci

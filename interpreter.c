@@ -3808,6 +3808,8 @@ ReturnObject *interpretBlockNode(BlockNode *node,
  *
  * \param [in] main The main block of code to interpret.
  *
+ * \param [in] scope The scope to evaluate \a main under.
+ *
  * \pre \a main contains a block of code created by parseMainNode().
  *
  * \return The final status of the program.
@@ -3816,12 +3818,12 @@ ReturnObject *interpretBlockNode(BlockNode *node,
  *
  * \retval 1 An error occurred while interpreting \a main.
  */
-int interpretMainNode(MainNode *main)
+int interpretMainNodeScope(MainNode *main, ScopeObject *scope)
 {
 	ReturnObject *ret = NULL;
 	if (!main) return 1;
-	ret = interpretBlockNode(main->block, NULL);
-       	if (!ret) return 1;
+	ret = interpretBlockNode(main->block, scope);
+	if (!ret) return 1;
 	deleteReturnObject(ret);
 	return 0;
 }

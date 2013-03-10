@@ -109,6 +109,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #include "lexer.h"
 #include "tokenizer.h"
@@ -120,10 +122,11 @@
 
 static char *program_name;
 
-static char *shortopt = "hv";
+static char *shortopt = "hvi";
 static struct option longopt[] = {
 	{ "help", no_argument, NULL, (int)'h' },
 	{ "version", no_argument, NULL, (int)'v' },
+	{ "interactive", no_argument, NULL, (int)'i' },
 	{ 0, 0, 0, 0 }
 };
 
@@ -132,11 +135,40 @@ static void help(void) {
 Usage: %s [FILE] ... \n\
 Interpret FILE(s) as LOLCODE. Let FILE be '-' for stdin.\n\
   -h, --help\t\toutput this help\n\
-  -v, --version\t\tprogram version\n", program_name);
+  -v, --version\t\tprogram version\n\
+  -i, --interactive\tinteractive prompt\n", program_name);
 }
 
 static void version (char *revision) {
 	fprintf(stderr, "%s %s\n", program_name, revision);
+}
+
+int pipeline(char *buffer, unsigned int length, const char *fname, ScopeObject *scope)
+{
+	LexemeList *lexemes = NULL;
+	Token **tokens = NULL;
+	MainNode *node = NULL;
+	if (!(lexemes = scanBuffer(buffer, length, fname))) {
+		free(buffer);
+		return 1;
+	}
+	free(buffer);
+	if (!(tokens = tokenizeLexemes(lexemes))) {
+		deleteLexemeList(lexemes);
+		return 1;
+	}
+	deleteLexemeList(lexemes);
+	if (!(node = parseMainNode(tokens))) {
+		deleteTokens(tokens);
+		return 1;
+	}
+	deleteTokens(tokens);
+	if (interpretMainNodeScope(node, NULL)) {
+		deleteMainNode(node);
+		return 1;
+	}
+	deleteMainNode(node);
+	return 0;
 }
 
 int main(int argc, char **argv)
@@ -144,14 +176,11 @@ int main(int argc, char **argv)
 	unsigned int size = 0;
 	unsigned int length = 0;
 	char *buffer = NULL;
-	LexemeList *lexemes = NULL;
-	Token **tokens = NULL;
-	MainNode *node = NULL;
 	char *fname = NULL;
 	FILE *file = NULL;
 	int ch;
 
-	char *revision = "v0.11.3";
+	char *revision = "v0.11.4";
 	program_name = argv[0];
 
 	while ((ch = getopt_long(argc, argv, shortopt, longopt, NULL)) != -1) {
@@ -165,15 +194,50 @@ int main(int argc, char **argv)
 			case 'v':
 				version(revision);
 				exit(EXIT_SUCCESS);
+			case 'i':
+				{
+					char *line = NULL;
+					/* Save state between lines using a ScopeObject structure */
+					ScopeObject *scope = createScopeObject(NULL);
+					if (!scope) return 1;
+					while (line = readline("lci> ")) {
+						char *pre = "HAI 1.4\n";
+						char *post = "\n\nKTHXBYE\n";
+						char *code = NULL;
+						size = strlen(line);
+						buffer = realloc(buffer, sizeof(char) * (length + size + 1));
+						strncpy(buffer + length, line, size);
+						buffer[length + size] = '\n';
+						length += size + 1;
+						add_history(line);
+						/* Intercept KTHXBYE to quit */
+						if (!strcmp(line, "KTHXBYE")) {
+							break;
+						}
+						/* Intercept HALP to display help message */
+						else if (!strcmp(line, "HALP")) {
+							version(revision);
+							help();
+							continue;
+						}
+						/* Create staged code file */
+						code = malloc(sizeof(char) * (strlen(pre) + size + strlen(post) + 1));
+						strcpy(code, pre);
+						strncpy(code + strlen(pre), line, size);
+						strcpy(code + strlen(pre) + size, post);
+						code[strlen(pre) + size + strlen(post)] = '\0';
+						pipeline(code, strlen(code), "interactive", scope);
+					}
+					free(buffer);
+					deleteScopeObject(scope);
+					exit(EXIT_SUCCESS);
+				}
 		}
 	}
 
 	for (; optind < argc; optind++) {
 		size = length = 0;
 		buffer = fname = NULL;
-		lexemes = NULL;
-		tokens = NULL;
-		node = NULL;
 		file = NULL;
 
 		if (!strncmp(argv[optind],"-\0",2)) {
@@ -228,28 +292,7 @@ int main(int argc, char **argv)
 			printf("%c%c%c", 0xef, 0xbb, 0xbf);
 		}
 
-		/* Begin main pipeline */
-		if (!(lexemes = scanBuffer(buffer, length, fname))) {
-			free(buffer);
-			return 1;
-		}
-		free(buffer);
-		if (!(tokens = tokenizeLexemes(lexemes))) {
-			deleteLexemeList(lexemes);
-			return 1;
-		}
-		deleteLexemeList(lexemes);
-		if (!(node = parseMainNode(tokens))) {
-			deleteTokens(tokens);
-			return 1;
-		}
-		deleteTokens(tokens);
-		if (interpretMainNode(node)) {
-			deleteMainNode(node);
-			return 1;
-		}
-		deleteMainNode(node);
-		/* End main pipeline */
+		return pipeline(buffer, length, fname, NULL);
 
 	}
 
