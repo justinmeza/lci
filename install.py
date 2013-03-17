@@ -16,7 +16,7 @@ def positiveInt(string):
 Runs a subprocess using the command parameter.
 Before running the command it displays a message
 that contains the provided description and where
-the output will be sent. If an error occurs, 
+the output will be sent. If an error occurs,
 the errorMsg is displayed.
 """
 def runSubProc(command, description, errorMsg, output):
@@ -28,7 +28,7 @@ def runSubProc(command, description, errorMsg, output):
   if os.name == "nt":
     proc = subprocess.Popen(command, stdout=outputFile, stderr=subprocess.STDOUT, shell=True)
   else:
-    proc = subprocess.Popen(command, stdout=outputFile, stderr=subprocess.STDOUT)
+    proc = subprocess.Popen(command, stdout=outputFile, stderr=subprocess.STDOUT, shell=True)
   proc.wait()
   if proc.returncode != 0:
     print("Error installing: " + errorMsg)
@@ -72,7 +72,7 @@ runSubProc(
   "configure.out")
 
 runSubProc(
-  [makeCommand, "-j"+j], 
+  [makeCommand, "-j"+j],
   "Running make ",
   "There was a make error",
   "make.out")
@@ -80,20 +80,20 @@ runSubProc(
 
 if args.buildDocs:
   runSubProc(
-    [makeCommand, "-j"+j, "docs"], 
+    [makeCommand, "-j"+j, "docs"],
     "Building documentation ",
     "There was a documentation building error",
     "docs.out")
-  
+
 runSubProc(
-  [makeCommand, "install"], 
+  makeCommand + " install",
   "Installing ",
   "There was an installation error",
   "install.out")
 
 if args.runTests:
   runSubProc(
-    ["ctest", "-j"+j], 
+    ["ctest", "-j"+j],
     "Testing ",
     "There was a testing error",
     "test.out")
