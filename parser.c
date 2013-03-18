@@ -514,6 +514,16 @@ void deleteStmtNode(StmtNode *node)
 			deleteAltArrayDefStmtNode(stmt);
 			break;
 		}
+		case ST_BINDING: {
+			BindingStmtNode *stmt = (BindingStmtNode *)node->stmt;
+			deleteBindingStmtNode(stmt);
+			break;
+		}
+		case ST_IMPORT: {
+			ImportStmtNode *stmt = (ImportStmtNode *)node->stmt;
+			deleteImportStmtNode(stmt);
+			break;
+		}
 		default:
 			error(PR_UNKNOWN_STATEMENT_TYPE);
 			break;
@@ -1102,6 +1112,73 @@ void deleteAltArrayDefStmtNode(AltArrayDefStmtNode *node)
 	if (!node) return;
 	deleteIdentifierNode(node->name);
 	deleteBlockNode(node->body);
+	free(node);
+}
+
+/**
+ * Creates a library import statement.
+ *
+ * \param [in] name The name of the library to import.
+ *
+ * \return A pointer to a library import statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+ImportStmtNode *createImportStmtNode(IdentifierNode *name)
+{
+	ImportStmtNode *p = malloc(sizeof(ImportStmtNode));
+	if (!p) {
+		perror("malloc");
+		return NULL;
+	}
+	p->name = name;
+	return p;
+}
+
+/**
+ * Deletes a library import statement.
+ *
+ * \param [in,out] node The library import statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteImportStmtNode(ImportStmtNode *node)
+{
+	if (!node) return;
+	deleteIdentifierNode(node->name);
+	free(node);
+}
+
+/**
+ * Creates a binding statement.
+ *
+ * \param [in] binding A pointer to the function that defines the binding.
+ *
+ * \return A pointer to a binding statement with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+BindingStmtNode *createBindingStmtNode(struct returnobject *(*binding)(struct scopeobject *))
+{
+	BindingStmtNode *p = malloc(sizeof(BindingStmtNode));
+	if (!p) {
+		perror("malloc");
+		return NULL;
+	}
+	p->binding = binding;
+	return p;
+}
+
+/**
+ * Deletes a binding statement.
+ *
+ * \param [in,out] node The binding statement to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteBindingStmtNode(BindingStmtNode *node)
+{
+	if (!node) return;
 	free(node);
 }
 
@@ -2820,6 +2897,13 @@ StmtNode *parseIfThenElseStmtNode(Token ***tokenp)
 		goto parseIfThenElseStmtNodeAbort;
 	}
 
+	/* Remove the question mark from the token stream */
+	status = acceptToken(&tokens, TT_QUESTION);
+	if (!status) {
+		parser_error_expected_token(TT_QUESTION, tokens);
+		goto parseIfThenElseStmtNodeAbort;
+	}
+
 	/* The if keyword must appear on its own line */
 	if (!acceptToken(&tokens, TT_NEWLINE)) {
 		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
@@ -2970,6 +3054,13 @@ StmtNode *parseSwitchStmtNode(Token ***tokenp)
 	status = acceptToken(&tokens, TT_WTF);
 	if (!status) {
 		parser_error_expected_token(TT_WTF, tokens);
+		goto parseSwitchStmtNodeAbort;
+	}
+
+	/* Remove the question mark from the token stream */
+	status = acceptToken(&tokens, TT_QUESTION);
+	if (!status) {
+		parser_error_expected_token(TT_QUESTION, tokens);
 		goto parseSwitchStmtNodeAbort;
 	}
 
@@ -3873,6 +3964,76 @@ parseAltArrayDefStmtNodeAbort: /* Exception handling */
 }
 
 /**
+ * Parses tokens into a library import statement.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a return statement.
+ *
+ * \retval NULL Unable to parse.
+ */
+StmtNode *parseImportStmtNode(Token ***tokenp)
+{
+	IdentifierNode *value = NULL;
+	ImportStmtNode *stmt = NULL;
+	StmtNode *ret = NULL;
+	int status;
+
+	/* Work from a copy of the token stream in case something goes wrong */
+	Token **tokens = *tokenp;
+
+#ifdef DEBUG
+	debug("ST_IMPORT");
+#endif
+
+	/* Remove the library import keyword from the token stream */
+	status = acceptToken(&tokens, TT_CANHAS);
+	if (!status) {
+		parser_error_expected_token(TT_CANHAS, tokens);
+		goto parseImportStmtNodeAbort;
+	}
+
+	/* Parse the library name */
+	value = parseIdentifierNode(&tokens);
+	if (!value) goto parseImportStmtNodeAbort;
+
+	/* Check for the question mark token (currently optional) */
+	acceptToken(&tokens, TT_QUESTION);
+
+	/* The library import statement must reside on its own line */
+	status = acceptToken(&tokens, TT_NEWLINE);
+	if (!status) {
+		parser_error(PR_EXPECTED_END_OF_EXPRESSION, tokens);
+		goto parseImportStmtNodeAbort;
+	}
+
+	/* Create the new ImportStmtNode structure */
+	stmt = createImportStmtNode(value);
+	if (!stmt) goto parseImportStmtNodeAbort;
+
+	/* Create the new StmtNode structure */
+	ret = createStmtNode(ST_IMPORT, stmt);
+	if (!ret) goto parseImportStmtNodeAbort;
+
+	/* Since we're successful, update the token stream */
+	*tokenp = tokens;
+
+	return ret;
+
+parseImportStmtNodeAbort: /* Exception handling */
+
+	/* Clean up any allocated structures */
+	if (ret) deleteStmtNode(ret);
+	else if (stmt) deleteImportStmtNode(stmt);
+	else {
+		if (value) deleteIdentifierNode(value);
+	}
+	return NULL;
+}
+
+/**
  * Parses tokens into a statement.
  *
  * \param [in] tokenp The position in a token list to start parsing at.
@@ -3989,6 +4150,10 @@ StmtNode *parseStmtNode(Token ***tokenp)
 	/* Alternate array definition */
 	else if (peekToken(&tokens, TT_OHAIIM)) {
 		ret = parseAltArrayDefStmtNode(tokenp);
+	}
+	/* Library import statement */
+	else if (peekToken(&tokens, TT_CANHAS)) {
+		ret = parseImportStmtNode(tokenp);
 	}
 	/* Bare expression */
 	else if ((expr = parseExprNode(&tokens))) {

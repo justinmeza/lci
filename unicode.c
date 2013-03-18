@@ -19815,6 +19815,7 @@ static const char *names[] = {
 	"TRUMPET",
 	"TUGRIK SIGN",
 	"TULIP",
+	"TURKISH LIRA SIGN",
 	"TURNED AMPERSAND",
 	"TURNED ANGLE",
 	"TURNED BLACK SHOGI PIECE",
@@ -41559,6 +41560,7 @@ static const long codepoints[] = {
 	0x1F3BA,
 	0x20AE,
 	0x1F337,
+	0x20BA,
 	0x214B,
 	0x29A2,
 	0x26CA,
@@ -43488,7 +43490,7 @@ static const long codepoints[] = {
 	0x200B
 };
 
-#define NUM_UNICODE 21741
+#define NUM_UNICODE 21742
 
 /**
  * Performs a binary search on an array of strings.

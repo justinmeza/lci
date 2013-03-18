@@ -228,6 +228,8 @@ typedef enum {
 	ST_FUNCDEF,         /**< Function definition statement. */
 	ST_EXPR,            /**< Expression statement. */
 	ST_ALTARRAYDEF,     /**< Function definition statement. */
+	ST_BINDING,         /**< Binding to external library. */
+	ST_IMPORT,          /**< Library import statement. */
 } StmtType;
 
 /**
@@ -363,6 +365,22 @@ typedef struct {
 	BlockNode *body;        /**< The body of the array definition. */
 	IdentifierNode *parent; /**< An optional inherited array. */
 } AltArrayDefStmtNode;
+
+/**
+ * Stores a library import statement.
+ */
+typedef struct {
+	IdentifierNode *name;   /**< The name of the library to import. */
+} ImportStmtNode;
+
+/**
+ * Stores a binding to a native function.
+ */
+struct returnobject;
+struct scopeobject;
+typedef struct {
+    struct returnobject *(*binding)(struct scopeobject *); /**< The function that implements the binding. */
+} BindingStmtNode;
 
 /**
  * Stores the main code block of a program.
@@ -717,6 +735,28 @@ void deleteAltArrayDefStmtNode(AltArrayDefStmtNode *);
 /**@}*/
 
 /**
+ * \name ImportStmtNode modifiers
+ *
+ * Functions for creating and deleting ImportStmtNodes.
+ */
+/**@{*/
+ImportStmtNode *createImportStmtNode(IdentifierNode *);
+void deleteImportStmtNode(ImportStmtNode *);
+/**@}*/
+
+/**
+ * \name BindingStmtNode modifiers
+ *
+ * Functions for creating and deleting BindingStmtNodes.
+ */
+/**@{*/
+struct returnobject;
+struct scopeobject;
+BindingStmtNode *createBindingStmtNode(struct returnobject *(*)(struct scopeobject *));
+void deleteBindingStmtNode(BindingStmtNode *);
+/**@}*/
+
+/**
  * \name ExprNode modifiers
  *
  * Functions for creating and deleting single or multiple ExprNodes.
@@ -801,6 +841,7 @@ StmtNode *parseLoopStmtNode(Token ***);
 StmtNode *parseDeallocationStmtNode(Token ***);
 StmtNode *parseFuncDefStmtNode(Token ***);
 StmtNode *parseAltArrayDefStmtNode(Token ***);
+StmtNode *parseImportStmtNode(Token ***);
 /**@}*/
 
 /**

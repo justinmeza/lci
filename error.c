@@ -226,12 +226,12 @@ static const int err_codes[] = {
 	538, /* IN_FUNCTION_NAME_USED_BY_VARIABLE */
 };
 
-void error(ErrorType e, ...)
+int error(ErrorType e, ...)
 {
 	va_list args;
 	va_start(args, e);
 	vfprintf(stderr, err_msgs[e], args);
 	va_end(args);
 
-	exit(err_codes[e]);
+	return err_codes[e];
 }

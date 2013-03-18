@@ -47,6 +47,11 @@
 #define getArray(value) (value->data.a)
 
 /**
+ * Retrieves a value's blob data.
+ */
+#define getBlob(value) (value->data.b)
+
+/**
  * Represents a value type.
  */
 typedef enum {
@@ -56,7 +61,8 @@ typedef enum {
 	VT_STRING,  /**< A string value. */
 	VT_NIL,     /**< Represents no value. */
 	VT_FUNC,    /**< A function. */
-	VT_ARRAY    /**< An array. */
+	VT_ARRAY,   /**< An array. */
+	VT_BLOB     /**< A binary blob of data. */
 } ValueType;
 
 /**
@@ -68,6 +74,7 @@ typedef union {
 	char *s;               /**< String data. */
 	FuncDefStmtNode *fn;   /**< Function data. */
 	struct scopeobject *a; /**< Array data. */
+	void *b;               /**< Binary blob data. */
 } ValueData;
 
 /**
@@ -101,7 +108,7 @@ typedef enum {
 /**
  * Stores return state.
  */
-typedef struct {
+typedef struct returnobject {
 	ReturnType type;    /**< The type of return encountered. */
 	ValueObject *value; /**< The optional return value. */
 } ReturnObject;
@@ -144,6 +151,7 @@ ValueObject *createFloatValueObject(float);
 ValueObject *createStringValueObject(char *);
 ValueObject *createFunctionValueObject(FuncDefStmtNode *);
 ValueObject *createArrayValueObject(ScopeObject *);
+ValueObject *createBlobValueObject(void *);
 ValueObject *copyValueObject(ValueObject *);
 void deleteValueObject(ValueObject *);
 /**@}*/
@@ -252,6 +260,8 @@ ReturnObject *interpretDeallocationStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretFuncDefStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretExprStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretAltArrayDefStmtNode(StmtNode *, ScopeObject *);
+ReturnObject *interpretBindingStmtNode(StmtNode *, ScopeObject *);
+ReturnObject *interpretImportStmtNode(StmtNode *, ScopeObject *);
 /**@}*/
 
 /**

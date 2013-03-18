@@ -104,6 +104,6 @@ typedef enum {
 	IN_FUNCTION_NAME_USED_BY_VARIABLE,
 } ErrorType;
 
-void error(ErrorType, ...);
+int error(ErrorType, ...);
 
 #endif /* __ERROR_H__ */

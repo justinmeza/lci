@@ -307,6 +307,30 @@ ValueObject *createArrayValueObject(ScopeObject *parent)
 }
 
 /**
+ * Creates a blob-type value.
+ *
+ * \param [in] data The binary blob data to store.
+ *
+ * \note \a data is stored as-is; no copy of it is made.
+ *
+ * \return A string-type value equalling \a data.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+ValueObject *createBlobValueObject(void *data)
+{
+	ValueObject *p = malloc(sizeof(ValueObject));
+	if (!p) {
+		perror("malloc");
+		return NULL;
+	}
+	p->type = VT_BLOB;
+	p->data.b = data;
+	p->semaphore = 1;
+	return p;
+}
+
+/**
  * Copies a value.
  *
  * Instead of actually performing a copy of memory, this function increments a
@@ -3589,7 +3613,7 @@ ReturnObject *interpretExprStmtNode(StmtNode *node,
  *
  * \param [in] scope The scope to evaluate \a node under.
  *
- * \pre \a node contains a statement created by createAltArrayDefNode().
+ * \pre \a node contains a statement created by createAltArrayDefStmtNode().
  *
  * \return A pointer to a default return value.
  *
@@ -3639,11 +3663,52 @@ ReturnObject *interpretAltArrayDefStmtNode(StmtNode *node,
 	return createReturnObject(RT_DEFAULT, NULL);
 }
 
+/**
+ * Interprets a binding statement.
+ *
+ * \param [in] node The statement to interpret.
+ *
+ * \param [in] scope The scope to evaluate \a node under.
+ *
+ * \pre \a node contains a statement created by createBindingStmtNode().
+ *
+ * \return A pointer to a default return value.
+ *
+ * \retval NULL An error occurred during interpretation.
+ */
+ReturnObject *interpretBindingStmtNode(StmtNode *node,
+                                       ScopeObject *scope)
+{
+	BindingStmtNode *stmt = (BindingStmtNode *)node->stmt;
+	return (stmt->binding)(scope);
+}
+
+/**
+ * Interprets a library import statement.
+ *
+ * \param [in] node The statement to interpret.
+ *
+ * \param [in] scope The scope to evaluate \a node under.
+ *
+ * \pre \a node contains a statement created by createImportStmtNode().
+ *
+ * \return A pointer to a default return value.
+ *
+ * \retval NULL An error occurred during interpretation.
+ */
+ReturnObject *interpretImportStmtNode(StmtNode *node,
+                                      ScopeObject *scope)
+{
+	ImportStmtNode *stmt = (ImportStmtNode *)node->stmt;
+	loadLibrary(scope, stmt->name);
+	return createReturnObject(RT_DEFAULT, NULL);
+}
+
 /*
  * A jump table for statements.  The index of a function in the table is given
  * by its its index in the enumerated StmtType type.
  */
-static ReturnObject *(*StmtJumpTable[14])(StmtNode *, ScopeObject *) = {
+static ReturnObject *(*StmtJumpTable[16])(StmtNode *, ScopeObject *) = {
 	interpretCastStmtNode,
 	interpretPrintStmtNode,
 	interpretInputStmtNode,
@@ -3657,7 +3722,9 @@ static ReturnObject *(*StmtJumpTable[14])(StmtNode *, ScopeObject *) = {
 	interpretDeallocationStmtNode,
 	interpretFuncDefStmtNode,
 	interpretExprStmtNode,
-	interpretAltArrayDefStmtNode };
+	interpretAltArrayDefStmtNode,
+	interpretBindingStmtNode,
+	interpretImportStmtNode };
 
 /**
  * Interprets a statement.
@@ -3741,6 +3808,8 @@ ReturnObject *interpretBlockNode(BlockNode *node,
  *
  * \param [in] main The main block of code to interpret.
  *
+ * \param [in] scope The scope to evaluate \a main under.
+ *
  * \pre \a main contains a block of code created by parseMainNode().
  *
  * \return The final status of the program.
@@ -3749,12 +3818,12 @@ ReturnObject *interpretBlockNode(BlockNode *node,
  *
  * \retval 1 An error occurred while interpreting \a main.
  */
-int interpretMainNode(MainNode *main)
+int interpretMainNodeScope(MainNode *main, ScopeObject *scope)
 {
 	ReturnObject *ret = NULL;
 	if (!main) return 1;
-	ret = interpretBlockNode(main->block, NULL);
-       	if (!ret) return 1;
+	ret = interpretBlockNode(main->block, scope);
+	if (!ret) return 1;
 	deleteReturnObject(ret);
 	return 0;
 }
