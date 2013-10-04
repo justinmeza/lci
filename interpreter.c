@@ -197,7 +197,7 @@ ValueObject *createBooleanValueObject(int data)
  *
  * \retval NULL Memory allocation failed.
  */
-ValueObject *createIntegerValueObject(int data)
+ValueObject *createIntegerValueObject(long long data)
 {
 	ValueObject *p = malloc(sizeof(ValueObject));
 	if (!p) {
@@ -1188,20 +1188,20 @@ ValueObject *castIntegerExplicit(ValueObject *node,
 		case VT_INTEGER:
 			return createIntegerValueObject(getInteger(node));
 		case VT_FLOAT:
-			return createIntegerValueObject((int)getFloat(node));
+			return createIntegerValueObject((long long)getFloat(node));
 		case VT_STRING:
 			if (strstr(getString(node), ":{")) {
 				/* Perform interpolation */
 				ValueObject *ret = NULL;
 				ValueObject *interp = castStringExplicit(node, scope);
-				int value;
+				long long value;
 				if (!interp) return NULL;
 				if (!isDecString(getString(interp))) {
 					error(IN_UNABLE_TO_CAST_VALUE);
 					deleteValueObject(interp);
 					return NULL;
 				}
-				if (sscanf(getString(interp), "%i", &value) != 1) {
+				if (sscanf(getString(interp), "%lli", &value) != 1) {
 					error(IN_EXPECTED_INTEGER_VALUE);
 					deleteValueObject(interp);
 					return NULL;
@@ -1211,12 +1211,12 @@ ValueObject *castIntegerExplicit(ValueObject *node,
 				return ret;
 			}
 			else {
-				int value;
+				long long value;
 				if (!isDecString(getString(node))) {
 					error(IN_UNABLE_TO_CAST_VALUE);
 					return NULL;
 				}
-				if (sscanf(getString(node), "%i", &value) != 1) {
+				if (sscanf(getString(node), "%lli", &value) != 1) {
 					error(IN_EXPECTED_INTEGER_VALUE);
 					return NULL;
 				}
@@ -1347,10 +1347,10 @@ ValueObject *castStringExplicit(ValueObject *node,
 			 * One character per integer bit plus one more for the
 			 * null character
 			 */
-			size_t size = sizeof(int) * 8 + 1;
+			size_t size = sizeof(long long) * 8 + 1;
 			data = malloc(sizeof(char) * size);
 			if (!data) return NULL;
-			sprintf(data, "%i", getInteger(node));
+			sprintf(data, "%lli", getInteger(node));
 			return createStringValueObject(data);
 		}
 		case VT_FLOAT: {
