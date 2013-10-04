@@ -176,7 +176,7 @@ ConstantNode *createBooleanConstantNode(int data)
  *
  * \retval NULL Memory allocation failed.
  */
-ConstantNode *createIntegerConstantNode(int data)
+ConstantNode *createIntegerConstantNode(long long data)
 {
 	ConstantNode *p = malloc(sizeof(ConstantNode));
 	if (!p) {

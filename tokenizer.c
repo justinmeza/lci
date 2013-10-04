@@ -306,7 +306,7 @@ Token **tokenizeLexemes(LexemeList *list)
 		/* Integer */
 		else if (isInteger(image)) {
 			token = createToken(TT_INTEGER, image, fname, line);
-			if (sscanf(lexeme->image, "%i", &(token->data.i)) != 1)
+			if (sscanf(lexeme->image, "%lli", &(token->data.i)) != 1)
 				error(TK_EXPECTED_INTEGER, fname, line);
 		}
 		/* FAIL */
