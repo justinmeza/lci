@@ -63,7 +63,7 @@ typedef enum {
  * Stores value data.
  */
 typedef union {
-	long long i;                 /**< Integer data. */
+	long long i;           /**< Integer data. */
 	float f;               /**< Decimal data. */
 	char *s;               /**< String data. */
 	FuncDefStmtNode *fn;   /**< Function data. */

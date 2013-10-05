@@ -332,9 +332,9 @@ typedef enum {
  * Stores constant data.
  */
 typedef union {
-	long long i;   /**< Integer data. */
-	float f; /**< Decimal data. */
-	char *s; /**< String data. */
+	long long i; /**< Integer data. */
+	float f;     /**< Decimal data. */
+	char *s;     /**< String data. */
 } ConstantData;
 
 /**
