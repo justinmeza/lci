@@ -93,6 +93,7 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 		lib = NULL;
 
 		if (!updateScopeValue(scope, scope, id, val)) goto loadLibraryAbort;
+		deleteIdentifierNode(id);
 	}
 
 	if (name) free(name);
