@@ -1682,13 +1682,13 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,
 	ScopeObject *dest = NULL;
 	ScopeObject *target = NULL;
 
-	target = getScopeObjectLocal(scope, scope, expr->name);
+	dest = getScopeObject(scope, scope, expr->scope);
+
+	target = getScopeObjectLocal(scope, dest, expr->name);
 	if (!target) return NULL;
 
 	outer = createScopeObjectCaller(scope, target);
 	if (!outer) return NULL;
-
-	dest = getScopeObject(scope, scope, expr->scope);
 
 	def = getScopeValue(scope, dest, expr->name);
 
