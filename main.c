@@ -25,7 +25,7 @@
  *   (justin.meza@gmail.com).
  *
  *   - For more information, check this project's webpage at
- *   http://icanhaslolcode.org .
+ *   http://lolcode.org .
  *
  * \section about About
  *
