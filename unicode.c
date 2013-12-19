@@ -543,6 +543,7 @@ static const char *names[] = {
 	"ARABIC LETTER LAM WITH SMALL V",
 	"ARABIC LETTER LAM WITH THREE DOTS ABOVE",
 	"ARABIC LETTER LAM WITH THREE DOTS BELOW",
+	"ARABIC LETTER MARK",
 	"ARABIC LETTER MEEM",
 	"ARABIC LETTER MEEM FINAL FORM",
 	"ARABIC LETTER MEEM INITIAL FORM",
@@ -8372,6 +8373,7 @@ static const char *names[] = {
 	"FIRST QUARTER MOON",
 	"FIRST QUARTER MOON SYMBOL",
 	"FIRST QUARTER MOON WITH FACE",
+	"FIRST STRONG ISOLATE",
 	"FISH",
 	"FISH CAKE WITH SWIRL DESIGN",
 	"FISHEYE",
@@ -12821,6 +12823,7 @@ static const char *names[] = {
 	"LEFT-SHADED WHITE RIGHTWARDS ARROW",
 	"LEFT-SIDE ARC ANTICLOCKWISE ARROW",
 	"LEFT-TO-RIGHT EMBEDDING",
+	"LEFT-TO-RIGHT ISOLATE",
 	"LEFT-TO-RIGHT MARK",
 	"LEFT-TO-RIGHT OVERRIDE",
 	"LEFTWARDS ARROW",
@@ -16838,6 +16841,7 @@ static const char *names[] = {
 	"POLICE OFFICER",
 	"POODLE",
 	"POP DIRECTIONAL FORMATTING",
+	"POP DIRECTIONAL ISOLATE",
 	"POSITION INDICATOR",
 	"POSTAL HORN",
 	"POSTAL MARK",
@@ -17133,6 +17137,7 @@ static const char *names[] = {
 	"RIGHT-SHADED WHITE RIGHTWARDS ARROW",
 	"RIGHT-SIDE ARC CLOCKWISE ARROW",
 	"RIGHT-TO-LEFT EMBEDDING",
+	"RIGHT-TO-LEFT ISOLATE",
 	"RIGHT-TO-LEFT MARK",
 	"RIGHT-TO-LEFT OVERRIDE",
 	"RIGHTHAND INTERIOR PRODUCT",
@@ -22288,6 +22293,7 @@ static const long codepoints[] = {
 	0x06B5,
 	0x06B7,
 	0x06B8,
+	0x061C,
 	0x0645,
 	0xFEE2,
 	0xFEE3,
@@ -30117,6 +30123,7 @@ static const long codepoints[] = {
 	0x263D,
 	0x1F313,
 	0x1F31B,
+	0x2068,
 	0x1F41F,
 	0x1F365,
 	0x25C9,
@@ -34566,6 +34573,7 @@ static const long codepoints[] = {
 	0x27AA,
 	0x2939,
 	0x202A,
+	0x2066,
 	0x200E,
 	0x202D,
 	0x2190,
@@ -38583,6 +38591,7 @@ static const long codepoints[] = {
 	0x1F46E,
 	0x1F429,
 	0x202C,
+	0x2069,
 	0x2316,
 	0x1F4EF,
 	0x3012,
@@ -38878,6 +38887,7 @@ static const long codepoints[] = {
 	0x27A9,
 	0x2938,
 	0x202B,
+	0x2067,
 	0x200F,
 	0x202E,
 	0x2A3D,
@@ -43490,7 +43500,7 @@ static const long codepoints[] = {
 	0x200B
 };
 
-#define NUM_UNICODE 21742
+#define NUM_UNICODE 21747
 
 /**
  * Performs a binary search on an array of strings.
