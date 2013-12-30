@@ -211,7 +211,7 @@ ValueObject *interpretExprNode(ExprNode *, ScopeObject *);
 ReturnObject *interpretStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretStmtNodeList(StmtNodeList *, ScopeObject *);
 ReturnObject *interpretBlockNode(BlockNode *, ScopeObject *);
-int interpretMainNode(MainNode *);
+int interpretMainNodeScope(MainNode *, ScopeObject *);
 /**@}*/
 
 /**
@@ -262,6 +262,8 @@ ReturnObject *interpretFuncDefStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretExprStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretAltArrayDefStmtNode(StmtNode *, ScopeObject *);
 ReturnObject *interpretBindingStmtNode(StmtNode *, ScopeObject *);
+/* Forward declaration of binding.h function (to break circular dependence) */
+void loadLibrary(ScopeObject *, IdentifierNode *);
 ReturnObject *interpretImportStmtNode(StmtNode *, ScopeObject *);
 /**@}*/
 

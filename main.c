@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 					/* Save state between lines using a ScopeObject structure */
 					ScopeObject *scope = createScopeObject(NULL);
 					if (!scope) return 1;
-					while (line = readline("lci> ")) {
+					while ((line = readline("lci> "))) {
 						char *pre = "HAI 1.4\n";
 						char *post = "\n\nKTHXBYE\n";
 						char *code = NULL;
