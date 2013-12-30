@@ -129,6 +129,7 @@ char *copyString(char *);
 unsigned int isDecString(const char *);
 unsigned int isHexString(const char *);
 char *resolveIdentifierName(IdentifierNode *, ScopeObject *);
+int resolveTerminalSlot(ScopeObject *, ScopeObject *, IdentifierNode *, ScopeObject **, IdentifierNode **);
 /**@}*/
 
 /**

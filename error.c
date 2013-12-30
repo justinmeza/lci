@@ -143,6 +143,8 @@ static const char *err_msgs[] = {
 	"Invalid type\n",
 	/* IN_FUNCTION_NAME_USED_BY_VARIABLE */
 	"%s:%u: function name already used by existing variable at: %s\n",
+	/* IN_CANNOT_CAST_VALUE_TO_ARRAY */
+	"%s:%u: cannot cast value to array at: %s\n",
 };
 
 static const int err_codes[] = {
@@ -224,6 +226,7 @@ static const int err_codes[] = {
 	536, /* IN_INVALID_DECLARATION_TYPE */
 	537, /* IN_INVALID_TYPE */
 	538, /* IN_FUNCTION_NAME_USED_BY_VARIABLE */
+	539, /* IN_CANNOT_CAST_VALUE_TO_ARRAY */
 };
 
 void error(ErrorType e, ...)
