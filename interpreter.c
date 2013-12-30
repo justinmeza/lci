@@ -2990,6 +2990,16 @@ ReturnObject *interpretCastStmtNode(StmtNode *node,
 		case CT_STRING:
 			if (!(cast = castStringExplicit(val, scope))) return NULL;
 			break;
+		case CT_ARRAY: {
+			IdentifierNode *id = (IdentifierNode *)(stmt->target);
+			char *name = resolveIdentifierName(id, scope);
+			if (name) {
+				error(IN_CANNOT_CAST_VALUE_TO_ARRAY, id->fname, id->line, name);
+				free(name);
+			}
+			return NULL;
+			break;
+		}
 	}
 	if (!updateScopeValue(scope, scope, stmt->target, cast)) {
 		deleteValueObject(cast);
