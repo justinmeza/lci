@@ -6,7 +6,7 @@ struct scopeobject;
 ValueObject *getArg(struct scopeobject *scope, char *name)
 {
 	IdentifierNode *id = createIdentifierNode(IT_DIRECT, (void *)copyString(name), NULL, NULL, 0);
-	ValueObject *val = getScopeValueLocal(scope, scope, id);
+	ValueObject *val = getScopeValue(scope, scope, id);
 	deleteIdentifierNode(id);
 	return val;
 }
@@ -57,9 +57,34 @@ struct returnobject *fcloseWrapper(struct scopeobject *scope)
 	FILE *file = (FILE *)getBlob(arg1);
 
 	fclose(file);
-	deleteValueObject(arg1);
 
 	return createReturnObject(RT_DEFAULT, NULL);
+}
+
+struct returnobject *strlenWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "string");
+	char *string = getString(arg1);
+
+	size_t len = strlen(string);
+
+	ValueObject *ret = createIntegerValueObject((long long)len);
+	return createReturnObject(RT_RETURN, ret);
+}
+
+struct returnobject *stratWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "string");
+	ValueObject *arg2 = getArg(scope, "position");
+	char *string = getString(arg1);
+	long long position = getInteger(arg2);
+
+	char *temp = malloc(sizeof(char) * 2);
+	temp[0] = string[position];
+	temp[1] = 0;
+
+	ValueObject *ret = createStringValueObject(temp);
+	return createReturnObject(RT_RETURN, ret);
 }
 
 void loadLibrary(ScopeObject *scope, IdentifierNode *target)
@@ -84,6 +109,25 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 		loadBinding(lib, "FCLOSIN", "file", &fcloseWrapper);
 
 		id = createIdentifierNode(IT_DIRECT, (void *)copyString("STDIO"), NULL, NULL, 0);
+		if (!id) goto loadLibraryAbort;
+
+		if (!createScopeValue(scope, scope, id)) goto loadLibraryAbort;
+
+		val = createArrayValueObject(lib);
+		if (!val) goto loadLibraryAbort;
+		lib = NULL;
+
+		if (!updateScopeValue(scope, scope, id, val)) goto loadLibraryAbort;
+		deleteIdentifierNode(id);
+	}
+	else if (!strcmp(name, "STRING")) {
+		lib = createScopeObject(scope);
+		if (!lib) goto loadLibraryAbort;
+
+		loadBinding(lib, "STRLENIN", "string", &strlenWrapper);
+		loadBinding(lib, "STRATIN", "string position", &stratWrapper);
+
+		id = createIdentifierNode(IT_DIRECT, (void *)copyString("STRING"), NULL, NULL, 0);
 		if (!id) goto loadLibraryAbort;
 
 		if (!createScopeValue(scope, scope, id)) goto loadLibraryAbort;
