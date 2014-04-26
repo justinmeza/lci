@@ -1,8 +1,5 @@
 #include "binding.h"
 
-struct returnobject;
-struct scopeobject;
-
 ValueObject *getArg(struct scopeobject *scope, char *name)
 {
 	IdentifierNode *id = createIdentifierNode(IT_DIRECT, (void *)copyString(name), NULL, NULL, 0);
@@ -11,7 +8,7 @@ ValueObject *getArg(struct scopeobject *scope, char *name)
 	return val;
 }
 
-struct returnobject *fopenWrapper(struct scopeobject *scope)
+ReturnObject *fopenWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "filename");
 	ValueObject *arg2 = getArg(scope, "mode");
@@ -24,7 +21,7 @@ struct returnobject *fopenWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_RETURN, ret);
 }
 
-struct returnobject *freadWrapper(struct scopeobject *scope)
+ReturnObject *freadWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "file");
 	ValueObject *arg2 = getArg(scope, "length");
@@ -39,7 +36,7 @@ struct returnobject *freadWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_RETURN, ret);
 }
 
-struct returnobject *fwriteWrapper(struct scopeobject *scope)
+ReturnObject *fwriteWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "file");
 	ValueObject *arg2 = getArg(scope, "data");
@@ -51,7 +48,7 @@ struct returnobject *fwriteWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_DEFAULT, NULL);
 }
 
-struct returnobject *fcloseWrapper(struct scopeobject *scope)
+ReturnObject *fcloseWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "file");
 	FILE *file = (FILE *)getBlob(arg1);
@@ -61,7 +58,7 @@ struct returnobject *fcloseWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_DEFAULT, NULL);
 }
 
-struct returnobject *strlenWrapper(struct scopeobject *scope)
+ReturnObject *strlenWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "string");
 	char *string = getString(arg1);
@@ -72,7 +69,7 @@ struct returnobject *strlenWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_RETURN, ret);
 }
 
-struct returnobject *stratWrapper(struct scopeobject *scope)
+ReturnObject *stratWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "string");
 	ValueObject *arg2 = getArg(scope, "position");
