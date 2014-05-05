@@ -1,4 +1,5 @@
 #include "binding.h"
+#include "inet.h"  /* for SOCKS */
 
 ValueObject *getArg(struct scopeobject *scope, char *name)
 {
@@ -6,6 +7,102 @@ ValueObject *getArg(struct scopeobject *scope, char *name)
 	ValueObject *val = getScopeValue(scope, scope, id);
 	deleteIdentifierNode(id);
 	return val;
+}
+
+ReturnObject *iopenWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "addr");
+	ValueObject *arg2 = getArg(scope, "port");
+	char *addr = getString(arg1);
+	int port = getInteger(arg2);
+
+	inet_host_t *h = malloc(sizeof(inet_host_t));
+	inet_open(h, IN_PROT_TCP, addr, port);
+
+	ValueObject *ret = createBlobValueObject(h);
+	return createReturnObject(RT_RETURN, ret);
+}
+
+ReturnObject *ilookupWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "addr");
+	char *addr = getString(arg1);
+
+	char *h = inet_lookup(addr);
+
+	ValueObject *ret = createStringValueObject(h);
+	return createReturnObject(RT_RETURN, ret);
+}
+
+ReturnObject *iacceptWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "local");
+	inet_host_t *host = (inet_host_t *)getBlob(arg1);
+
+	inet_host_t *h = malloc(sizeof(inet_host_t));
+	inet_accept(h, host);
+
+	ValueObject *ret = createBlobValueObject(h);
+	return createReturnObject(RT_RETURN, ret);
+}
+
+ReturnObject *iconnectWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "local");
+	ValueObject *arg2 = getArg(scope, "addr");
+	ValueObject *arg3 = getArg(scope, "port");
+	inet_host_t *host = (inet_host_t *)getBlob(arg1);
+	char *addr = getString(arg2);
+	int port = getInteger(arg3);
+
+	inet_host_t *h = malloc(sizeof(inet_host_t));
+	inet_setup(h, IN_PROT_TCP, addr, port);
+	inet_connect(host, h);
+
+	ValueObject *ret = createBlobValueObject(h);
+	return createReturnObject(RT_RETURN, ret);
+}
+
+ReturnObject *icloseWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "local");
+	inet_host_t *host = (inet_host_t *)getBlob(arg1);
+
+	inet_close(host);
+
+	ValueObject *ret = createBlobValueObject(host);
+	return createReturnObject(RT_RETURN, ret);
+}
+
+ReturnObject *isendWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "local");
+	ValueObject *arg2 = getArg(scope, "remote");
+	ValueObject *arg3 = getArg(scope, "data");
+	inet_host_t *local = (inet_host_t *)getBlob(arg1);
+	inet_host_t *remote = (inet_host_t *)getBlob(arg2);
+	char *data = getString(arg3);
+
+	int n = inet_send(local, remote, data, strlen(data));
+
+	ValueObject *ret = createIntegerValueObject(n);
+	return createReturnObject(RT_RETURN, ret);
+}
+
+ReturnObject *ireceiveWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "local");
+	ValueObject *arg2 = getArg(scope, "remote");
+	ValueObject *arg3 = getArg(scope, "amount");
+	inet_host_t *local = (inet_host_t *)getBlob(arg1);
+	inet_host_t *remote = (inet_host_t *)getBlob(arg2);
+	int amount = getInteger(arg3);
+
+	char *data = malloc(sizeof(char) * amount);
+	inet_receive(remote, local, data, amount, -1);
+
+	ValueObject *ret = createStringValueObject(data);
+	return createReturnObject(RT_RETURN, ret);
 }
 
 ReturnObject *fopenWrapper(struct scopeobject *scope)
@@ -58,6 +155,16 @@ ReturnObject *fcloseWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_DEFAULT, NULL);
 }
 
+ReturnObject *rewindWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "file");
+	FILE *file = (FILE *)getBlob(arg1);
+
+	rewind(file);
+
+	return createReturnObject(RT_DEFAULT, NULL);
+}
+
 ReturnObject *strlenWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "string");
@@ -100,10 +207,11 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 		lib = createScopeObject(scope);
 		if (!lib) goto loadLibraryAbort;
 
-		loadBinding(lib, "FOPENIN", "filename mode", &fopenWrapper);
-		loadBinding(lib, "FREADIN", "file length", &freadWrapper);
-		loadBinding(lib, "FWRITIN", "file data", &fwriteWrapper);
-		loadBinding(lib, "FCLOSIN", "file", &fcloseWrapper);
+		loadBinding(lib, "OPEN", "filename mode", &fopenWrapper);
+		loadBinding(lib, "LUK", "file length", &freadWrapper);
+		loadBinding(lib, "SCRIBBEL", "file data", &fwriteWrapper);
+		loadBinding(lib, "AGEIN", "file", &rewindWrapper);
+		loadBinding(lib, "CLOSE", "file", &fcloseWrapper);
 
 		id = createIdentifierNode(IT_DIRECT, (void *)copyString("STDIO"), NULL, NULL, 0);
 		if (!id) goto loadLibraryAbort;
@@ -116,13 +224,35 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 
 		if (!updateScopeValue(scope, scope, id, val)) goto loadLibraryAbort;
 		deleteIdentifierNode(id);
-	}
-	else if (!strcmp(name, "STRING")) {
+	} else if (!strcmp(name, "SOCKS")) {
 		lib = createScopeObject(scope);
 		if (!lib) goto loadLibraryAbort;
 
-		loadBinding(lib, "STRLENIN", "string", &strlenWrapper);
-		loadBinding(lib, "STRATIN", "string position", &stratWrapper);
+		loadBinding(lib, "RESOLV", "addr", &ilookupWrapper);
+		loadBinding(lib, "BIND", "addr port", &iopenWrapper);
+		loadBinding(lib, "LISTN", "local timeout", &iacceptWrapper);
+		loadBinding(lib, "KONN", "local addr port", &iconnectWrapper);
+		loadBinding(lib, "CLOSE", "local", &icloseWrapper);
+		loadBinding(lib, "PUT", "local remote data", &isendWrapper);
+		loadBinding(lib, "GET", "local remote amount", &ireceiveWrapper);
+
+		id = createIdentifierNode(IT_DIRECT, (void *)copyString("SOCKS"), NULL, NULL, 0);
+		if (!id) goto loadLibraryAbort;
+
+		if (!createScopeValue(scope, scope, id)) goto loadLibraryAbort;
+
+		val = createArrayValueObject(lib);
+		if (!val) goto loadLibraryAbort;
+		lib = NULL;
+
+		if (!updateScopeValue(scope, scope, id, val)) goto loadLibraryAbort;
+		deleteIdentifierNode(id);
+	} else if (!strcmp(name, "STRING")) {
+		lib = createScopeObject(scope);
+		if (!lib) goto loadLibraryAbort;
+
+		loadBinding(lib, "LEN", "string", &strlenWrapper);
+		loadBinding(lib, "AT", "string position", &stratWrapper);
 
 		id = createIdentifierNode(IT_DIRECT, (void *)copyString("STRING"), NULL, NULL, 0);
 		if (!id) goto loadLibraryAbort;

@@ -1,0 +1,8 @@
+HAI 1.4
+    CAN HAS SOCKS?
+    I HAS A sock
+    I HAS A conn
+    sock R I IZ SOCKS'Z BIND YR "127.0.0.1" AN YR 13337 MKAY
+    I IZ SOCKS'Z CLOSE YR sock MKAY
+    VISIBLE "done"
+KTHXBYE

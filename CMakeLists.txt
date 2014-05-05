@@ -29,6 +29,7 @@ SET(HDRS
   unicode.h
   error.h
   binding.h
+  inet.h
 )
 
 SET(SRCS
@@ -40,6 +41,7 @@ SET(SRCS
   unicode.c
   error.c
   binding.c
+  inet.c
 )
 
 add_executable(lci ${SRCS} ${HDRS})
