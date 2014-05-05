@@ -230,7 +230,7 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 
 		loadBinding(lib, "RESOLV", "addr", &ilookupWrapper);
 		loadBinding(lib, "BIND", "addr port", &iopenWrapper);
-		loadBinding(lib, "LISTN", "local timeout", &iacceptWrapper);
+		loadBinding(lib, "LISTN", "local", &iacceptWrapper);
 		loadBinding(lib, "KONN", "local addr port", &iconnectWrapper);
 		loadBinding(lib, "CLOSE", "local", &icloseWrapper);
 		loadBinding(lib, "PUT", "local remote data", &isendWrapper);
