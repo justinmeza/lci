@@ -1,5 +1,5 @@
 #include "binding.h"
-#include "inet.h"  /* for SOCKS */
+#include "inet.h"  /* for sockets */
 
 ValueObject *getArg(struct scopeobject *scope, char *name)
 {
@@ -98,8 +98,9 @@ ReturnObject *ireceiveWrapper(struct scopeobject *scope)
 	inet_host_t *remote = (inet_host_t *)getBlob(arg2);
 	int amount = getInteger(arg3);
 
-	char *data = malloc(sizeof(char) * amount);
-	inet_receive(remote, local, data, amount, -1);
+	char *data = malloc(sizeof(char) * (amount + 1));
+	int len = inet_receive(remote, local, data, amount, -1);
+	data[len] = '\0';
 
 	ValueObject *ret = createStringValueObject(data);
 	return createReturnObject(RT_RETURN, ret);
@@ -125,9 +126,9 @@ ReturnObject *freadWrapper(struct scopeobject *scope)
 	FILE *file = (FILE *)getBlob(arg1);
 	int length = getInteger(arg2);
 
-	char *buf = malloc((sizeof(char) * length) + 1);
-	fread(buf, 1, length, file);
-	buf[length] = '\0';
+	char *buf = malloc(sizeof(char) * (length + 1));
+	int len = fread(buf, 1, length, file);
+	buf[len] = '\0';
 
 	ValueObject *ret = createStringValueObject(buf);
 	return createReturnObject(RT_RETURN, ret);
@@ -153,6 +154,15 @@ ReturnObject *fcloseWrapper(struct scopeobject *scope)
 	fclose(file);
 
 	return createReturnObject(RT_DEFAULT, NULL);
+}
+
+ReturnObject *ferrorWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "file");
+	FILE *file = (FILE *)getBlob(arg1);
+
+	ValueObject *ret = createBooleanValueObject(file == NULL || ferror(file));
+	return createReturnObject(RT_RETURN, ret);
 }
 
 ReturnObject *rewindWrapper(struct scopeobject *scope)
@@ -208,6 +218,7 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 		if (!lib) goto loadLibraryAbort;
 
 		loadBinding(lib, "OPEN", "filename mode", &fopenWrapper);
+		loadBinding(lib, "DIAF", "file", &ferrorWrapper);
 		loadBinding(lib, "LUK", "file length", &freadWrapper);
 		loadBinding(lib, "SCRIBBEL", "file data", &fwriteWrapper);
 		loadBinding(lib, "AGEIN", "file", &rewindWrapper);

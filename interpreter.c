@@ -1406,6 +1406,10 @@ ValueObject *castStringExplicit(ValueObject *node,
 					temp[a] = '\n';
 					a++, b += 2;
 				}
+				else if (!strncmp(str + b, ":3", 2)) {
+					temp[a] = '\r';
+					a++, b += 2;
+				}
 				else if (!strncmp(str + b, ":>", 2)) {
 					temp[a] = '\t';
 					a++, b += 2;
