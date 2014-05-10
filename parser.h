@@ -155,7 +155,7 @@
  *
  * \par
  * ExprNode ::= CastExprNode | ConstantNode | IdentifierNode | FuncCallExprNode
- * | OpExprNode | ImplicitVariable
+ * | OpExprNode | ImplicitVariable | SystemCommandExprNode
  *
  * \par
  * CastExprNode ::= \c TT_MAEK ExprNode \c TT_A TypeNode
@@ -163,6 +163,9 @@
  * \par
  * FuncCallExprNode ::= IdentifierNode \c TT_IZ IdentifierNode FunctionArgs ?
  * TT_MKAY
+ *
+ * \par
+ * SystemCommandExprNode ::= \c TT_DUZ  \c IdentifierNode
  *
  * \par
  * OpExprNode ::= UnaryOp | BinaryOp | NaryOp
@@ -252,12 +255,13 @@ typedef struct {
  * Represents an expression type.
  */
 typedef enum {
-	ET_CAST,       /**< Cast expression. */
-	ET_CONSTANT,   /**< Constant expression. */
-	ET_IDENTIFIER, /**< Identifier expression. */
-	ET_FUNCCALL,   /**< Function call expression. */
-	ET_OP,         /**< Operation expression. */
-	ET_IMPVAR      /**< \ref impvar "Implicit variable". */
+	ET_CAST,          /**< Cast expression. */
+	ET_CONSTANT,      /**< Constant expression. */
+	ET_IDENTIFIER,    /**< Identifier expression. */
+	ET_FUNCCALL,      /**< Function call expression. */
+	ET_OP,            /**< Operation expression. */
+	ET_IMPVAR,        /**< \ref impvar "Implicit variable". */
+	ET_SYSTEMCOMMAND, /**< System command expression. */
 } ExprType;
 
 /**
@@ -521,6 +525,15 @@ typedef struct {
 	IdentifierNode *name;  /**< The name of the function to call. */
 	ExprNodeList *args;    /**< The arguments to supply the function. */
 } FuncCallExprNode;
+
+/**
+ * Stores a system command expression.  This expression evaluates an identifier
+ * which contains a system command, and evaluates to the standard output of the 
+ * executed system command.
+ */
+typedef struct {
+	ExprNode *cmd;  /**< The expression containing the command to execute */
+} SystemCommandExprNode;
 
 /**
  * Represents the type of operation an OpExprNode performs.
@@ -790,6 +803,16 @@ void deleteFuncCallExprNode(FuncCallExprNode *);
 /**@}*/
 
 /**
+ * \name SystemCommandExprNode modifiers
+ *
+ * Functions for creating and deleting SystemCommandExprNode.
+ */
+/**@{*/
+SystemCommandExprNode *createSystemCommandExprNode(ExprNode *);
+void deleteSystemCommandExprNode(SystemCommandExprNode *);
+/**@}*/
+
+/**
  * \name OpExprNode modifiers
  *
  * Functions for creating and deleting OpExprNodes.
@@ -827,6 +850,7 @@ ExprNode *parseCastExprNode(Token ***);
 ExprNode *parseConstantExprNode(Token ***);
 ExprNode *parseIdentifierExprNode(Token ***);
 ExprNode *parseFuncCallExprNode(Token ***);
+ExprNode *parseSystemCommandExprNode(Token ***);
 ExprNode *parseOpExprNode(Token ***);
 StmtNode *parseCastStmtNode(Token ***);
 StmtNode *parsePrintStmtNode(Token ***);

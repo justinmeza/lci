@@ -1234,6 +1234,9 @@ void deleteExprNode(ExprNode *node)
 			break;
 		case ET_IMPVAR:
 			break; /* This expression type does not have any content */
+		case ET_SYSTEMCOMMAND:
+			deleteSystemCommandExprNode((SystemCommandExprNode *)node->expr);
+			break;
 		default:
 			error(PR_UNKNOWN_EXPRESSION_TYPE);
 			break;
@@ -1373,6 +1376,26 @@ FuncCallExprNode *createFuncCallExprNode(IdentifierNode *scope,
 }
 
 /**
+ * Creates a system command expression.
+ *
+ * \param [in] cmd The command to execute.
+ *
+ * \return A pointer to a system command expression with the desired properties.
+ *
+ * \retval NULL Memory allocation failed.
+ */
+SystemCommandExprNode *createSystemCommandExprNode(ExprNode *cmd)
+{
+	SystemCommandExprNode *p = malloc(sizeof(SystemCommandExprNode));
+	if (!p) {
+		perror("malloc");
+		return NULL;
+	}
+	p->cmd = cmd;
+	return p;
+}
+
+/**
  * Deletes a function call expression.
  *
  * \param [in,out] node The function call expression to delete.
@@ -1385,6 +1408,20 @@ void deleteFuncCallExprNode(FuncCallExprNode *node)
 	deleteIdentifierNode(node->scope);
 	deleteIdentifierNode(node->name);
 	deleteExprNodeList(node->args);
+	free(node);
+}
+
+/**
+ * Deletes a system command expression.
+ *
+ * \param [in,out] node The system command expression to delete.
+ *
+ * \post The memory at \a node and all of its members will be freed.
+ */
+void deleteSystemCommandExprNode(SystemCommandExprNode *node)
+{
+	if (!node) return;
+	deleteExprNode(node->cmd);
 	free(node);
 }
 
@@ -2135,6 +2172,65 @@ parseFuncCallExprNodeAbort: /* Exception handling */
 }
 
 /**
+ * Parses tokens into a system command expression.
+ *
+ * \param [in] tokenp The position in a token list to start parsing at.
+ *
+ * \post \a Tokenp will point to the next unparsed token.
+ *
+ * \return A pointer to a system command expression.
+ *
+ * \retval NULL Unable to parse.
+ */
+ExprNode *parseSystemCommandExprNode(Token ***tokenp)
+{
+	ExprNode *name = NULL;
+	SystemCommandExprNode *expr = NULL;
+	ExprNode *ret = NULL;
+	int status;
+
+	/* Work from a copy of the token stream in case something goes wrong */
+	Token **tokens = *tokenp;
+
+#ifdef DEBUG
+	debug("ET_SYSTEMCOMMAND");
+#endif
+
+	/* Parse the system command token */
+	status = acceptToken(&tokens, TT_IDUZ);
+	if (!status) {
+		parser_error_expected_token(TT_IDUZ, tokens);
+		goto parseSystemCommandExprNodeAbort;
+	}
+
+	/* Parse the expression name */
+	name = parseExprNode(&tokens);
+        if (!name) goto parseSystemCommandExprNodeAbort;
+
+	/* Create the new SystemCommandExprNode structure */
+	expr = createSystemCommandExprNode(name);
+	if (!expr) goto parseSystemCommandExprNodeAbort;
+
+	/* Create the new ExprNode structure */
+	ret = createExprNode(ET_SYSTEMCOMMAND, expr);
+	if (!ret) goto parseSystemCommandExprNodeAbort;
+
+	/* Since we're successful, update the token stream */
+	*tokenp = tokens;
+
+	return ret;
+
+parseSystemCommandExprNodeAbort: /* Exception handling */
+
+	/* Clean up any allocated structures */
+	if (ret) deleteExprNode(ret);
+	else if (expr) deleteSystemCommandExprNode(expr);
+	else if (name) deleteExprNode(name);
+
+	return NULL;
+}
+
+/**
  * Parses tokens into an operation expression.
  *
  * \param [in] tokenp The position in a token list to start parsing at.
@@ -2448,6 +2544,10 @@ ExprNode *parseExprNode(Token ***tokenp)
 
 		/* Since we're successful, update the token stream */
 		*tokenp = tokens;
+	}
+	else if (peekToken(&tokens, TT_IDUZ)) {
+		/* System command */
+		ret = parseSystemCommandExprNode(tokenp);
 	}
 	else {
 		parser_error(PR_EXPECTED_EXPRESSION, tokens);

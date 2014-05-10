@@ -1766,6 +1766,66 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,
 }
 
 /**
+ * Interprets a system command
+ *
+ * \param [in] node A pointer to the expression to interpret.
+ *
+ * \param [in,out] scope A pointer to a scope to evaluate \a node under.
+ *
+ * \pre \a node contains an expression created by createSystemCommandExprNode().
+ *
+ * \return A pointer to the returned value.
+ *
+ * \retval NULL An error occurred during interpretation.
+ */
+ValueObject *interpretSystemCommandExprNode(ExprNode *node,
+                                       ScopeObject *scope)
+{
+	SystemCommandExprNode *expr = (SystemCommandExprNode *)node->expr;
+	ValueObject *val = NULL;
+	FILE *f;
+	char *cmd = NULL;
+	unsigned int buflen = 2048;
+	char buf[buflen];
+	char *out = NULL;
+	unsigned int len;
+	unsigned int total = 0;
+	unsigned int prev = 0;
+
+	/* Sanity checks */
+	if (scope == NULL) return NULL;
+	if (node->type != ET_SYSTEMCOMMAND) return NULL;
+	if (expr == NULL) return NULL;
+
+	val = interpretExprNode(expr->cmd, scope);
+        if (!val) return NULL;
+
+	cmd = getString(val);
+
+
+	/* Open the command for reading */
+	f = popen(cmd, "r");
+	if (f == NULL) {
+		error(IN_UNABLE_TO_EXECUTE_COMMAND);
+		return NULL;
+	}
+
+	while ((len = fread(buf, 1, buflen, f)) > 0) {
+		prev = total;
+		total += len;
+		out = realloc(out, total + 1);
+		memcpy(out + prev, buf, len);
+	}
+	if (total > 0) out[total] = '\0';
+
+	/* Close */
+	pclose(f);
+
+	/* Return the command object */
+	return createStringValueObject(out == NULL ? "" : out);
+}
+
+/**
  * Interprets an identifier.
  *
  * \param [in] node A pointer to the expression to interpret.
@@ -2925,13 +2985,14 @@ ValueObject *interpretOpExprNode(ExprNode *node,
  * A jump table for expressions.  The index of a function in the table is given
  * by its its index in the enumerated ExprType type.
  */
-static ValueObject *(*ExprJumpTable[6])(ExprNode *, ScopeObject *) = {
+static ValueObject *(*ExprJumpTable[7])(ExprNode *, ScopeObject *) = {
 	interpretCastExprNode,
 	interpretConstantExprNode,
 	interpretIdentifierExprNode,
 	interpretFuncCallExprNode,
 	interpretOpExprNode,
-	interpretImpVarExprNode };
+	interpretImpVarExprNode,
+	interpretSystemCommandExprNode };
 
 /**
  * Interprets an expression.

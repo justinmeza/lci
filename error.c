@@ -145,6 +145,8 @@ static const char *err_msgs[] = {
 	"%s:%u: function name already used by existing variable at: %s\n",
 	/* IN_CANNOT_CAST_VALUE_TO_ARRAY */
 	"%s:%u: cannot cast value to array at: %s\n",
+	/* IN_UNABLE_TO_EXECUTE_COMMAND */
+	"Unable to execute command\n",
 };
 
 static const int err_codes[] = {
@@ -227,6 +229,7 @@ static const int err_codes[] = {
 	537, /* IN_INVALID_TYPE */
 	538, /* IN_FUNCTION_NAME_USED_BY_VARIABLE */
 	539, /* IN_CANNOT_CAST_VALUE_TO_ARRAY */
+	540, /* IN_UNABLE_TO_EXECUTE_COMMAND */
 };
 
 int error(ErrorType e, ...)

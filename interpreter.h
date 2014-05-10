@@ -225,6 +225,7 @@ ValueObject *interpretCastExprNode(ExprNode *, ScopeObject *);
 ValueObject *interpretFuncCallExprNode(ExprNode *, ScopeObject *);
 ValueObject *interpretIdentifierExprNode(ExprNode *, ScopeObject *);
 ValueObject *interpretConstantExprNode(ExprNode *, ScopeObject *);
+ValueObject *interpretSystemCommandExprNode(ExprNode *, ScopeObject *);
 /**@}*/
 
 /**
