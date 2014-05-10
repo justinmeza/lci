@@ -13,7 +13,7 @@ ReturnObject *iopenWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "addr");
 	ValueObject *arg2 = getArg(scope, "port");
-	char *addr = getString(arg1);
+	char *addr = getString(castStringImplicit(arg1, scope));
 	int port = getInteger(arg2);
 
 	inet_host_t *h = malloc(sizeof(inet_host_t));
@@ -26,7 +26,7 @@ ReturnObject *iopenWrapper(struct scopeobject *scope)
 ReturnObject *ilookupWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "addr");
-	char *addr = getString(arg1);
+	char *addr = getString(castStringImplicit(arg1, scope));
 
 	char *h = inet_lookup(addr);
 
@@ -52,7 +52,7 @@ ReturnObject *iconnectWrapper(struct scopeobject *scope)
 	ValueObject *arg2 = getArg(scope, "addr");
 	ValueObject *arg3 = getArg(scope, "port");
 	inet_host_t *host = (inet_host_t *)getBlob(arg1);
-	char *addr = getString(arg2);
+	char *addr = getString(castStringImplicit(arg2, scope));
 	int port = getInteger(arg3);
 
 	inet_host_t *h = malloc(sizeof(inet_host_t));
@@ -81,7 +81,7 @@ ReturnObject *isendWrapper(struct scopeobject *scope)
 	ValueObject *arg3 = getArg(scope, "data");
 	inet_host_t *local = (inet_host_t *)getBlob(arg1);
 	inet_host_t *remote = (inet_host_t *)getBlob(arg2);
-	char *data = getString(arg3);
+	char *data = getString(castStringImplicit(arg3, scope));
 
 	int n = inet_send(local, remote, data, strlen(data));
 
@@ -110,8 +110,8 @@ ReturnObject *fopenWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "filename");
 	ValueObject *arg2 = getArg(scope, "mode");
-	char *filename = getString(arg1);
-	char *mode = getString(arg2);
+	char *filename = getString(castStringImplicit(arg1, scope));
+	char *mode = getString(castStringImplicit(arg2, scope));
 
 	FILE *f = fopen(filename, mode);
 
@@ -178,7 +178,7 @@ ReturnObject *rewindWrapper(struct scopeobject *scope)
 ReturnObject *strlenWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "string");
-	char *string = getString(arg1);
+	char *string = getString(castStringImplicit(arg1, scope));
 
 	size_t len = strlen(string);
 
@@ -190,7 +190,7 @@ ReturnObject *stratWrapper(struct scopeobject *scope)
 {
 	ValueObject *arg1 = getArg(scope, "string");
 	ValueObject *arg2 = getArg(scope, "position");
-	char *string = getString(arg1);
+	char *string = getString(castStringImplicit(arg1, scope));
 	long long position = getInteger(arg2);
 
 	char *temp = malloc(sizeof(char) * 2);
