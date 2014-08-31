@@ -15,14 +15,6 @@
 
 #include "interpreter.h"
 
-/**
- * Stores a binding to an external library call to export.
- */
-typedef struct {
-	IdentifierNode *library;    /**< The library this binding belongs to. */
-	FuncDefStmtNode *interface; /**< The interface that exports the binding. */
-} Binding;
-
 ValueObject *getArg(struct scopeobject *, char *);
 void loadLibrary(ScopeObject *, IdentifierNode *);
 void loadBinding(ScopeObject *, char *, const char *, struct returnobject *(*)(struct scopeobject *));
