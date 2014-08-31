@@ -201,6 +201,27 @@ ReturnObject *stratWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_RETURN, ret);
 }
 
+ReturnObject *srandWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "seed");
+	int seed = getInteger(arg1);
+
+	srand(seed);
+
+	return createReturnObject(RT_DEFAULT, NULL);
+}
+
+ReturnObject *randWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "max");
+	unsigned int max = getInteger(arg1);
+
+	unsigned int val = (rand() % max);
+
+	ValueObject *ret = createIntegerValueObject(val);
+	return createReturnObject(RT_RETURN, ret);
+}
+
 void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 {
 	char *name = NULL;
@@ -213,7 +234,25 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 	name = resolveIdentifierName(target, scope);
 	if (!name) goto loadLibraryAbort;
 
-	if (!strcmp(name, "STDIO")) {
+	if (!strcmp(name, "STDLIB")) {
+		lib = createScopeObject(scope);
+		if (!lib) goto loadLibraryAbort;
+
+		loadBinding(lib, "MIX", "seed", &srandWrapper);
+		loadBinding(lib, "BLOW", "max", &randWrapper);
+
+		id = createIdentifierNode(IT_DIRECT, (void *)copyString("STDLIB"), NULL, NULL, 0);
+		if (!id) goto loadLibraryAbort;
+
+		if (!createScopeValue(scope, scope, id)) goto loadLibraryAbort;
+
+		val = createArrayValueObject(lib);
+		if (!val) goto loadLibraryAbort;
+		lib = NULL;
+
+		if (!updateScopeValue(scope, scope, id, val)) goto loadLibraryAbort;
+		deleteIdentifierNode(id);
+	} else if (!strcmp(name, "STDIO")) {
 		lib = createScopeObject(scope);
 		if (!lib) goto loadLibraryAbort;
 
