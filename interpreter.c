@@ -3560,12 +3560,19 @@ ReturnObject *interpretLoopStmtNode(StmtNode *node,
 			 * variable.
 			 */
 			if (stmt->update->type == ET_OP) {
+				ValueObject *updated = NULL;
 				var = getScopeValue(scope, outer, stmt->var);
 				OpExprNode *op = (OpExprNode *)stmt->update->expr;
 				if (op->type == OP_ADD)
-					var->data.i++;
+					updated = createIntegerValueObject(var->data.i + 1);
 				else if (op->type == OP_SUB)
-					var->data.i--;
+					updated = createIntegerValueObject(var->data.i - 1);
+
+				if (!updateScopeValue(scope, outer, stmt->var, updated)) {
+					deleteValueObject(updated);
+					deleteScopeObject(outer);
+					return NULL;
+				}
 			}
 			else {
 				ValueObject *update = interpretExprNode(stmt->update, outer);
