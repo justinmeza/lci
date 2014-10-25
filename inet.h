@@ -71,6 +71,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 #define IN_PORT_ANY 0
 #define IN_ADDR_ANY INADDR_ANY
