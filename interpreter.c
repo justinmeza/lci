@@ -111,8 +111,7 @@ char *resolveIdentifierName(IdentifierNode *id,
 		const char *temp = (char *)(id->id);
 		ret = malloc(sizeof(char) * (strlen(temp) + 1));
 		strcpy(ret, temp);
-	}
-	else if (id->type == IT_INDIRECT) {
+	} else if (id->type == IT_INDIRECT) {
 		ExprNode *expr = (ExprNode *)(id->id);
 
 		/* Interpret the identifier expression */
@@ -128,8 +127,7 @@ char *resolveIdentifierName(IdentifierNode *id,
 		ret = copyString(getString(str));
 		if (!ret) goto resolveIdentifierNameAbort;
 		deleteValueObject(str);
-	}
-	else {
+	} else {
 		char *name = resolveIdentifierName(id, scope);
 		error(IN_INVALID_IDENTIFIER_TYPE, id->fname, id->line, name);
 		free(name);
@@ -666,6 +664,10 @@ ScopeObject *getScopeObjectLocal(ScopeObject *src,
 		/* Check for value in current scope */
 		for (n = 0; n < current->numvals; n++) {
 			if (!strcmp(current->names[n], name)) {
+				if (current->values[n]->type != VT_ARRAY) {
+					error(IN_VARIABLE_NOT_AN_ARRAY, target->fname, target->line, name);
+					goto getScopeObjectLocalAbort;
+				}
 				free(name);
 				return getArray(current->values[n]);
 			}
@@ -679,6 +681,75 @@ ScopeObject *getScopeObjectLocal(ScopeObject *src,
 	}
 
 getScopeObjectLocalAbort: /* In case something goes wrong... */
+
+	/* Clean up any allocated structures */
+	if (name) free(name);
+
+	return NULL;
+}
+
+/**
+ * Gets a scope (possibly by casting a function) without accessing any arrays.
+ *
+ * \param [in] src The scope to evaluate \a target under.
+ *
+ * \param [in,out] dest The scope to update the value in.
+ *
+ * \param [in] target The name of the value containing the scope to get.
+ *
+ * \return The scope contained in the value in \a dest, named by evaluating \a
+ * target under \a src, without accessing any arrays.
+ *
+ * \retval NULL Either \a target could not be evaluated in \a src or \a target
+ * could not be found in \a dest.
+ */
+/** \todo Add this definition to interpreter.h */
+ScopeObject *getScopeObjectLocalCaller(ScopeObject *src,
+                                 ScopeObject *dest,
+                                 IdentifierNode *target)
+{
+	ScopeObject *current = dest;
+	char *name = NULL;
+
+	/* Look up the identifier name */
+	name = resolveIdentifierName(target, src);
+	if (!name) goto getScopeObjectLocalCallerAbort;
+
+	/* Check for calling object reference variable */
+	if (!strcmp(name, "ME")) {
+		/* Traverse upwards through callers */
+		for (current = dest;
+				current->caller;
+				current = current->caller);
+		free(name);
+		return current;
+	}
+
+	/* Traverse upwards through scopes */
+	do {
+		unsigned int n;
+		/* Check for value in current scope */
+		for (n = 0; n < current->numvals; n++) {
+			if (!strcmp(current->names[n], name)) {
+				/* HACK: functions can by used as scopes */
+				if (current->values[n]->type != VT_ARRAY
+						&& current->values[n]->type != VT_FUNC) {
+					error(IN_VARIABLE_NOT_AN_ARRAY, target->fname, target->line, name);
+					goto getScopeObjectLocalCallerAbort;
+				}
+				free(name);
+				return getArray(current->values[n]);
+			}
+		}
+	} while ((current = current->parent));
+
+	{
+		char *name = resolveIdentifierName(target, src);
+		error(IN_VARIABLE_DOES_NOT_EXIST, target->fname, target->line, name);
+		free(name);
+	}
+
+getScopeObjectLocalCallerAbort: /* In case something goes wrong... */
 
 	/* Clean up any allocated structures */
 	if (name) free(name);
@@ -1660,7 +1731,7 @@ ValueObject *interpretFuncCallExprNode(ExprNode *node,
 
 	dest = getScopeObject(scope, scope, expr->scope);
 
-	target = getScopeObjectLocal(scope, dest, expr->name);
+	target = getScopeObjectLocalCaller(scope, dest, expr->name);
 	if (!target) return NULL;
 
 	outer = createScopeObjectCaller(scope, target);
