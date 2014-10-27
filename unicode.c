@@ -43534,6 +43534,35 @@ int binarySearch(const char **strings,
 }
 
 /**
+ * Performs a binary search on an array of strings.
+ *
+ * \param [in] strings The array of string to search.
+ * \param [in] start The index to start searching at.
+ * \param [in] end The index to end searching at.
+ * \param [in] find The string to search for.
+ *
+ * \return The index where the string would appear.
+ */
+unsigned int binarySearchIndex(const char **strings,
+                               int start,
+                               int end,
+                               const char *find)
+{
+	int midpoint;
+	int cmp;
+	if (end < start) return start;
+	midpoint = ((end - start) / 2) + start;
+	cmp = strcmp(strings[midpoint], find);
+	if (cmp == 0)
+		return midpoint;
+	else if (cmp > 0)
+		return binarySearchIndex(strings, start, midpoint - 1, find);
+	else if (cmp < 0)
+		return binarySearchIndex(strings, midpoint + 1, end, find);
+	return -1;
+}
+
+/**
  * Converts a Unicode normative name to a Unicode code point.
  *
  * \param [in] name The Unicode normative name to convert.

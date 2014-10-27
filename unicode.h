@@ -16,6 +16,7 @@
 #include <string.h>
 
 int binarySearch(const char **, int, int, const char *);
+unsigned int binarySearchIndex(const char **, int, int, const char *);
 long convertNormativeNameToCodePoint(const char *);
 size_t convertCodePointToUTF8(unsigned long, char *);
 

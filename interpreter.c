@@ -476,6 +476,7 @@ ValueObject *createScopeValue(ScopeObject *src,
 	void *mem1 = NULL;
 	void *mem2 = NULL;
 	char *name = NULL;
+	unsigned int pos = 0;
 
 	/* Traverse the target to the terminal child and parent */
 	status = resolveTerminalSlot(src, dest, target, &parent, &child);
@@ -488,26 +489,52 @@ ValueObject *createScopeValue(ScopeObject *src,
 	name = resolveIdentifierName(target, src);
 	if (!name) goto createScopeValueAbort;
 
-	/* Add value to local scope */
-	mem1 = realloc(dest->names, sizeof(IdentifierNode *) * newnumvals);
-	if (!mem1) {
-		perror("realloc");
-		goto createScopeValueAbort;
-	}
-	mem2 = realloc(dest->values, sizeof(ValueObject *) * newnumvals);
-	if (!mem2) {
-		perror("realloc");
-		goto createScopeValueAbort;
+	/* realloc if power of two */
+	if (newnumvals && !(newnumvals & (newnumvals - 1))) {
+		int allocnumvals = (newnumvals << 1);
+		/* Add value to local scope */
+		mem1 = realloc(dest->names, sizeof(IdentifierNode *) * allocnumvals);
+		if (!mem1) {
+			perror("realloc");
+			goto createScopeValueAbort;
+		}
+		mem2 = realloc(dest->values, sizeof(ValueObject *) * allocnumvals);
+		if (!mem2) {
+			perror("realloc");
+			goto createScopeValueAbort;
+		}
+	} else {
+		mem1 = dest->names;
+		mem2 = dest->values;
 	}
 
 	dest->names = mem1;
 	dest->values = mem2;
-	dest->names[dest->numvals] = name;
-	dest->values[dest->numvals] = createNilValueObject();
-	if (!dest->values[dest->numvals]) goto createScopeValueAbort;
+
+	/* Insert in lexical order */
+	{
+		int n;
+
+		if (dest->numvals > 0) {
+			/* Find insertion position */
+			pos = binarySearchIndex((const char **)dest->names, 0, dest->numvals - 1, (const char *)name);
+
+			/* Shift values down */
+			for (n = dest->numvals; n > pos; n--) {
+				dest->names[n] = dest->names[n - 1];
+				dest->values[n] = dest->values[n - 1];
+			}
+		}
+
+		/* Insert the value */
+		dest->names[pos] = name;
+		dest->values[pos] = createNilValueObject();
+		if (!dest->values[pos]) goto createScopeValueAbort;
+	}
+
 	dest->numvals = newnumvals;
 
-	return dest->values[dest->numvals - 1];
+	return dest->values[pos];
 
 createScopeValueAbort: /* In case something goes wrong... */
 
@@ -555,22 +582,24 @@ ValueObject *updateScopeValue(ScopeObject *src,
 
 	/* Traverse upwards through scopes */
 	do {
-		unsigned int n;
-		/* Check for existing value in current scope */
-		for (n = 0; n < parent->numvals; n++) {
-			if (!strcmp(parent->names[n], name)) {
-				free(name);
-				/* Wipe out the old value */
-				deleteValueObject(parent->values[n]);
-				/* Assign the new value */
-				if (value) {
-					parent->values[n] = value;
-				}
-				else {
-					parent->values[n] = createNilValueObject();
-				}
-				return parent->values[n];
+		if (parent->numvals == 0) continue;
+
+		unsigned int n = binarySearchIndex((const char **)parent->names, 0, parent->numvals - 1, (const char *)name);
+
+		if (n >= parent->numvals) continue;
+
+		if (!strcmp(parent->names[n], name)) {
+			free(name);
+			/* Delete the old value */
+			deleteValueObject(parent->values[n]);
+			/* Assign the new value */
+			if (value) {
+				parent->values[n] = value;
 			}
+			else {
+				parent->values[n] = createNilValueObject();
+			}
+			return parent->values[n];
 		}
 	} while ((parent = parent->parent));
 
@@ -822,12 +851,24 @@ ValueObject *getScopeValueLocal(ScopeObject *src,
 	if (!name) goto getScopeValueLocalAbort;
 
 	/* Check for value in current scope */
+	if (dest->numvals > 0) {
+		n = binarySearchIndex((const char **)dest->names, 0, dest->numvals - 1, (const char *)name);
+
+		if (n < dest->numvals) {
+			if (!strcmp(dest->names[n], name)) {
+				free(name);
+				return dest->values[n];
+			}
+		}
+	}
+	/*
 	for (n = 0; n < dest->numvals; n++) {
 		if (!strcmp(dest->names[n], name)) {
 			free(name);
 			return dest->values[n];
 		}
 	}
+	*/
 
 getScopeValueLocalAbort: /* In case something goes wrong... */
 
@@ -954,37 +995,39 @@ void deleteScopeValue(ScopeObject *src,
 
 	/* Traverse upwards through scopes */
 	do {
-		unsigned int n;
-		/* Check for existing value in current scope */
-		for (n = 0; n < current->numvals; n++) {
-			if (!strcmp(current->names[n], name)) {
-				unsigned int i;
-				unsigned int newnumvals = dest->numvals - 1;
-				free(name);
-				/* Wipe out the name and value */
-				free(current->names[n]);
-				deleteValueObject(current->values[n]);
-				/* Reorder the tables */
-				for (i = n; i < current->numvals - 1; i++) {
-					current->names[i] = current->names[i + 1];
-					current->values[i] = current->values[i + 1];
-				}
-				/* Resize the tables */
-				mem1 = realloc(dest->names, sizeof(IdentifierNode *) * newnumvals);
-				if (!mem1) {
-					perror("realloc");
-					goto deleteScopeValueAbort;
-				}
-				mem2 = realloc(dest->values, sizeof(ValueObject *) * newnumvals);
-				if (!mem2) {
-					perror("realloc");
-					goto deleteScopeValueAbort;
-				}
-				dest->names = mem1;
-				dest->values = mem2;
-				dest->numvals = newnumvals;
-				return;
+		if (current->numvals == 0) continue;
+
+		unsigned int n = binarySearchIndex((const char **)current->names, 0, current->numvals - 1, (const char *)name);
+
+		if (n >= current->numvals) continue;
+
+		if (!strcmp(current->names[n], name)) {
+			unsigned int i;
+			unsigned int newnumvals = dest->numvals - 1;
+			free(name);
+			/* Wipe out the name and value */
+			free(current->names[n]);
+			deleteValueObject(current->values[n]);
+			/* Reorder the tables */
+			for (i = n; i < current->numvals - 1; i++) {
+				current->names[i] = current->names[i + 1];
+				current->values[i] = current->values[i + 1];
 			}
+			/* Resize the tables */
+			mem1 = realloc(dest->names, sizeof(IdentifierNode *) * newnumvals);
+			if (!mem1) {
+				perror("realloc");
+				goto deleteScopeValueAbort;
+			}
+			mem2 = realloc(dest->values, sizeof(ValueObject *) * newnumvals);
+			if (!mem2) {
+				perror("realloc");
+				goto deleteScopeValueAbort;
+			}
+			dest->names = mem1;
+			dest->values = mem2;
+			dest->numvals = newnumvals;
+			return;
 		}
 	} while ((current = current->parent));
 
