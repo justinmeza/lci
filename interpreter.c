@@ -784,14 +784,20 @@ ScopeObject *getScopeObjectLocalCaller(ScopeObject *src,
 		/* Check for value in current scope */
 		for (n = 0; n < current->numvals; n++) {
 			if (!strcmp(current->names[n], name)) {
-				/* HACK: functions can by used as scopes */
 				if (current->values[n]->type != VT_ARRAY
 						&& current->values[n]->type != VT_FUNC) {
 					error(IN_VARIABLE_NOT_AN_ARRAY, target->fname, target->line, name);
 					goto getScopeObjectLocalCallerAbort;
 				}
 				free(name);
-				return getArray(current->values[n]);
+				if (current->values[n]->type == VT_ARRAY)
+				{
+					return getArray(current->values[n]);
+				}
+				else
+				{
+					return dest;
+				}
 			}
 		}
 	} while ((current = current->parent));
