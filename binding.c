@@ -17,7 +17,11 @@ ReturnObject *iopenWrapper(struct scopeobject *scope)
 	int port = getInteger(arg2);
 
 	inet_host_t *h = malloc(sizeof(inet_host_t));
-	inet_open(h, IN_PROT_TCP, addr, port);
+	if (!strcmp(addr, "ANY")) {
+		inet_open(h, IN_PROT_TCP, (const char *)IN_ADDR_ANY, port);
+	} else {
+		inet_open(h, IN_PROT_TCP, addr, port);
+	}
 
 	ValueObject *ret = createBlobValueObject(h);
 	return createReturnObject(RT_RETURN, ret);
