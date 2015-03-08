@@ -17,21 +17,23 @@ LICENSE
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 ABOUT
 
 lci is a LOLCODE interpreter written in C and is designed to be correct,
 portable, fast, and precisely documented.
 
-    - correct: Every effort has been made to test lci's conformance to the
-          LOLCODE language specification. Unit tests come packaged with the lci
-          source code.
-    - portable: lci follows the widely ported ANSI C specification allowing it
-          to compile on a broad range of systems.
-    - fast: Much effort has gone into producing simple and efficient code
-          whenever possible to the extent that the above points are not
-          compromized.
-    - precisely documented: lci uses Doxygen to generate literate code
-          documentation, browsable here.
+- Correct: Every effort has been made to test lci's conformance to the LOLCODE
+  language specification. Unit tests come packaged with the lci source code.
+
+- Portable: lci follows the widely ported ANSI C specification allowing it to
+  compile on a broad range of systems.
+
+- Fast: Much effort has gone into producing simple and efficient code whenever
+  possible to the extent that the above points are not compromized.
+
+- Precisely documented: lci uses Doxygen to generate literate code
+  documentation, browsable here.
 
 This project's homepage is at http://lolcode.org.  For help, visit
 http://groups.google.com/group/lci-general.  To report a bug, go to

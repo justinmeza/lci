@@ -1,18 +1,20 @@
 # lci
 
+![Build status](https://travis-ci.org/justinmeza/lci.svg?branch=future)
+
 lci is a LOLCODE (http://lolcode.org) interpreter written in C and is designed
 to be correct, portable, fast, and precisely documented.
 
-- correct: Every effort has been made to test lci's conformance to the LOLCODE
+- Correct: Every effort has been made to test lci's conformance to the LOLCODE
   language specification. Unit tests come packaged with the lci source code.
 
-- portable: lci follows the widely ported ANSI C specification allowing it to
+- Portable: lci follows the widely ported ANSI C specification allowing it to
   compile on a broad range of systems.
 
-- fast: Much effort has gone into producing simple and efficient code whenever
+- Fast: Much effort has gone into producing simple and efficient code whenever
   possible to the extent that the above points are not compromized.
 
-- precisely documented: lci uses Doxygen to generate literate code
+- Precisely documented: lci uses Doxygen to generate literate code
   documentation, browsable here.
 
 This project's homepage is at http://lolcode.org.  For help, visit
@@ -88,7 +90,3 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.
-
-### Prerequisites
-
-
