@@ -1368,6 +1368,7 @@ int acceptToken(Token ***tokenp,
                 TokenType token)
 {
 	Token **tokens = *tokenp;
+	if (!(*tokens)) return 0;
 	if ((*tokens)->type != token) return 0;
 	tokens++;
 	*tokenp = tokens;
@@ -1427,7 +1428,11 @@ int nextToken(Token ***tokenp,
 void parser_error(ErrorType type,
                   Token **tokens)
 {
-	error(type, (*tokens)->fname, (*tokens)->line, (*tokens)->image);
+	if(!(*tokens)) {
+		error(type, "Unhandled string detected", 1, "undefined");
+	} else {
+		error(type, (*tokens)->fname, (*tokens)->line, (*tokens)->image);
+	}
 }
 
 /**
