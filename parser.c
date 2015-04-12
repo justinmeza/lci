@@ -1428,8 +1428,8 @@ int nextToken(Token ***tokenp,
 void parser_error(ErrorType type,
                   Token **tokens)
 {
-	if(!(*tokens)) {
-		error(type, "Unhandled string detected", 1, "undefined");
+	if (!(*tokens)) {
+		error(PR_UNHANDLED_STRING);
 	} else {
 		error(type, (*tokens)->fname, (*tokens)->line, (*tokens)->image);
 	}

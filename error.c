@@ -64,6 +64,8 @@ static const char *err_msgs[] = {
 	"%s:%u: expected matching loop name at: %s\n",
 	/* PR_EXPECTED_STATEMENT */
 	"%s:%u: expected statement at: %s\n",
+	/* PR_UNHANDLED_STRING */
+	"unhandled string detected\n",
 
 	/* IN_INVALID_IDENTIFIER_TYPE */
 	"%s:%u invalid identifier type at: %s\n",
