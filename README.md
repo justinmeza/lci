@@ -69,7 +69,7 @@ the cmake documentation for more details.
 
 1. (Optional) Build documentation:
 
-  `$ make doc`
+  `$ make docs`
 
 1. (Optional) Run tests:
 

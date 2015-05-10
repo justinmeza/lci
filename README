@@ -89,7 +89,7 @@ the cmake documentation for more details.
 
 4. (Optional) Build documentation:
 
-  $ make doc
+  $ make docs
 
 5. (Optional) Run tests:
 
