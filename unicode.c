@@ -43575,7 +43575,7 @@ long convertNormativeNameToCodePoint(const char *name)
 {
 	int index = binarySearch(names, 0, NUM_UNICODE - 1, name);
 	if (index < 0) {
-		fprintf(stderr, "Invalid Unicode normative name.\n");
+		fprintf(stderr, "Invalid Unicode normative name: %s.\n", name);
 		return -1;
 	}
 	else

@@ -2990,8 +2990,18 @@ ValueObject *interpretEqualityOpExprNode(OpExprNode *expr,
 				return NULL;
 		}
 	}
-	else
+	else {
+		/* If comparing strings, interpolate them first */
+		ValueObject *old1 = val1;
+		ValueObject *old2 = val2;
+		if (val1->type == VT_STRING) {
+			val1 = castStringExplicit(val1, scope);
+			val2 = castStringExplicit(val2, scope);
+			deleteValueObject(old1);
+			deleteValueObject(old2);
+		}
 		ret = BoolOpJumpTable[expr->type - OP_EQ][val1->type][val2->type](val1, val2);
+	}
 	deleteValueObject(val1);
 	deleteValueObject(val2);
 	return ret;
