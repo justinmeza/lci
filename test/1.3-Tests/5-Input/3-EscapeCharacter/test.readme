@@ -1,0 +1,3 @@
+This test checks that when the escape character (:) is input it is correctly
+escaped.  It provides two strings of text that check whether escaping occurs on
+output and on comparison.

@@ -3268,8 +3268,12 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,
 		 * but do not store it.
 		 */
 		if (c == EOF || c == (int)'\r' || c == (int)'\n') break;
+		/* Reserve space to escape colon in input */
+		if (c == ':') {
+			cur++;
+		}
 		if (cur > size - 1) {
-			/* Increasing buffer size. */
+			/* Increase buffer size */
 			size *= 2;
 			mem = realloc(temp, sizeof(char) * size);
 			if (!mem) {
@@ -3278,6 +3282,10 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,
 				return NULL;
 			}
 			temp = mem;
+		}
+		/* Escape colon in input */
+		if (c == ':') {
+			temp[cur - 1] = ':';
 		}
 		temp[cur] = (char)c;
 		cur++;
