@@ -3,6 +3,7 @@ import subprocess
 import sys
 import tempfile
 import argparse
+import os
 
 MEMERR = 127
   
@@ -13,9 +14,12 @@ parser.add_argument('-o', '--outputFile', type=argparse.FileType('r'), default=N
 parser.add_argument('-i', '--inputFile', type=argparse.FileType('r'), default=None, help="File to be used as input")
 parser.add_argument('-e', '--expectError', action="store_true", help="Specify that an error should occur")
 parser.add_argument('-m', '--memCheck', action='store_true', help="Do a memory check")
+parser.add_argument('-w', '--workingDirectory', default=None, help="Set the working directory")
 
 args = parser.parse_args()
 
+if args.workingDirectory:
+  os.chdir(args.workingDirectory)
 
 if args.inputFile == None:
   print("Not using an input file")

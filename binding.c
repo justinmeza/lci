@@ -1,6 +1,42 @@
 #include "binding.h"
 #include "inet.h"  /* for sockets */
 
+char *sanitizeInput(char *input)
+{
+	unsigned int size = 16;
+	unsigned int cur = 0;
+	char *temp = malloc(sizeof(char) * size);
+	int pos = 0;
+	int c;
+	void *mem = NULL;
+	while (c = input[pos]) {
+		/* Reserve space to escape colon in input */
+		if (c == ':') {
+			cur++;
+		}
+		if (cur > size - 1) {
+			/* Increase buffer size */
+			size *= 2;
+			mem = realloc(temp, sizeof(char) * size);
+			if (!mem) {
+				perror("realloc");
+				free(temp);
+				return NULL;
+			}
+			temp = mem;
+		}
+		/* Escape colon in input */
+		if (c == ':') {
+			temp[cur - 1] = ':';
+		}
+		temp[cur] = (char)c;
+		cur++;
+		pos++;
+	}
+	temp[cur] = '\0';
+	return temp;
+}
+
 ValueObject *getArg(struct scopeobject *scope, char *name)
 {
 	IdentifierNode *id = createIdentifierNode(IT_DIRECT, (void *)copyString(name), NULL, NULL, 0);
@@ -106,7 +142,10 @@ ReturnObject *ireceiveWrapper(struct scopeobject *scope)
 	int len = inet_receive(remote, local, data, amount, -1);
 	data[len] = '\0';
 
-	ValueObject *ret = createStringValueObject(data);
+	char *sanitized = sanitizeInput(data);
+	free(data);
+
+	ValueObject *ret = createStringValueObject(sanitized);
 	return createReturnObject(RT_RETURN, ret);
 }
 
@@ -134,7 +173,10 @@ ReturnObject *freadWrapper(struct scopeobject *scope)
 	int len = fread(buf, 1, length, file);
 	buf[len] = '\0';
 
-	ValueObject *ret = createStringValueObject(buf);
+	char *sanitized = sanitizeInput(buf);
+	free(buf);
+
+	ValueObject *ret = createStringValueObject(sanitized);
 	return createReturnObject(RT_RETURN, ret);
 }
 
