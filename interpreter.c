@@ -3229,12 +3229,12 @@ ReturnObject *interpretPrintStmtNode(StmtNode *node,
 			deleteValueObject(use);
 			return NULL;
 		}
-		printf("%s", getString(use));
+		fprintf(stmt->file, "%s", getString(use));
 		deleteValueObject(val);
 		deleteValueObject(use);
 	}
 	if (!stmt->nonl)
-		printf("\n");
+		putc('\n', stmt->file);
 	return createReturnObject(RT_DEFAULT, NULL);
 }
 

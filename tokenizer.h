@@ -76,6 +76,7 @@ typedef enum {
 	TT_A,           /**< Cast target separator. */
 	TT_ISNOWA,      /**< In-place cast. */
 	TT_VISIBLE,     /**< Print. */
+	TT_INVISIBLE,   /**< Print to standard error. */
 	TT_SMOOSH,      /**< String concatenation. */
 	TT_BANG,        /**< Exclamation point (!) */
 	TT_GIMMEH,      /**< Input. */
@@ -156,6 +157,7 @@ static const char *keywords[] = {
 	"A",           /* TT_A */
 	"IS NOW A",    /* TT_ISNOWA */
 	"VISIBLE",     /* TT_VISIBLE */
+	"INVISIBLE",   /* TT_INVISIBLE */
 	"SMOOSH",      /* TT_SMOOSH */
 	"!",           /* TT_BANG */
 	"GIMMEH",      /* TT_GIMMEH */

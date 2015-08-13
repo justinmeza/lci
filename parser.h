@@ -70,6 +70,7 @@
  *
  * \par
  * PrintStmtNode ::= \c TT_VISIBLE ExprNodeList \c TT_BANG ? \c TT_NEWLINE
+ * | \c TT_INVISIBLE ExprNodeList \c TT_BANG ? \c TT_NEWLINE
  *
  * \par
  * InputStmtNode ::= \c TT_GIMMEH IdentifierNode \c TT_NEWLINE
@@ -417,6 +418,7 @@ typedef struct {
  */
 typedef struct {
 	ExprNodeList *args; /**< The expressions to print. */
+	FILE *file;         /**< Where to print (\c stdout or \c stderr). */
 	int nonl;           /**< Whether to print an ending newline. */
 } PrintStmtNode;
 
@@ -643,7 +645,7 @@ void deleteCastStmtNode(CastStmtNode *);
  * Functions for creating and deleting PrintStmtNodes.
  */
 /**@{*/
-PrintStmtNode *createPrintStmtNode(ExprNodeList *, int);
+PrintStmtNode *createPrintStmtNode(ExprNodeList *, FILE *, int);
 void deletePrintStmtNode(PrintStmtNode *);
 /**@}*/
 

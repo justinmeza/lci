@@ -639,6 +639,8 @@ void deleteCastStmtNode(CastStmtNode *node)
  *
  * \param [in] args The expressions to print.
  *
+ * \param [in] file Where to print (\c stdout or \c stderr).
+ *
  * \param [in] nonl Whether an ending newline should be surpressed.
  *
  * \return A pointer to the print statement with the desired properties.
@@ -646,6 +648,7 @@ void deleteCastStmtNode(CastStmtNode *node)
  * \retval NULL Memory allocation failed.
  */
 PrintStmtNode *createPrintStmtNode(ExprNodeList *args,
+                                   FILE *file,
                                    int nonl)
 {
 	PrintStmtNode *p = malloc(sizeof(PrintStmtNode));
@@ -654,6 +657,7 @@ PrintStmtNode *createPrintStmtNode(ExprNodeList *args,
 		return NULL;
 	}
 	p->args = args;
+	p->file = file;
 	p->nonl = nonl;
 	return p;
 }
@@ -2649,6 +2653,7 @@ StmtNode *parsePrintStmtNode(Token ***tokenp)
 {
 	ExprNode *arg = NULL;
 	ExprNodeList *args = NULL;
+	FILE *file = stdout;
 	int nonl = 0;
 	PrintStmtNode *stmt = NULL;
 	StmtNode *ret = NULL;
@@ -2661,12 +2666,20 @@ StmtNode *parsePrintStmtNode(Token ***tokenp)
 	debug("ST_PRINT");
 #endif
 
-	/* Remove the print keyword from the token stream */
+	/**
+	 * Remove the print keyword from the token stream
+	 * A "quad-bool" is used to indicate whether we succeeded or failed to
+	 * accept either a \c TT_VISIBLE or \c TT_INVISIBLE token.
+	 */
 	status = acceptToken(&tokens, TT_VISIBLE);
-	if (!status) {
-		parser_error_expected_token(TT_VISIBLE, tokens);
+	if (!status) status = acceptToken(&tokens, TT_INVISIBLE) ? 2 : -1;
+	if (status < 1) {
+		parser_error_expected_token(TT_VISIBLE - status, tokens);
 		goto parsePrintStmtNodeAbort;
 	}
+
+	/* Use standard error if we accepted a \c TT_INVISIBLE above */
+	if (status == 2) file = stderr;
 
 	/* Parse the arguments to the print statement */
 	args = createExprNodeList();
@@ -2687,7 +2700,7 @@ StmtNode *parsePrintStmtNode(Token ***tokenp)
 			&& !peekToken(&tokens, TT_BANG));
 
 	/* Check for the no-newline token */
-	if(acceptToken(&tokens, TT_BANG)) nonl = 1;
+	if (acceptToken(&tokens, TT_BANG)) nonl = 1;
 
 	/* Make sure the statement ends with a newline */
 	status = acceptToken(&tokens, TT_NEWLINE);
@@ -2697,7 +2710,7 @@ StmtNode *parsePrintStmtNode(Token ***tokenp)
 	}
 
 	/* Create the new PrintStmtNode structure */
-	stmt = createPrintStmtNode(args, nonl);
+	stmt = createPrintStmtNode(args, file, nonl);
 	if (!stmt) goto parsePrintStmtNodeAbort;
 
 	/* Create the new StmtNode structure */
@@ -4217,6 +4230,10 @@ StmtNode *parseStmtNode(Token ***tokenp)
 	}
 	/* Print */
 	else if (peekToken(&tokens, TT_VISIBLE)) {
+		ret = parsePrintStmtNode(tokenp);
+	}
+	/* Warn */
+	else if (peekToken(&tokens, TT_INVISIBLE)) {
 		ret = parsePrintStmtNode(tokenp);
 	}
 	/* Input */
