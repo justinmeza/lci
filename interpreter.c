@@ -21,34 +21,6 @@ char *copyString(char *data)
 }
 
 /**
- * Checks if a string follows the format of a decimal number.
- *
- * \param [in] data The string to check the format of.
- *
- * \retval 0 The string is not a decimal number.
- *
- * \retval 1 The string is a decimal number.
- */
-unsigned int isDecString(const char *data)
-{
-	size_t n;
-	size_t len = strlen(data);
-
-	/* Check for an empty string */
-	if (len == 0) return 0;
-
-	/* Check for non-digit, non-hyphen, and non-period characters */
-	for (n = 0; n < len; n++) {
-		if (!isdigit(data[n])
-				&& data[n] != '.'
-				&& data[n] != '-')
-			return 0;
-	}
-
-	return 1;
-}
-
-/**
  * Checks if a string follows the format of a hexadecimal number.
  *
  * \param [in] data The characters to check the format of.
@@ -1338,32 +1310,14 @@ ValueObject *castIntegerExplicit(ValueObject *node,
 				/* Perform interpolation */
 				ValueObject *ret = NULL;
 				ValueObject *interp = castStringExplicit(node, scope);
-				long long value;
 				if (!interp) return NULL;
-				if (!isDecString(getString(interp))) {
-					error(IN_UNABLE_TO_CAST_VALUE);
-					deleteValueObject(interp);
-					return NULL;
-				}
-				if (sscanf(getString(interp), "%lli", &value) != 1) {
-					error(IN_EXPECTED_INTEGER_VALUE);
-					deleteValueObject(interp);
-					return NULL;
-				}
+				long long value = strtoll(getString(interp), NULL, 0);
 				ret = createIntegerValueObject(value);
 				deleteValueObject(interp);
 				return ret;
 			}
 			else {
-				long long value;
-				if (!isDecString(getString(node))) {
-					error(IN_UNABLE_TO_CAST_VALUE);
-					return NULL;
-				}
-				if (sscanf(getString(node), "%lli", &value) != 1) {
-					error(IN_EXPECTED_INTEGER_VALUE);
-					return NULL;
-				}
+				long long value = strtoll(getString(node), NULL, 0);
 				return createIntegerValueObject(value);
 			}
 		case VT_FUNC:
@@ -1409,32 +1363,14 @@ ValueObject *castFloatExplicit(ValueObject *node,
 				/* Perform interpolation */
 				ValueObject *ret = NULL;
 				ValueObject *interp = castStringExplicit(node, scope);
-				float value;
 				if (!interp) return NULL;
-				if (!isDecString(getString(interp))) {
-					error(IN_UNABLE_TO_CAST_VALUE);
-					deleteValueObject(interp);
-					return NULL;
-				}
-				if (sscanf(getString(interp), "%f", &value) != 1) {
-					error(IN_EXPECTED_DECIMAL);
-					deleteValueObject(interp);
-					return NULL;
-				}
+				float value = strtof(getString(interp), NULL);
 				ret = createFloatValueObject(value);
 				deleteValueObject(interp);
 				return ret;
 			}
 			else {
-				float value;
-				if (!isDecString(getString(node))) {
-					error(IN_UNABLE_TO_CAST_VALUE);
-					return NULL;
-				}
-				if (sscanf(getString(node), "%f", &value) != 1) {
-					error(IN_EXPECTED_DECIMAL);
-					return NULL;
-				}
+				float value = strtof(getString(node), NULL);
 				return createFloatValueObject(value);
 			}
 		case VT_FUNC:

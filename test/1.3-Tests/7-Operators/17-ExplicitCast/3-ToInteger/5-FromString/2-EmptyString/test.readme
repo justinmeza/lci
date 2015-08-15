@@ -1,2 +1,2 @@
 This test checks to make sure explicitly casting an empty string to an integer
-type results in an error.
+type results in 0.
