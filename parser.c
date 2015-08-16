@@ -2910,8 +2910,10 @@ StmtNode *parseDeclarationStmtNode(Token ***tokenp)
 	if (!scope) goto parseDeclarationStmtNodeAbort;
 
 	/* Remove the declaration keywords from the token stream */
-	if (!acceptToken(&tokens, TT_HASA)) {
-		parser_error_expected_token(TT_HASA, tokens);
+	status = acceptToken(&tokens, TT_HASA);
+	if (!status) status = acceptToken(&tokens, TT_HASAN) || -1;
+	if (status < 1) {
+		parser_error_expected_token(TT_HASA - status, tokens);
 		goto parseDeclarationStmtNodeAbort;
 	}
 
@@ -4190,7 +4192,7 @@ StmtNode *parseStmtNode(Token ***tokenp)
 			ret = parseAssignmentStmtNode(tokenp);
 		}
 		/* Variable declaration */
-		else if (peekToken(&tokens, TT_HASA)) {
+		else if (peekToken(&tokens, TT_HASA) || peekToken(&tokens, TT_HASAN)) {
 			ret = parseDeclarationStmtNode(tokenp);
 		}
 		/* Deallocation */

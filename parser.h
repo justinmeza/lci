@@ -80,7 +80,8 @@
  *
  * \par
  * DeclarationStmtNode ::= IdentifierNode \c TT_HASA IdentifierNode
- * Initialization ? \c TT_NEWLINE
+ * Initialization ? \c TT_NEWLINE | IdentifierNode \c TT_HASAN
+ * IdentifierNode Initialization ? \c TT_NEWLINE
  *
  * \par
  * Initialization ::= \c TT_ITZ ExprNode | \c TT_ITZA TypeNode | \c TT_ITZLIEKA IdentifierNode
