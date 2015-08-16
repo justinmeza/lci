@@ -50,6 +50,7 @@ typedef enum {
 	TT_HAI,         /**< Beginning of main block. */
 	TT_KTHXBYE,     /**< End of main block. */
 	TT_HASA,        /**< Variable declaration. */
+	TT_HASAN,       /**< Variable declaration. */
 	TT_ITZA,        /**< Variable type initialization. */
 	TT_ITZ,         /**< Variable value initialization. */
 	TT_RNOOB,       /**< Deallocation. */
@@ -127,6 +128,7 @@ static const char *keywords[] = {
 	"HAI",         /* TT_HAI */
 	"KTHXBYE",     /* TT_KTHXBYE */
 	"HAS A",       /* TT_HASA */
+	"HAS AN",      /* TT_HASAN */
 	"ITZ A",       /* TT_ITZA */
 	"ITZ",         /* TT_ITZ */
 	"R NOOB",      /* TT_RNOOB */
