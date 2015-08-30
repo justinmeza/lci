@@ -1920,7 +1920,7 @@ ValueObject *interpretSystemCommandExprNode(ExprNode *node,
 	val = interpretExprNode(expr->cmd, scope);
         if (!val) return NULL;
 
-	cmd = getString(val);
+	cmd = getString(castStringExplicit(val, scope));
 
 
 	/* Open the command for reading */
