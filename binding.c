@@ -185,7 +185,7 @@ ReturnObject *fwriteWrapper(struct scopeobject *scope)
 	ValueObject *arg1 = getArg(scope, "file");
 	ValueObject *arg2 = getArg(scope, "data");
 	FILE *file = (FILE *)getBlob(arg1);
-	char *data = getString(arg2);
+	char *data = getString(castStringExplicit(arg2, scope));
 
 	fwrite(data, 1, strlen(data), file);
 
