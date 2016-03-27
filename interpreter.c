@@ -3062,6 +3062,8 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,
 		 * but do not store it.
 		 */
 		if (c == EOF || c == (int)'\r' || c == (int)'\n') break;
+		temp[cur] = (char)c;
+		cur++;
 		if (cur > size - 1) {
 			/* Increasing buffer size. */
 			size *= 2;
@@ -3073,8 +3075,6 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,
 			}
 			temp = mem;
 		}
-		temp[cur] = (char)c;
-		cur++;
 	}
 	temp[cur] = '\0';
 	val = createStringValueObject(temp);
