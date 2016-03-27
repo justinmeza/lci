@@ -3204,6 +3204,8 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,
 		 * but do not store it.
 		 */
 		if (c == EOF || c == (int)'\r' || c == (int)'\n') break;
+		temp[cur] = (char)c;
+		cur++;
 		/* Reserve space to escape colon in input */
 		if (c == ':') {
 			cur++;
@@ -3223,8 +3225,6 @@ ReturnObject *interpretInputStmtNode(StmtNode *node,
 		if (c == ':') {
 			temp[cur - 1] = ':';
 		}
-		temp[cur] = (char)c;
-		cur++;
 	}
 	temp[cur] = '\0';
 	val = createStringValueObject(temp);

@@ -10,6 +10,9 @@ char *sanitizeInput(char *input)
 	int c;
 	void *mem = NULL;
 	while (c = input[pos]) {
+		temp[cur] = (char)c;
+		cur++;
+		pos++;
 		/* Reserve space to escape colon in input */
 		if (c == ':') {
 			cur++;
@@ -29,9 +32,6 @@ char *sanitizeInput(char *input)
 		if (c == ':') {
 			temp[cur - 1] = ':';
 		}
-		temp[cur] = (char)c;
-		cur++;
-		pos++;
 	}
 	temp[cur] = '\0';
 	return temp;
