@@ -3257,6 +3257,12 @@ ReturnObject *interpretAssignmentStmtNode(StmtNode *node,
 {
 	AssignmentStmtNode *stmt = (AssignmentStmtNode *)node->stmt;
 	ValueObject *val = interpretExprNode(stmt->expr, scope);
+	/* interpolate assigned strings */
+	if (val->type == VT_STRING) {
+		ValueObject *use = castStringImplicit(val, scope);
+		deleteValueObject(val);
+		val = use;
+	}
 	if (!val) return NULL;
 	if (!updateScopeValue(scope, scope, stmt->target, val)) {
 		deleteValueObject(val);
