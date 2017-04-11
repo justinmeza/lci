@@ -29,7 +29,7 @@ portable, fast, and precisely documented.
           to compile on a broad range of systems.
     - fast: Much effort has gone into producing simple and efficient code
           whenever possible to the extent that the above points are not
-          compromized.
+          compromised.
     - precisely documented: lci uses Doxygen to generate literate code
           documentation, browsable here.
 
