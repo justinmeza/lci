@@ -1,6 +1,6 @@
-                    lci - a LOLCODE interpreter written in C
+                    # lci - a LOLCODE interpreter written in C
 
-LICENSE
+# LICENSE
 
     Copyright (C) 2010-2014 Justin J. Meza
 
@@ -17,7 +17,7 @@ LICENSE
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-ABOUT
+# ABOUT
 
 lci is a LOLCODE interpreter written in C and is designed to be correct,
 portable, fast, and precisely documented.
@@ -39,7 +39,7 @@ http://github.com/justinmeza/lci/issues.
 
 Created and maintained by Justin J. Meza <justin.meza@gmail.com>.
 
-PREREQUISITES
+# PREREQUISITES
 
 1. You must have CMake installed (www.cmake.org). 
   a) If you're using a Linux distro with package managment CMake should be in 
@@ -47,7 +47,7 @@ PREREQUISITES
 
 2. Python 2.7+ or Python 2.x with the argparse module installed.
 
-INSTALLATION: THE EASY WAY ON LINUX OR MAC OSX
+# INSTALLATION: THE EASY WAY ON LINUX OR MAC OSX
 
 1. run the script install.py. Note that
 
@@ -60,7 +60,7 @@ INSTALLATION: THE EASY WAY ON LINUX OR MAC OSX
   $ ./install.py --prefix="/home/kurtis/opt"
   
 
-INSTALLATION: THE MORE INVOLVED WAY ON LINUX OR MAC OSX
+# INSTALLATION: THE MORE INVOLVED WAY ON LINUX OR MAC OSX
 
 1. Configure lci using CMake. This can be as simple as opening up the terminal, 
   navigating to the directory containing lci and typing:
@@ -92,7 +92,7 @@ INSTALLATION: THE MORE INVOLVED WAY ON LINUX OR MAC OSX
 
   $ ctest
 
-INSTALLATION ON WINDOWS
+# INSTALLATION ON WINDOWS
 
 (Note that the instructions were written from the point of view of Windows 7,
 but in practice, any modern version will work.)
