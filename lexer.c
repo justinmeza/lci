@@ -249,7 +249,7 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 				|| *(list->lexemes[list->num - 1]->image) == '\n')
 				&& !strncmp(start, "OBTW", 4)) {
 			start += 4;
-			while (strncmp(start, "TLDR", 4)) {
+			while (strncmp(start, "TLDR", 4) && start < buffer + size) {
 				if ((!strncmp(start, "\r\n", 2) && (start += 2))
 						|| (*start == '\r' && start++)
 						|| (*start == '\n' && start++))
