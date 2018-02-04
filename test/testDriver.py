@@ -9,8 +9,8 @@ MEMERR = 127
 parser = argparse.ArgumentParser(description="Driver for lci tests")
 parser.add_argument('pathToLCI', help="The absolute path the the lci executable")
 parser.add_argument('lolcodeFile', help="The absolute path to the lolcode file to test")
-parser.add_argument('-o', '--outputFile', type=argparse.FileType('r'), default=None, help="The expected output")
-parser.add_argument('-i', '--inputFile', type=argparse.FileType('r'), default=None, help="File to be used as input")
+parser.add_argument('-o', '--outputFile', type=argparse.FileType('r', encoding='utf-8'), default=None, help="The expected output")
+parser.add_argument('-i', '--inputFile', type=argparse.FileType('r', encoding='utf-8'), default=None, help="File to be used as input")
 parser.add_argument('-e', '--expectError', action="store_true", help="Specify that an error should occur")
 parser.add_argument('-m', '--memCheck', action='store_true', help="Do a memory check")
 
@@ -70,15 +70,16 @@ if args.expectError:
     print(results[1])
  
 if args.outputFile:
+  actualOutput = results[0].decode('utf-8').replace('\r\n', '\n')
   if p.returncode != 0:
     print("Failure! Return error code: " + str(p.returncode))
     sys.exit(1)
-  elif expectedOutput != results[0]:
+  elif expectedOutput != actualOutput:
     print("Expected output didn't match!")
     print("Expected output:")
     print(expectedOutput)
     print("Actual output:")
-    print(results[0])
+    print(actualOutput)
     sys.exit(1)
   else:
     print("Success!\n\n")
