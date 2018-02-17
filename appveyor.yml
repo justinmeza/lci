@@ -6,8 +6,8 @@ environment:
 build_script:
 - ps: >-
     $temp=$env:path
-    $env:path="C:\Windows\system32;C:\Windows;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\CMake\bin;C:\Python27\Scripts;C:\Tools\curl\bin;C:\Program Files\PowerShell\6.0.0\;C:\Program Files\AppVeyor\BuildAgent\;C:\Python36-x64;C:\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin"
-    python install.py --prefix="C:/lci/install"
+    $env:path='C:\Windows\system32;C:\Windows;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\CMake\bin;C:\Python27\Scripts;C:\Tools\curl\bin;C:\Program Files\PowerShell\6.0.0\;C:\Program Files\AppVeyor\BuildAgent\;C:\Python36-x64;C:\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin'
+    python install.py --prefix='C:/lci/install'
     $env:path=$temp
 test_script:
 - ps: ctest
