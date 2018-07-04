@@ -1,6 +1,7 @@
 add_subdirectory(1-Intergers)
 add_subdirectory(10-ArityCheck)
 add_subdirectory(11-OptionalAN)
+add_subdirectory(12-ImplicitVariable)
 add_subdirectory(2-FloatInteger)
 add_subdirectory(3-IntegerFloat)
 add_subdirectory(4-Floats)

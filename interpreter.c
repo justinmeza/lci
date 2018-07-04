@@ -1661,13 +1661,13 @@ ValueObject *castStringExplicit(ValueObject *node,
  * prototype to allow this function to be stored in a jump table for fast
  * execution.
  *
- * \return A pointer to the value of \a scope's implicit variable.
+ * \return A pointer to a copy of the value of \a scope's implicit variable.
  */
 ValueObject *interpretImpVarExprNode(ExprNode *node,
                                      ScopeObject *scope)
 {
 	node = NULL;
-	return scope->impvar;
+	return copyValueObject(scope->impvar);
 }
 
 /**
