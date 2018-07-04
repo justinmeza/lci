@@ -1,0 +1,2 @@
+This test checks that the implicit variable (IT) for the addition operator is
+functional.
