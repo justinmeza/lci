@@ -1,5 +1,6 @@
 #include "binding.h"
 #include "inet.h"  /* for sockets */
+#include "unistd.h"  /* for sleep(3) */
 
 char *sanitizeInput(char *input)
 {
@@ -268,6 +269,17 @@ ReturnObject *randWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_RETURN, ret);
 }
 
+ReturnObject *sleepWrapper(struct scopeobject *scope)
+{
+	ValueObject *arg1 = getArg(scope, "seconds");
+	unsigned int seconds = getInteger(arg1);
+
+	unsigned int val = (sleep(seconds));
+
+	ValueObject *ret = createIntegerValueObject(val);
+	return createReturnObject(RT_RETURN, ret);
+}
+
 void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 {
 	char *name = NULL;
@@ -361,13 +373,29 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 
 		if (!updateScopeValue(scope, scope, id, val)) goto loadLibraryAbort;
 		deleteIdentifierNode(id);
+	} else if (!strcmp(name, "UNISTD")) {
+		lib = createScopeObject(scope);
+		if (!lib) goto loadLibraryAbort;
+
+		loadBinding(lib, "SLEPE", "seconds", &sleepWrapper);
+
+		id = createIdentifierNode(IT_DIRECT, (void *)copyString("UNISTD"), NULL, NULL, 0);
+		if (!id) goto loadLibraryAbort;
+
+		if (!createScopeValue(scope, scope, id)) goto loadLibraryAbort;
+
+		val = createArrayValueObject(lib);
+		if (!val) goto loadLibraryAbort;
+		lib = NULL;
+
+		if (!updateScopeValue(scope, scope, id, val)) goto loadLibraryAbort;
+		deleteIdentifierNode(id);
 	}
 
 	if (name) free(name);
 	return;
 
 loadLibraryAbort: /* In case something goes wrong... */
-
 	/* Clean up any allocated structures */
 	if (name) free(name);
 	if (lib) deleteScopeObject(lib);
