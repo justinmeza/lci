@@ -53,7 +53,7 @@ Created and maintained by Justin J. Meza <justin.meza@gmail.com>.
 
   $ ./install.py -h
 
-  will display a list of relavent install options. For
+  will display a list of relevant install options. For
   example, if I wanted to install lci to the directory
   "/home/kurtis/opt" I would run:
 
@@ -119,7 +119,7 @@ but in practice, any modern version will work.)
 
   > install.py -h
 
-  will display a list of relavent install options. For
+  will display a list of relevant install options. For
   example, if I wanted to install lci to the directory
   "C:\Program Files\lci" I would run:
 
