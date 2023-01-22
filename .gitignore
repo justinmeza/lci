@@ -3,6 +3,8 @@ CTestTestfile.cmake
 Makefile
 cmake_install.cmake
 lci
+tags
+build/
 CMakeFiles/
 CMakeFiles/CMakeDirectoryInformation.cmake
 CMakeFiles/CMakeOutput.log
