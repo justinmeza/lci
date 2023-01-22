@@ -9,8 +9,8 @@ MEMERR = 127
 parser = argparse.ArgumentParser(description="Driver for lci tests")
 parser.add_argument('pathToLCI', help="The absolute path the the lci executable")
 parser.add_argument('lolcodeFile', help="The absolute path to the lolcode file to test")
-parser.add_argument('-o', '--outputFile', type=argparse.FileType('r'), default=None, help="The expected output")
-parser.add_argument('-i', '--inputFile', type=argparse.FileType('r'), default=None, help="File to be used as input")
+parser.add_argument('-o', '--outputFile', type=argparse.FileType('rb'), default=None, help="The expected output")
+parser.add_argument('-i', '--inputFile', type=argparse.FileType('rb'), default=None, help="File to be used as input")
 parser.add_argument('-e', '--expectError', action="store_true", help="Specify that an error should occur")
 parser.add_argument('-m', '--memCheck', action='store_true', help="Do a memory check")
 
