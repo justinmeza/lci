@@ -1,6 +1,8 @@
-                    # lci - a LOLCODE interpreter written in C
+# lci - a LOLCODE interpreter written in C
 
-# LICENSE
+NOTE:  For the latest LOLCODE language features, including a standard library (`CAN HAS STDIO?`), networking (`CAN HAS SOCKS?`), strings (`CAN HAS STRING?`), arrays (`BUKKIT`), and more, please use the [`future`](https://github.com/justinmeza/lci/tree/future) branch (see an example at https://github.com/justinmeza/httpd.lol/blob/master/httpd.lol)!  The `main` branch is maintained for backwards compatibility with the LOLCODE 1.2 language specification, but all future development should be done on the `future` branch.
+
+## LICENSE
 
     Copyright (C) 2010-2014 Justin J. Meza
 
@@ -17,21 +19,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# ABOUT
+## ABOUT
 
 lci is a LOLCODE interpreter written in C and is designed to be correct,
 portable, fast, and precisely documented.
 
-    - correct: Every effort has been made to test lci's conformance to the
-          LOLCODE language specification. Unit tests come packaged with the lci
-          source code.
-    - portable: lci follows the widely ported ANSI C specification allowing it
-          to compile on a broad range of systems.
-    - fast: Much effort has gone into producing simple and efficient code
-          whenever possible to the extent that the above points are not
-          compromised.
-    - precisely documented: lci uses Doxygen to generate literate code
-          documentation, browsable here.
+- correct: Every effort has been made to test lci's conformance to the
+      LOLCODE language specification. Unit tests come packaged with the lci
+      source code.
+- portable: lci follows the widely ported ANSI C specification allowing it
+      to compile on a broad range of systems.
+- fast: Much effort has gone into producing simple and efficient code
+      whenever possible to the extent that the above points are not
+      compromised.
+- precisely documented: lci uses Doxygen to generate literate code
+      documentation, browsable here.
 
 This project's homepage is at http://lolcode.org.  For help, visit
 http://groups.google.com/group/lci-general.  To report a bug, go to
@@ -39,15 +41,15 @@ http://github.com/justinmeza/lci/issues.
 
 Created and maintained by Justin J. Meza <justin.meza@gmail.com>.
 
-# PREREQUISITES
+## PREREQUISITES
 
-1. You must have CMake installed (www.cmake.org). 
-  a) If you're using a Linux distro with package managment CMake should be in 
+1. You must have CMake installed (www.cmake.org).
+  a) If you're using a Linux distro with package managment CMake should be in
     your repositories.
 
 2. Python 2.7+ or Python 2.x with the argparse module installed.
 
-# INSTALLATION: THE EASY WAY ON LINUX OR MAC OSX
+## INSTALLATION: THE EASY WAY ON LINUX OR MAC OSX
 
 1. run the script install.py. Note that
 
@@ -58,11 +60,11 @@ Created and maintained by Justin J. Meza <justin.meza@gmail.com>.
   "/home/kurtis/opt" I would run:
 
   $ ./install.py --prefix="/home/kurtis/opt"
-  
 
-# INSTALLATION: THE MORE INVOLVED WAY ON LINUX OR MAC OSX
 
-1. Configure lci using CMake. This can be as simple as opening up the terminal, 
+## INSTALLATION: THE MORE INVOLVED WAY ON LINUX OR MAC OSX
+
+1. Configure lci using CMake. This can be as simple as opening up the terminal,
   navigating to the directory containing lci and typing:
 
   $ cmake .
@@ -81,7 +83,7 @@ Created and maintained by Justin J. Meza <justin.meza@gmail.com>.
   $ make
 
 3. Install
-   
+
   $ make install
 
 4. (Optional) Build documentation:
@@ -92,7 +94,7 @@ Created and maintained by Justin J. Meza <justin.meza@gmail.com>.
 
   $ ctest
 
-# INSTALLATION ON WINDOWS
+## INSTALLATION ON WINDOWS
 
 (Note that the instructions were written from the point of view of Windows 7,
 but in practice, any modern version will work.)
@@ -101,20 +103,20 @@ but in practice, any modern version will work.)
 
   - Start > right-click Computer > Properties > Advanced system settings
     > Environment Variables....
-    
+
   - Select the "PATH" variable and click "Edit...".
-  
+
   - Add ";C:\MinGW\bin;C:\Python32" to the end.
-  
+
 3. Open an Administrator shell
 
   - Start > All Programs > Accessories > right-click Command Prompt
     > Run as administrator.
- 
+
 4. Navigate to the project directory using the "cd" command, for example,
 
   > cd C:\Users\%user%\Documents\lci
- 
+
 5. run the script install.py. Note that
 
   > install.py -h
@@ -124,5 +126,5 @@ but in practice, any modern version will work.)
   "C:\Program Files\lci" I would run:
 
   > install.py --prefix="C:/Program Files/lci"
-  
+
   (notice that forward slashes are used to separate directories.)
