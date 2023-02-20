@@ -1,6 +1,7 @@
 # lci - a LOLCODE interpreter written in C
 
-NOTE:  For the latest LOLCODE language features, including a standard library (`CAN HAS STDIO?`), networking (`CAN HAS SOCKS?`), strings (`CAN HAS STRING?`), arrays (`BUKKIT`), and more, please use the [`future`](https://github.com/justinmeza/lci/tree/future) branch (see an example at https://github.com/justinmeza/httpd.lol/blob/master/httpd.lol)!  The `main` branch is maintained for backwards compatibility with the LOLCODE 1.2 language specification, but all future development should be done on the `future` branch.
+NOTE:  For the latest LOLCODE language features, including a standard library (`CAN HAS STDIO?`), networking (`CAN HAS SOCKS?`), strings (`CAN HAS STRING?`), and more, please use the [`future`](https://github.com/justinmeza/lci/tree/future) branch (see an example at https://github.com/justinmeza/httpd.lol/blob/master/httpd.lol)!  The `main` branch is maintained for backwards compatibility with the LOLCODE 1.3 language specification (https://github.com/justinmeza/lolcode-spec/tree/master/v1.3
+), but all future development should be done on the `future` branch.
 
 ## LICENSE
 
