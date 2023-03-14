@@ -39,7 +39,7 @@ else:
 
 expectedOutput = ""
 if args.outputFile != None:
-  expectedOutput = args.outputFile.read()
+  expectedOutput = args.outputFile.read().decode('utf-8')
   args.outputFile.close()
 
 command = []
@@ -70,15 +70,16 @@ if args.expectError:
     print(results[1])
  
 if args.outputFile:
+  actualOutput = results[0].decode('utf-8').replace('\r\n', '\n')
   if p.returncode != 0:
     print("Failure! Return error code: " + str(p.returncode))
     sys.exit(1)
-  elif expectedOutput != results[0]:
+  elif expectedOutput != actualOutput:
     print("Expected output didn't match!")
     print("Expected output:")
     print(expectedOutput)
     print("Actual output:")
-    print(results[0])
+    print(actualOutput)
     sys.exit(1)
   else:
     print("Success!\n\n")
