@@ -159,6 +159,7 @@ ScopeObject *createScopeObjectCaller(ScopeObject *, ScopeObject *);
 void deleteScopeObject(ScopeObject *);
 ValueObject *createScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *);
 ValueObject *updateScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *, ValueObject *);
+ValueObject *getScopeValueOrAbsent(ScopeObject *, ScopeObject *, IdentifierNode *);
 ValueObject *getScopeValue(ScopeObject *, ScopeObject *, IdentifierNode *);
 ValueObject *getScopeValueLocal(ScopeObject *, ScopeObject *, IdentifierNode *);
 ScopeObject *getScopeObject(ScopeObject *, ScopeObject *, IdentifierNode *);

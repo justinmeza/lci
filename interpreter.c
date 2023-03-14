@@ -554,6 +554,36 @@ ValueObject *getScopeValue(ScopeObject *src,
                            ScopeObject *dest,
                            IdentifierNode *target)
 {
+	ValueObject *vo = getScopeValueOrAbsent(src, dest, target);
+	
+	if (!vo) {
+		IdentifierNode *child = target;
+		char *name = resolveIdentifierName(child, src);
+		error(IN_VARIABLE_DOES_NOT_EXIST, child->fname, child->line, name);
+		free(name);
+	}
+	
+	return vo;
+}
+
+/**
+ * Gets a stored value in a scope without printing errors.
+ *
+ * \param [in] src The scope to evaluate \a target under.
+ *
+ * \param [in,out] dest The scope to update the value in.
+ *
+ * \param [in] target The name of the value to get.
+ *
+ * \return The value in \a dest, named by evaluating \a target under \a src.
+ *
+ * \retval NULL Either \a target could not be evaluated in \a src or \a target
+ * could not be found in \a dest.
+ */
+ValueObject *getScopeValueOrAbsent(ScopeObject *src,
+                           ScopeObject *dest,
+                           IdentifierNode *target)
+{
 	ScopeObject *parent = dest;
 	IdentifierNode *child = target;
 	char *name = NULL;
@@ -579,11 +609,8 @@ ValueObject *getScopeValue(ScopeObject *src,
 		}
 	} while ((parent = parent->parent));
 
-	{
-		char *name = resolveIdentifierName(child, src);
-		error(IN_VARIABLE_DOES_NOT_EXIST, child->fname, child->line, name);
-		free(name);
-	}
+	free(name);
+	return NULL;
 
 getScopeValueAbort: /* In case something goes wrong... */
 
@@ -3437,14 +3464,18 @@ ReturnObject *interpretLoopStmtNode(StmtNode *node,
 	if (!outer) return NULL;
 	/* Create a temporary loop variable if required */
 	if (stmt->var) {
-		var = createScopeValue(scope, outer, stmt->var);
+		/* Do not override value if already present outside */
+		var = getScopeValueOrAbsent(scope, outer, stmt->var);
 		if (!var) {
-			deleteScopeObject(outer);
-			return NULL;
+			var = createScopeValue(scope, outer, stmt->var);
+			if (!var) {
+				deleteScopeObject(outer);
+				return NULL;
+			}
+			var->type = VT_INTEGER;
+			var->data.i = 0;
+			var->semaphore = 1;
 		}
-		var->type = VT_INTEGER;
-		var->data.i = 0;
-		var->semaphore = 1;
 	}
 	while (1) {
 		if (stmt->guard) {
