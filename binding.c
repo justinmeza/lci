@@ -1,6 +1,8 @@
 #include "binding.h"
 #include "inet.h"  /* for sockets */
 
+#include <pthread.h>
+
 char *sanitizeInput(char *input)
 {
 	unsigned int size = 16;
@@ -268,6 +270,31 @@ ReturnObject *randWrapper(struct scopeobject *scope)
 	return createReturnObject(RT_RETURN, ret);
 }
 
+typedef struct {
+    FuncDefStmtNode *func;
+    struct scopeobject *scope;
+} ThreadArg;
+
+void *execFunction(void *data) {
+    ThreadArg *arg = data;
+    interpretBlockNode(arg->func->body, arg->scope);
+    free(arg);
+    return NULL;
+}
+
+ReturnObject *threadWrapper(struct scopeobject *scope) {
+    ValueObject *arg = getArg(scope, "func");
+    FuncDefStmtNode *func = getFunction(arg);
+
+    pthread_t thread_id;
+    ThreadArg *thread_arg = malloc(sizeof(ThreadArg));
+    thread_arg->func = func;
+    thread_arg->scope = scope;
+    pthread_create(&thread_id, NULL, execFunction, thread_arg);
+
+	return createReturnObject(RT_DEFAULT, NULL);
+}
+
 void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 {
 	char *name = NULL;
@@ -351,6 +378,23 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 		loadBinding(lib, "AT", "string position", &stratWrapper);
 
 		id = createIdentifierNode(IT_DIRECT, (void *)copyString("STRING"), NULL, NULL, 0);
+		if (!id) goto loadLibraryAbort;
+
+		if (!createScopeValue(scope, scope, id)) goto loadLibraryAbort;
+
+		val = createArrayValueObject(lib);
+		if (!val) goto loadLibraryAbort;
+		lib = NULL;
+
+		if (!updateScopeValue(scope, scope, id, val)) goto loadLibraryAbort;
+		deleteIdentifierNode(id);
+	} else if (!strcmp(name, "THREAD")) {
+		lib = createScopeObject(scope);
+		if (!lib) goto loadLibraryAbort;
+
+		loadBinding(lib, "FIBR", "func", &threadWrapper);
+
+		id = createIdentifierNode(IT_DIRECT, (void *)copyString("THREAD"), NULL, NULL, 0);
 		if (!id) goto loadLibraryAbort;
 
 		if (!createScopeValue(scope, scope, id)) goto loadLibraryAbort;
