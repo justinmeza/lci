@@ -123,6 +123,7 @@ typedef struct scopeobject {
 	unsigned int numvals;       /**< The number of values in the scope. */
 	char **names;               /**< The names of the values. */
 	ValueObject **values;       /**< The values in the scope. */
+    int semaphore;
 } ScopeObject;
 
 /**

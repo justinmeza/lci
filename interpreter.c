@@ -378,8 +378,15 @@ ScopeObject *createScopeObject(ScopeObject *parent)
 	p->names = NULL;
 	p->values = NULL;
 	p->parent = parent;
-	if (parent) p->caller = parent->caller;
-	else p->caller = NULL;
+	if (parent) {
+        V(parent);
+        p->caller = parent->caller;
+        if (p->caller) {
+            V(p->caller);
+        }
+    } else {
+        p->caller = NULL;
+    }
 	return p;
 }
 
@@ -399,7 +406,11 @@ ScopeObject *createScopeObjectCaller(ScopeObject *parent,
 {
 	ScopeObject *p = createScopeObject(parent);
 	if (!p) return NULL;
-	if (caller) p->caller = caller;
+	if (caller) {
+        V(caller);
+        if (p->caller) P(p->caller);
+        p->caller = caller;
+    }
 	return p;
 }
 
@@ -414,6 +425,10 @@ void deleteScopeObject(ScopeObject *scope)
 {
 	unsigned int n;
 	if (!scope) return;
+    P(scope);
+    if (scope->semaphore) return;
+    if (scope->parent) P(scope->parent);
+    if (scope->caller) P(scope->caller);
 	for (n = 0; n < scope->numvals; n++) {
 		free(scope->names[n]);
 		deleteValueObject(scope->values[n]);

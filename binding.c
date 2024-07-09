@@ -277,22 +277,37 @@ typedef struct {
 
 void *execFunction(void *data) {
     ThreadArg *arg = data;
-    interpretBlockNode(arg->func->body, arg->scope);
+    ExprNodeList node_list = {0};
+    FuncCallExprNode *funccall_expr = createFuncCallExprNode(arg->func->scope, arg->func->name, &node_list);
+    ExprNode *expr = createExprNode(ET_FUNCCALL, funccall_expr);
+    ValueObject* result = interpretFuncCallExprNode(expr, arg->scope);
+    deleteScopeObject(arg->scope);
     free(arg);
-    return NULL;
+    pthread_exit(result);
 }
 
 ReturnObject *threadWrapper(struct scopeobject *scope) {
     ValueObject *arg = getArg(scope, "func");
     FuncDefStmtNode *func = getFunction(arg);
 
-    pthread_t thread_id;
+    pthread_t *thread_id = malloc(sizeof(thread_id));
     ThreadArg *thread_arg = malloc(sizeof(ThreadArg));
     thread_arg->func = func;
-    thread_arg->scope = scope;
-    pthread_create(&thread_id, NULL, execFunction, thread_arg);
+    thread_arg->scope = createScopeObject(scope);
+    pthread_create(thread_id, NULL, execFunction, thread_arg);
 
-	return createReturnObject(RT_DEFAULT, NULL);
+    ValueObject *ret = createBlobValueObject(thread_id);
+	return createReturnObject(RT_RETURN, ret);
+}
+
+ReturnObject *threadJoinWrapper(struct scopeobject *scope) {
+    ValueObject *arg = getArg(scope, "thread_id");
+    pthread_t *thread_id = getBlob(arg);
+
+    ValueObject* result;
+    pthread_join(*thread_id, (void**) &result);
+
+    return createReturnObject(RT_RETURN, result);
 }
 
 void loadLibrary(ScopeObject *scope, IdentifierNode *target)
@@ -393,6 +408,7 @@ void loadLibrary(ScopeObject *scope, IdentifierNode *target)
 		if (!lib) goto loadLibraryAbort;
 
 		loadBinding(lib, "FIBR", "func", &threadWrapper);
+		loadBinding(lib, "WAIT", "thread_id", &threadJoinWrapper);
 
 		id = createIdentifierNode(IT_DIRECT, (void *)copyString("THREAD"), NULL, NULL, 0);
 		if (!id) goto loadLibraryAbort;
