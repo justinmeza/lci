@@ -60,6 +60,8 @@ inet_open(inet_host_t *host,
 	if (bind(host->fd, (struct sockaddr *)&(host->addr),
 				sizeof(host->addr)) < 0) {
 		perror("Error acquiring socket file descriptor!\n");
+		close(host->fd);
+		host->fd = -1;
 		return -EIN_BIND;
 	}
 

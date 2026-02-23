@@ -264,13 +264,18 @@ LexemeList *scanBuffer(const char *buffer, unsigned int size, const char *fname)
 				|| *(list->lexemes[list->num - 1]->image) == '\n')
 				&& !strncmp(start, "OBTW", 4)) {
 			start += 4;
-			while (strncmp(start, "TLDR", 4)) {
+			while (*start && strncmp(start, "TLDR", 4)) {
 				if ((!strncmp(start, "\r\n", 2) && (start += 2))
 						|| (*start == '\r' && start++)
 						|| (*start == '\n' && start++))
 					line++;
 				else
 					start++;
+			}
+			if (!*start) {
+				error(LX_MULTIPLE_LINE_COMMENT, fname, line);
+				deleteLexemeList(list);
+				return NULL;
 			}
 			start += 4;
 			/* Must end in newline */

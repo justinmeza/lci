@@ -82,6 +82,10 @@ char *resolveIdentifierName(IdentifierNode *id,
 		/* Just return a copy of the character array */
 		const char *temp = (char *)(id->id);
 		ret = malloc(sizeof(char) * (strlen(temp) + 1));
+		if (!ret) {
+			perror("malloc");
+			goto resolveIdentifierNameAbort;
+		}
 		strcpy(ret, temp);
 	} else if (id->type == IT_INDIRECT) {
 		ExprNode *expr = (ExprNode *)(id->id);
@@ -981,7 +985,7 @@ void deleteScopeValue(ScopeObject *src,
 
 		if (!strcmp(current->names[n], name)) {
 			unsigned int i;
-			unsigned int newnumvals = dest->numvals - 1;
+			unsigned int newnumvals = current->numvals - 1;
 			free(name);
 			/* Wipe out the name and value */
 			free(current->names[n]);
@@ -992,19 +996,19 @@ void deleteScopeValue(ScopeObject *src,
 				current->values[i] = current->values[i + 1];
 			}
 			/* Resize the tables */
-			mem1 = realloc(dest->names, sizeof(IdentifierNode *) * newnumvals);
+			mem1 = realloc(current->names, sizeof(IdentifierNode *) * newnumvals);
 			if (!mem1) {
 				perror("realloc");
 				goto deleteScopeValueAbort;
 			}
-			mem2 = realloc(dest->values, sizeof(ValueObject *) * newnumvals);
+			mem2 = realloc(current->values, sizeof(ValueObject *) * newnumvals);
 			if (!mem2) {
 				perror("realloc");
 				goto deleteScopeValueAbort;
 			}
-			dest->names = mem1;
-			dest->values = mem2;
-			dest->numvals = newnumvals;
+			current->names = mem1;
+			current->values = mem2;
+			current->numvals = newnumvals;
 			return;
 		}
 	} while ((current = current->parent));
@@ -1017,9 +1021,6 @@ deleteScopeValueAbort: /* In case something goes wrong... */
 
 	/* Clean up any allocated structures */
 	if (name) free(name);
-	if (mem1) free(mem1);
-	if (mem2) free(mem2);
-	if (scope) free(scope);
 
 	return;
 }
@@ -1488,10 +1489,10 @@ ValueObject *castStringExplicit(ValueObject *node,
 					size_t len;
 					char *image = NULL;
 					long codepoint;
-					char out[3];
+					char out[4];
 					size_t num;
 					void *mem = NULL;
-					if (end < start) {
+					if (!end) {
 						error(IN_EXPECTED_CLOSING_PAREN);
 						free(temp);
 						return NULL;
@@ -1535,17 +1536,16 @@ ValueObject *castStringExplicit(ValueObject *node,
 					size_t len;
 					char *image = NULL;
 					long codepoint;
-					char out[3];
+					char out[4];
 					size_t num;
 					void *mem = NULL;
-					if (end < start) {
+					if (!end) {
 						error(IN_EXPECTED_CLOSING_SQUARE_BRACKET);
 						free(temp);
 						return NULL;
 					}
 					len = (size_t)(end - start);
 					image = malloc(sizeof(char) * (len + 1));
-					strncpy(image, start, len);
 					strncpy(image, start, len);
 					image[len] = '\0';
 					codepoint = convertNormativeNameToCodePoint(image);
@@ -1576,7 +1576,7 @@ ValueObject *castStringExplicit(ValueObject *node,
 					size_t len;
 					char *image = NULL;
 					void *mem = NULL;
-					if (end < start) {
+					if (!end) {
 						error(IN_EXPECTED_CLOSING_CURLY_BRACE);
 						free(temp);
 						return NULL;
@@ -1619,6 +1619,8 @@ ValueObject *castStringExplicit(ValueObject *node,
 					if (!mem) {
 						perror("realloc");
 						free(temp);
+						deleteValueObject(use);
+						return NULL;
 					}
 					temp = mem;
 					/* Copy the variable string into the new string */
@@ -1856,29 +1858,51 @@ ValueObject *interpretSystemCommandExprNode(ExprNode *node,
 	val = interpretExprNode(expr->cmd, scope);
         if (!val) return NULL;
 
-	cmd = getString(castStringExplicit(val, scope));
+	{
+		ValueObject *castval = castStringExplicit(val, scope);
+		if (!castval) {
+			deleteValueObject(val);
+			return NULL;
+		}
+		cmd = getString(castval);
+		deleteValueObject(val);
 
+		/* Open the command for reading */
+		f = popen(cmd, "r");
+		if (f == NULL) {
+			error(IN_UNABLE_TO_EXECUTE_COMMAND);
+			deleteValueObject(castval);
+			return NULL;
+		}
 
-	/* Open the command for reading */
-	f = popen(cmd, "r");
-	if (f == NULL) {
-		error(IN_UNABLE_TO_EXECUTE_COMMAND);
-		return NULL;
+		while ((len = fread(buf, 1, buflen, f)) > 0) {
+			void *mem = NULL;
+			prev = total;
+			total += len;
+			mem = realloc(out, total + 1);
+			if (!mem) {
+				perror("realloc");
+				free(out);
+				pclose(f);
+				deleteValueObject(castval);
+				return NULL;
+			}
+			out = mem;
+			memcpy(out + prev, buf, len);
+		}
+		if (total > 0) out[total] = '\0';
+
+		/* Close */
+		pclose(f);
+		deleteValueObject(castval);
 	}
-
-	while ((len = fread(buf, 1, buflen, f)) > 0) {
-		prev = total;
-		total += len;
-		out = realloc(out, total + 1);
-		memcpy(out + prev, buf, len);
-	}
-	if (total > 0) out[total] = '\0';
-
-	/* Close */
-	pclose(f);
 
 	/* Return the command object */
-	return createStringValueObject(out == NULL ? "" : out);
+	if (out == NULL) {
+		out = copyString("");
+		if (!out) return NULL;
+	}
+	return createStringValueObject(out);
 }
 
 /**

@@ -139,7 +139,13 @@ ReturnObject *ireceiveWrapper(struct scopeobject *scope)
 	int amount = getInteger(arg3);
 
 	char *data = malloc(sizeof(char) * (amount + 1));
-	int len = inet_receive(remote, local, data, amount, -1);
+	int len;
+	if (!data) {
+		perror("malloc");
+		return createReturnObject(RT_RETURN, NULL);
+	}
+	len = inet_receive(remote, local, data, amount, -1);
+	if (len < 0) len = 0;
 	data[len] = '\0';
 
 	char *sanitized = sanitizeInput(data);
@@ -240,6 +246,16 @@ ReturnObject *stratWrapper(struct scopeobject *scope)
 	long long position = getInteger(arg2);
 
 	char *temp = malloc(sizeof(char) * 2);
+	if (!temp) {
+		perror("malloc");
+		return createReturnObject(RT_RETURN, NULL);
+	}
+	if (position < 0 || (size_t)position >= strlen(string)) {
+		temp[0] = '\0';
+		temp[1] = '\0';
+		ValueObject *ret = createStringValueObject(temp);
+		return createReturnObject(RT_RETURN, ret);
+	}
 	temp[0] = string[position];
 	temp[1] = 0;
 
@@ -262,7 +278,7 @@ ReturnObject *randWrapper(struct scopeobject *scope)
 	ValueObject *arg1 = getArg(scope, "max");
 	unsigned int max = getInteger(arg1);
 
-	unsigned int val = (rand() % max);
+	unsigned int val = (max > 0) ? (rand() % max) : 0;
 
 	ValueObject *ret = createIntegerValueObject(val);
 	return createReturnObject(RT_RETURN, ret);
