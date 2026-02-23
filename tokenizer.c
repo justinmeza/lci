@@ -13,8 +13,11 @@
 int isInteger(const char *image)
 {
 	const char *cur = image;
-	if (*cur == '-'
-			|| (isdigit(*cur) && *cur != '0')
+	if (*cur == '-') {
+		cur++;
+		if (!isdigit(*cur)) return 0;
+	}
+	if ((isdigit(*cur) && *cur != '0')
 			|| (*cur == '0' && *(cur + 1) == '\0')) {
 		cur++;
 		while (isdigit(*cur)) cur++;
@@ -36,11 +39,16 @@ int isInteger(const char *image)
 int isFloat(const char *image)
 {
 	const char *cur = image;
-	if (*cur == '-' || isdigit(*cur)) {
+	if (*cur == '-') {
+		cur++;
+		if (!isdigit(*cur)) return 0;
+	}
+	if (isdigit(*cur)) {
 		cur++;
 		while (isdigit(*cur)) cur++;
 		if (*cur == '.') {
 			cur++;
+			if (!isdigit(*cur)) return 0;
 			while (isdigit(*cur)) cur++;
 			if (*cur == '\0') return 1;
 		}

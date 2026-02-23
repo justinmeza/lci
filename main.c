@@ -191,8 +191,16 @@ int main(int argc, char **argv)
 		}
 
 		while (!feof(file)) {
+			void *mem = NULL;
 			size += READSIZE;
-			buffer = realloc(buffer, sizeof(char) * size);
+			mem = realloc(buffer, sizeof(char) * size);
+			if (!mem) {
+				perror("realloc");
+				free(buffer);
+				fclose(file);
+				return 1;
+			}
+			buffer = mem;
 			length += fread((buffer + size) - READSIZE,
 					1,
 					READSIZE,
@@ -205,12 +213,22 @@ int main(int argc, char **argv)
 			return 1;
 		}
 		if (!buffer) return 1;
+		/* Ensure room for NUL terminator */
+		{
+			void *mem = realloc(buffer, sizeof(char) * (length + 1));
+			if (!mem) {
+				perror("realloc");
+				free(buffer);
+				return 1;
+			}
+			buffer = mem;
+		}
 		buffer[length] = '\0';
 
 		/* Remove hash bang line if run as a standalone script */
 		if (buffer[0] == '#' && buffer[1] == '!') {
 			unsigned int n;
-			for (n = 0; buffer[n] != '\n' && buffer[n] != '\r'; n++)
+			for (n = 0; buffer[n] != '\0' && buffer[n] != '\n' && buffer[n] != '\r'; n++)
 				buffer[n] = ' ';
 		}
 
@@ -220,8 +238,8 @@ int main(int argc, char **argv)
 		 * also expect the output to include a BOM).
 		 */
 		if (buffer[0] == (char)0xef
-				|| buffer[1] == (char)0xbb
-				|| buffer[2] == (char)0xbf) {
+				&& buffer[1] == (char)0xbb
+				&& buffer[2] == (char)0xbf) {
 			buffer[0] = ' ';
 			buffer[1] = ' ';
 			buffer[2] = ' ';

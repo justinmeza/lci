@@ -1106,6 +1106,7 @@ void deleteAltArrayDefStmtNode(AltArrayDefStmtNode *node)
 	if (!node) return;
 	deleteIdentifierNode(node->name);
 	deleteBlockNode(node->body);
+	deleteIdentifierNode(node->parent);
 	free(node);
 }
 
@@ -1396,6 +1397,7 @@ int peekToken(Token ***tokenp,
               TokenType token)
 {
 	Token **tokens = *tokenp;
+	if (!(*tokens)) return 0;
 	if ((*tokens)->type != token) return 0;
 	return 1;
 }
@@ -1417,6 +1419,8 @@ int nextToken(Token ***tokenp,
          TokenType token)
 {
 	Token **tokens = *tokenp;
+	if (!(*tokens)) return 0;
+	if (!(*(tokens + 1))) return 0;
 	if ((*(tokens + 1))->type != token) return 0;
 	return 1;
 }
