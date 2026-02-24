@@ -238,7 +238,7 @@ BRAINZ also exposes low-level tensor operations (`TENSUR`, `TIEMZ`, `MOAR`,
 architectures.
 
 For a full-scale LOLCODE language model project built on BRAINZ, see
-[lollm](https://github.com/jjm/lollm).
+[lollm](https://github.com/justinmeza/lollm).
 
 ## License
 
